@@ -1,0 +1,287 @@
+\begin{document}
+\affiliation{$$_affiliation_$$}
+\title{\Large\textbf{Axiomatic modeling of fixed proportion technologies}
+\maketitle
+
+
+\begin{abstract}
+\noindent 
+Understanding input substitution and output transformation possibilities is critical for efficient resource allocation and firm strategy. There are important examples of fixed proportion technologies where certain inputs are non-substitutable and/or certain outputs are non-transformable. However, there is widespread confusion about the appropriate modeling of fixed proportion technologies in data envelopment analysis. We point out and rectify several misconceptions in the existing literature, and show how fixed proportion technologies can be correctly incorporated into the axiomatic framework. A Monte Carlo study is performed to demonstrate the proposed solution.
+\\[5mm]
+\textbf{Keywords}: Data envelopment analysis; Fixed proportion technology; Production theory; Weight restrictions
+\\[2mm]
+\textbf{JEL Codes}: C14; C61; D24
+\end{abstract}
+\vfill
+
+\thispagestyle{empty}
+\newpage
+\setcounter{page}{1}
+\setcounter{footnote}{0}
+\pagenumbering{arabic}
+\baselineskip 20pt
+\setlength\bibitemsep{1.15\itemsep}
+
+\section{Introduction}\label{sec:intro}
+
+There are several important examples of production technologies where certain inputs are non-substitutable and/or certain outputs are non-transformable. Following \textcite{Barnum2011}, in this paper, we refer to such technologies as fixed proportion technologies. In economics, the L-shaped Leontief production function is a classic example of fixed proportion technologies. In manufacturing and services, the use of capital, labor, materials, and energy in fixed proportions is characteristic of production systems \parencite{guner_multi-period_2021}. In agricultural production, a primary input (e.g., cocoa beans, wheat seeds) is processed into multiple products in fixed proportions \parencite{Boyabatl2015}. 
+
+The axiomatic theory of production that builds upon such works as \textcite{Koopmans1951}, \textcite{Farrell1957}, \textcite{Shephard1970}, and \textcite{Afriat1972} is
+nowadays commonly referred to as data envelopment analysis (DEA) (\citeauthor{Charnes1978}, \citeyear{Charnes1978}). DEA does not generally assume anything about substitutability (transformability) among inputs (outputs). However, the empirical DEA frontiers are piece-wise linear surfaces that tend to exhibit at least limited substitution (transformation) possibilities. To improve the DEA estimator in the case of fixed proportion technologies, \textcite{Barnum2011} and \textcite{Barnum2017} propose extended DEA formulations that are claimed to address this issue. Unfortunately, their proposed solution only makes matters worse.
+
+This paper points out and rectifies several errors and misconceptions in the existing literature. We show how fixed proportion technologies can be correctly incorporated into the axiomatic framework. A Monte Carlo study demonstrates the modeling of fixed proportion technologies in DEA falls into the category of finite sample bias and this issue can be addressed by a simple algorithm proposed in this paper.
+
+\section{Axiomatic approach}\label{sec:setup}
+Consider $N$ decision-making units (DMUs). Each DMU operates a joint production technology that transforms $M$ inputs $\vx_n = (x_{1n}, \ldots, x_{Mn}) \in \reals_+^M$ to $S$ outputs $\vy_n = (y_{1n}, \ldots, y_{Sn}) \in \reals_+^S$, $n = 1, \ldots, N$. The most obvious representation of the production technology is the production possibility set $\T = \bigl\{(\vx,\vy)\,|\,\vx\;{\rm{can}}\,{\rm{produce}}\;\vy\bigl\}$.
+
+The three classical axioms of the production technology considered in this paper include the following (see, e.g., \cite{Koopmans1951,Afriat1972,Fare1995}):
+\begin{itemize}
+    \item[] A1. Free disposability of inputs and outputs: If $(\vx,\vy) \in \T$ and $\tilde{\vx} \geq \vx, \tilde{\vy} \leq \vy$, then $(\tilde{\vx},\tilde{\vy}) \in \T$
+    \item[] A2. Convexity: If $(\vx,\vy) \in \T$, then $\left( \sum\limits_{n=1}^N \lambda_n\vx_n, \sum\limits_{n=1}^N \lambda_n\vy_n \right) \in \T$ for any scalar $\lambda \ge 0$ such that $\sum\limits_{n=1}^N \lambda_n =1$
+    \item[] A3. Constant returns to scale: If $(\vx,\vy) \in \T$, then $(\alpha\vx,\alpha\vy) \in \T$ for any scalar $\alpha > 0$
+\end{itemize}
+\textcite{Afriat1972} was the first to introduce and prove the minimum extrapolation production functions in the single output case for the following combinations of axioms: A1, \{A1, A2\}, and \{A1, A2, A3\}. Extensions to the multiple output setting were presented for A1 in \textcite{tulkens_fdh_1993} known as the free disposal hull (FDH) technology, for \{A1, A2\} in \textcite{banker1984} known as the variable returns to scale (VRS) or BCC technology, and for \{A1, A2, A3\} in \textcite{Charnes1978} known as the constant returns to scale (CRS) or CCR technology. The multi-output DEA technologies can be stated in terms of $\T$ as follows:
+\begin{itemize}
+    \item[] FDH: $\,\T_{\text{A1}}^{\,\text{DEA}} = \Bigl\{ (\vx,\vy)\,\Big|\,\sum\limits_{n=1}^N \lambda_n\vx_n \le \vx;\sum\limits_{n=1}^N \lambda_n\vy_n \ge \vy;\sum\limits_{n=1}^N \lambda_n =1;\lambda_n \in \{0,1\},\forall n \Bigl\} $
+    \item[] BCC: $\,\T_{\text{A1,A2}}^{\,\text{DEA}} = \Bigl\{ (\vx,\vy)\,\Big|\,\sum\limits_{n=1}^N \lambda_n\vx_n \le \vx;\sum\limits_{n=1}^N \lambda_n\vy_n \ge \vy;\sum\limits_{n=1}^N \lambda_n =1;\lambda_n \ge 0,\forall n \Bigl\} $
+    \item[] CCR: $\,\T_{\text{A1,A2,A3}}^{\,\text{DEA}} = \Bigl\{ (\vx,\vy)\,\Big|\,\sum\limits_{n=1}^N \lambda_n\vx_n \le \vx;\sum\limits_{n=1}^N \lambda_n\vy_n \ge \vy;\lambda_n \ge 0,\forall n \Bigl\} $
+\end{itemize}
+To maintain clarity and brevity, we will focus on the input-oriented CCR technology in the subsequent discussion. Nonetheless, our findings can readily be extended to the BCC and FDH technologies as well as other orientations. 
+
+The DEA technology frontier can be estimated by the multiplier form of the CCR model:
+\begin{equation}\label{eq:CCR}
+\max_{\vu_n, \vv_n} \,\ \theta_{n}=\sum_{s=1}^S u_{sn} y_{sn}
+\end{equation}
+\begin{equation*}
+\mbox{\textit{s.t.}}\quad
+\sum_{m=1}^M v_{mn} x_{mn}=1    
+\end{equation*}
+\begin{equation*}
+\sum_{s=1}^S u_{sn} y_{sj}-\sum_{m=1}^M v_{mn} x_{nj} \leq 0, \quad j = 1, \ldots, N
+\end{equation*}
+\begin{equation*}
+u_{sn} \ge 0,v_{mn} \ge 0, \quad s = 1, \ldots, S, \; m = 1, \ldots, M
+\end{equation*}
+where $\theta_{n}$ is a scalar denoting the technical efficiency, $\vv_n = (v_{1n}, \ldots, v_{Mn}) \in \reals_+^M$ is a vector of the input weights, and $\vu_n = (u_{1n}, \ldots, u_{Sn}) \in \reals_+^S$ is a vector of the output weights for DMU $n$, $n = 1, \ldots, N$.
+
+Restrictions on the weights allow for explicitly stating input substitution and output transformation possibilities within the axiomatic approach \parencite{Allen1997}. In a special case where a pair of inputs are non-substitutable, we may introduce an additional assumption after the maintained axioms:
+\begin{itemize}
+    \item[] A4. Non-substitutability of inputs $m$ and $\tilde{m}$: Either $v_{mn}=0$ or $v_{\tilde{m}n}=0$, $\exists m,\tilde{m} \in \{1,\ldots, M\},\, m \neq \tilde{m},\, \forall n \in \{1,\ldots, N\}$
+\end{itemize}
+A4 implies that the ratio of the input weights $v_{mn}/v_{\tilde{m}n}$ must be equal to zero or approach infinity. Analogously, if a pair of outputs are non-transformable, we may introduce another additional assumption:
+\begin{itemize}
+    \item[] A5. Non-transformability of outputs $s$ and $\tilde{s}$: Either $u_{sn}=0$ or $u_{\tilde{s}n}=0$, $\exists s,\tilde{s} \in \{1,\ldots, S\},\, s \neq \tilde{s},\, \forall n \in \{1,\ldots, N\}$
+\end{itemize}
+A5 implies that the ratio of the output weights $u_{sn}/u_{\tilde{s}n}$ must be equal to zero or approach infinity. Imposing either A4 or A5 as an additional assumption results in a fixed proportion technology.
+
+It is worth noting that A4 (A5) focuses on the non-substitutability (non-transformability) between a pair of inputs (outputs). It is possible to generalize these axioms to an arbitrary subset of non-substitutable inputs and/or non-transformable outputs, or even multiple subsets of non-substitutable inputs and/or non-transformable outputs. We leave such generalizations as an interesting topic for future research.
+
+
+
+\section{Correct implementation}\label{sec:corr}
+If one has prior information and is willing to make additional assumptions that a pair of inputs are non-substitutable (A4) and/or a pair of outputs are non-transformable (A5), we can incorporate those as extra constraints into the CCR multiplier form:
+\begin{equation}\label{eq:FP-CCR}
+\max_{\vu_n, \vv_n} \,\ \theta_{n}=\sum_{s=1}^S u_{sn} y_{sn}
+\end{equation}
+\begin{equation*}
+\mbox{\textit{s.t.}}\quad
+\sum_{m=1}^M v_{mn} x_{mn}=1    
+\end{equation*}
+\begin{equation*}
+\sum_{s=1}^S u_{sn} y_{sj}-\sum_{m=1}^M v_{mn} x_{nj} \leq 0, \quad j = 1, \ldots, N
+\end{equation*}
+\begin{equation*}
+u_{sn} \ge 0,v_{mn} \ge 0, \quad s = 1, \ldots, S, \; m = 1, \ldots, M
+\end{equation*}
+\begin{equation*}
+\text{either}\; v_{mn}=0 \;\text{or}\; v_{\tilde{m}n}=0, \exists m,\tilde{m} \in \{1,\ldots, M\},\, m \neq \tilde{m}
+\end{equation*}
+\begin{equation*}
+\text{either}\; u_{sn}=0 \;\text{or}\; u_{\tilde{s}n}=0, \exists s,\tilde{s} \in \{1,\ldots, S\},\, s \neq \tilde{s}
+\end{equation*}
+The formulation of problem \eqref{eq:FP-CCR} is the same as problem \eqref{eq:CCR} except for the final two sets of constraints. The second last set imposes assumption A4, enforcing the marginal rate of substitution (MRS) between the pair of non-substitutable inputs to be either zero or infinite. The last set of constraints imposes A5, enforcing the marginal rate of transformation (MRT) between the pair of non-transformable outputs to be either zero or infinite.
+
+Problem \eqref{eq:FP-CCR} is a disjunctive programming problem, which is computationally demanding due to the need for specialized optimization solvers. Fortunately, there exists a simple branch-and-cut algorithm that breaks down problem \eqref{eq:FP-CCR} into a stepwise procedure. This method, which we will refer to as FP-constrained DEA, offers a more accessible approach. Without the loss of generality, consider a basic scenario with two inputs and a single output, where the two inputs are non-substitutable. Based on this scenario, the stepwise procedure of FP-constrained DEA is demonstrated in Algorithm \ref{alg:FP-DEA}.
+
+\vspace{.45em}
+\begin{algorithm}[H]\label{alg:FP-DEA} 
+  \KwData{$\{\vx_n, y_n\}_{n=1}^N \in \reals_+^2 \times \reals_+$}
+  $\theta_{n} = 0, n = 1, \ldots, N$\;
+  \While{$\theta_{n} = 0$}{
+  	Solve problem \eqref{eq:CCR} excluding $x_{1n}$ while keeping all other           variables to calculate $\theta_{n}^1$;
+        
+        Solve problem \eqref{eq:CCR} excluding $x_{2n}$ while keeping all other variables to calculate $\theta_{n}^2$;
+    \eIf{$\theta_{n}^1\ge \theta_{n}^2$}{
+    $\theta_{n} = \theta_{n}^1$\;
+    }{
+    $\theta_{n} = \theta_{n}^2$\;
+    }
+ }
+ \KwResult{$\theta_{n}$}
+\caption{Calculating technical efficiency $\theta_{n}$ using FP-constrained DEA.}
+\end{algorithm}
+\vspace{1em}
+\section{Monte Carlo simulations}\label{sec:mc-sim}
+Consider a fixed proportion technology with $M$ inputs and a single output, where the true production function is $F(\vx_n) = \min\{x_{1n}, \ldots, x_{Mn}\}, n = 1, \ldots, N$. The inputs are randomly generated from the uniform distribution in the range $[0, 100]$. The observed output $y_n = F(\vx_n)\times \exp(-\mu_n)$ is perturbed by a half-normal inefficiency term $\mu_n\geq 0$ drawn independently from $\mathcal{N}^+(0,\sigma_\mu^2)$. No stochastic noise is considered as standard DEA does not handle it. The fixed proportion technology is assumed to exhibit CRS, and the technology frontier is characterized by the Shephard input distance function. Once the frontier is estimated, it is possible to measure efficiency using various types of distance metrics or slack-based measures, but this is another question that is not dependent on frontier estimation. In this study, we do not consider non-radial slacks but simply use the radial Farrell measure of technical efficiency.
+
+We examine 48 scenarios encompassing input dimensions $M \in \{2, 3\}$, no inefficiency and 3 levels of inefficiency with standard deviations $\sigma_\mu \in \{1, 2, 3\}$, along with 6 different sample sizes $N \in \{30, 50, 100, 300, 500, 1000\}$. Each scenario is replicated 1000 times using the DEA toolbox developed by \textcite{alvarez_data_2020} on MATLAB R2021a. The computation was undertaken on the Viking Cluster, a high performance computing facility provided by the University of York. 
+
+Since we know the true distance to the frontier of the fixed proportion technology, we can compare the finite sample performance of the original CCR DEA and our proposed FP-constrained DEA relative to the true frontier. In addition, we include \citeauthor{Barnum2011}'s (\citeyear{Barnum2011}) proposed modeling of fixed proportion technologies in this comparison. \textcite{Barnum2011} and \textcite{Barnum2017} impose identical input (output) weights between any pair of non-substitutable inputs (non-transformable outputs) in the CCR and BBC DEA formulations, respectively. Technically, perfect substitutability (transformability) between inputs (outputs) is a direct consequence of this modeling approach. In other words, their results would be exactly the same if perfect substitutability (transformability) was assumed. 
+
+A standard performance measure is the mean squared error (MSE) between the true and estimated distance to the frontier (technical efficiency scores). The smaller the MSE, the better the finite sample performance. Table \ref{tab:mc-mse1} presents the MSE statistics for different methods across diverse scenarios. 
+
+\begin{table}[H]
+   \caption{MSE statistics for CCR DEA (CCR), FP-constrained DEA (FP), and \citeauthor{Barnum2011}'s (\citeyear{Barnum2011}) proposal (BG).}
+\renewcommand\arraystretch{1}
+\footnotesize{\centerline{
+\begin{tabular}{ccccccccccccc}
+\toprule
+\multirow{2}{*}{$M$} & \multirow{2}{*}{$N$} & \multicolumn{3}{c}{$\sigma_\mu=1$} & \multicolumn{3}{c}{$\sigma_\mu=2$} & \multicolumn{3}{c}{$\sigma_\mu=3$} & \multicolumn{2}{c}{no inefficiency} \\ \cmidrule{3-13} 
+  &        & CCR      & FP  &  BG     & CCR      & FP  &  BG   & CCR      & FP &  BG    & CCR \& FP  &  BG     \\ \midrule
+2 & 30     & 0.0076     & 0.0035  & 0.0619  & 0.0120     & 0.0068  & 0.0344  & 0.0146     & 0.0093  & 0.0248  & 0    & 0.2230                           \\
+  & 50     & 0.0038     & 0.0014  & 0.0631  & 0.0061     & 0.0028  & 0.0340  & 0.0076     & 0.0041  & 0.0234  & 0    & 0.2231                         \\
+  & 100    & 0.0013     & 0.0004  & 0.0668  & 0.0021     & 0.0008  & 0.0358  & 0.0026     & 0.0011  & 0.0239  & 0    & 0.2251                            \\
+  & 300    & 0.0003     & 0.0000  & 0.0701  & 0.0004     & 0.0001  & 0.0382  & 0.0006     & 0.0002  & 0.0256   & 0    & 0.2265                              \\
+  & 500    & 0.0001     & 0.0000  & 0.0717  & 0.0002     & 0.0000  & 0.0392  & 0.0002     & 0.0001  & 0.0263   & 0    & 0.2268                        \\
+  & 1000   & 0.0000     & 0.0000  & 0.0732  & 0.0001     & 0.0000  & 0.0403  & 0.0001     & 0.0000  & 0.0273   & 0    & 0.2270                             \\
+3 & 30     & 0.0189     & 0.0071  & 0.0890  & 0.0261     & 0.0136  & 0.0485  & 0.0291     & 0.0177  & 0.0340   & 0    & 0.3311                            \\
+  & 50     & 0.0097     & 0.0029  & 0.0916   & 0.0134     & 0.0056  & 0.0485  & 0.0153     & 0.0076  & 0.0325   & 0    & 0.3360                            \\
+  & 100    & 0.0042     & 0.0008  & 0.0985   & 0.0058     & 0.0017  & 0.0525  & 0.0068     & 0.0024  & 0.0349   & 0    & 0.3439                          \\
+  & 300    & 0.0010     & 0.0001  & 0.1056  & 0.0014     & 0.0002  & 0.0569  & 0.0017     & 0.0003  & 0.0379   & 0    & 0.3519                           \\
+  & 500    & 0.0005     & 0.0000  & 0.1081   & 0.0007     & 0.0001  & 0.0586  & 0.0009     & 0.0001  & 0.0392   & 0    & 0.3549                           \\
+  & 1000   & 0.0002     & 0.0000  & 0.1109  & 0.0003     & 0.0000  & 0.0607   & 0.0004     & 0.0000  & 0.0409   & 0   & 0.3568                           \\ 
+\bottomrule
+\end{tabular}
+}}
+\label{tab:mc-mse1}
+\end{table}
+
+In the case of no inefficiency, both CCR DEA and FP-constrained DEA achieve a perfect fit for all input dimensions and sample sizes, whereas \citeauthor{Barnum2011}'s (\citeyear{Barnum2011}) proposal yields estimates noticeably deviating from the true technical efficiency scores. In the presence of inefficiencies, CCR DEA demonstrates strong performance in estimating fixed proportion technologies, as evidenced by low MSE values. Impressively, FP-constrained DEA outperforms even further, achieving MSE values that are closer to zero. In sharp contrast, \citeauthor{Barnum2011}'s (\citeyear{Barnum2011}) proposal exhibits notably diminished performance. These findings are further confirmed by the correlation coefficients between the true distance to the frontier and the estimates, as reported in Table \ref{tab:mc-cor1}. More detailed findings in the presence of inefficiencies are summarized as follows:
+\begin{itemize}
+    \item The finite sample performance of both CCR DEA and FP-constrained DEA becomes slightly worse as the standard deviation of inefficiency increases or an additional input is included.
+    \item As the sample size increases, both CCR DEA and FP-constrained DEA exhibit reduced MSE values and increased correlation coefficients, thus signifying enhanced finite sample performance.
+    \item FP-constrained DEA, in comparison to CCR DEA, achieves consistently better finite sample performance, particularly in small samples. 
+\end{itemize}
+
+Overall, the Monte Carlo study has provided numerical evidence 1) that the original CCR DEA modeling of fixed proportion technologies suffers from finite sample bias but approaches the true frontier as the sample size increases and 2) that our proposed FP-constrained DEA approach offers more accurate modeling of fixed proportion technologies and alleviates finite sample bias, particularly in small samples.
+
+\begin{table}[H]
+   \caption{Correlation coefficients for CCR DEA (CCR), FP-constrained DEA (FP), and \citeauthor{Barnum2011}'s (\citeyear{Barnum2011}) proposal (BG).}
+\renewcommand\arraystretch{1}
+\footnotesize{\centerline{
+\begin{tabular}{ccccccccccc}
+\toprule
+\multirow{2}{*}{$m$} & \multirow{2}{*}{$N$} & \multicolumn{3}{c}{$\sigma_u=1$} & \multicolumn{3}{c}{$\sigma_u=2$} & \multicolumn{3}{c}{$\sigma_u=3$} \\ \cmidrule{3-11} 
+ &                                                                        & CCR      & FP  & BG    & CCR      & FP  & BG   & CCR      & FP & BG     \\ \midrule
+2                  & 30                                                                     & 0.9862        & 0.9941     &  0.6836    & 0.9859        & 0.9920    & 0.8092    & 0.9839        & 0.9896     & 0.8501   \\
+                   & 50                                                                     & 0.9917        & 0.9976  & 0.6865      & 0.9914        & 0.9964   & 0.8121     & 0.9901        & 0.9949    & 0.8521    \\
+                   & 100                                                                    & 0.9967        & 0.9993  & 0.6887      & 0.9965        & 0.9989   & 0.8131     & 0.9958        & 0.9984    & 0.8524     \\
+                   & 300                                                                    & 0.9990        & 0.9999  & 0.6878      & 0.9989        & 0.9998   & 0.8123     & 0.9987        & 0.9997   & 0.8514     \\
+                   & 500                                                                    & 0.9995        & 1.0000  & 0.6883      & 0.9994        & 0.9999   & 0.8126     & 0.9993        & 0.9999   & 0.8516     \\
+                   & 1000                                                                   & 0.9998        & 1.0000  & 0.6875       & 0.9998        & 1.0000   & 0.8120     & 0.9997        & 1.0000   & 0.8511     \\
+3                  & 30                                                                     & 0.9608        & 0.9844   & 0.5944     & 0.9645        & 0.9795   & 0.7422     & 0.9628        & 0.9750    & 0.7949    \\
+                   & 50                                                                     & 0.9770        & 0.9935   & 0.6057     & 0.9797        & 0.9910   & 0.7479     & 0.9782        & 0.9882    & 0.7977    \\
+                   & 100                                                                    & 0.9882        & 0.9979   & 0.6009     & 0.9892        & 0.9968   & 0.7421     & 0.9882        & 0.9955  & 0.7909       \\
+                   & 300                                                                    & 0.9961        & 0.9997   & 0.6027     & 0.9963        & 0.9995   & 0.7433     & 0.9959        & 0.9993 & 0.7916        \\
+                   & 500                                                                    & 0.9977        & 0.9999   & 0.6023     & 0.9978        & 0.9998   & 0.7429     & 0.9975        & 0.9997 & 0.7912        \\
+                   & 1000                                                                   & 0.9989        & 1.0000   & 0.6030      & 0.9989        & 1.0000   & 0.7433     & 0.9988        & 0.9999  & 0.7914       \\
+\bottomrule
+\end{tabular}
+}}
+\vspace{0.5em}
+\footnotesize{Note: Correlation coefficients in the case of no inefficiency are undefined as the true technical efficiency scores consistently equal 1.}
+\label{tab:mc-cor1}
+\end{table}
+
+To gain more insight, we proceed to plot the true input isoquants and those estimated by CCR DEA and FP-constrained DEA, as well as \citeauthor{Barnum2011}'s (\citeyear{Barnum2011}) proposal, based on random samples of the two extreme sample sizes in this study (30 and 1000) within the scenarios of two inputs. Figures \ref{fig:sample30} and \ref{fig:sample1000} illustrate the four sets of input isoquants with the smallest (30) and largest (1000) sample sizes, respectively.
+
+Both figures highlight the misconceptions of \citeauthor{Barnum2011}'s (\citeyear{Barnum2011}) proposal. It benchmarks the data points relative to the green line with the slope of $-1$ in all scenarios. This observation is entirely in line with our expectations, as we have established this conclusion above that \citeauthor{Barnum2011}'s (\citeyear{Barnum2011}) proposal would lead to exactly the same result if perfect substitutability was assumed. Clearly, it does not capture the correct shape of the input isoquant, even if we have perfectly accurate data with zero noise and inefficiency (as shown in panels \ref{fig30:a} and \ref{fig1000:a}). In contrast, both CCR DEA and FP-constrained DEA achieve a perfect fit to the true input isoquant in the case of no inefficiency.
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=1\textwidth]{Figs/Fixed_proportion_fig_1a.pdf} 
+		\caption[]		{{\small no inefficiency}}    
+		\label{fig30:a}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\textwidth}  
+		\centering 
+		\includegraphics[width=1\textwidth]{Figs/Fixed_proportion_fig_1b.pdf} 
+		\caption[]		{{\small $\sigma_\mu=1$}}    
+		\label{fig30:b}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\textwidth}   
+		\centering 
+		\includegraphics[width=1\textwidth]{Figs/Fixed_proportion_fig_1c.pdf} 
+		\caption[]		{{\small $\sigma_\mu=2$}}    
+		\label{fig30:c}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\textwidth}   
+		\centering 
+		\includegraphics[width=1\textwidth]{Figs/Fixed_proportion_fig_1d.pdf} 
+		\caption[]		{{\small $\sigma_\mu=3$}}    
+		\label{fig30:d}
+	\end{subfigure}
+	\caption[]	{Illustration of the input isoquants estimated by CCR DEA, FP-constrained DEA, and \citeauthor{Barnum2011}'s (\citeyear{Barnum2011}) proposal with $N=30$.}
+	\label{fig:sample30}
+\end{figure}
+
+Combining Figures \ref{fig:sample30} and \ref{fig:sample1000}, when inefficiencies are present, one can correctly argue that CCR DEA produces a wrong shape of the input isoquant with a small sample size (e.g., 30), yet the CCR DEA frontier converges to the true frontier when the sample size is sufficiently large (e.g., 1000). In contrast, FP-constrained DEA can mimic the correct shape of the true frontier even in a small sample and further, it performs consistently better than CCR DEA.
+
+\begin{figure}[H]
+	\centering
+	\begin{subfigure}[b]{0.49\textwidth}
+		\centering
+		\includegraphics[width=1\textwidth]{Figs/Fixed_proportion_fig_2a.pdf} 
+		\caption[Network2]		{{\small no inefficiency}}    
+		\label{fig1000:a}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\textwidth}  
+		\centering 
+		\includegraphics[width=1\textwidth]{Figs/Fixed_proportion_fig_2b.pdf} 
+		\caption[]		{{\small $\sigma_\mu=1$}}    
+		\label{fig1000:b}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\textwidth}   
+		\centering 
+		\includegraphics[width=1\textwidth]{Figs/Fixed_proportion_fig_2c.pdf} 
+		\caption[]		{{\small $\sigma_\mu=2$}}    
+		\label{fig1000:c}
+	\end{subfigure}
+	\begin{subfigure}[b]{0.49\textwidth}   
+		\centering 
+		\includegraphics[width=1\textwidth]{Figs/Fixed_proportion_fig_2d.pdf} 
+		\caption[]		{{\small $\sigma_\mu=3$}}    
+		\label{fig1000:d}
+	\end{subfigure}
+	\caption[]	{Illustration of the input isoquants estimated by CCR DEA, FP-constrained DEA, and \citeauthor{Barnum2011}'s (\citeyear{Barnum2011}) proposal with $N=1000$.}
+	\label{fig:sample1000}
+\end{figure}
+
+
+
+\section{Conclusions}\label{sec:concl}
+\textcite{Barnum2011} and \textcite{Barnum2017} argue that DEA is inappropriate for estimating fixed proportion technologies because DEA implicitly assumes inputs are substitutable and outputs are transformable. In fact, nothing in the classical axioms of DEA limits substitutability or transformability. We agree with the conceptual point that if the true frontier of the underlying technology is L-shaped, the DEA frontier might have a wrong shape. That being said, this issue is merely finite sample bias. Going back to the classic works in economics by \textcite{Koopmans1951} and \textcite{Afriat1972} and the DEA literature later developed by \textcite{Banker1993} and \textcite{simar_aspects_1996}, we know that DEA is statistically consistent under axioms A1--A3. Since the fixed proportion technology does satisfy all the axioms, DEA is consistent in this case.
+
+In this paper, we have proposed the correct modeling of fixed proportion technologies
+within the axiomatic framework. A Monte Carlo study confirms the finite sample bias in the DEA modeling of fixed proportion technologies and the superiority of our proposed FP-constrained DEA over the original CCR DEA. If one does not have prior information about the substitution or transformation possibilities but the assumptions of DEA hold, then it is better to use standard DEA because it is consistent for the entire range between perfect substitution (transformation) as one extreme case and non-substitution (non-transformation) as the other extreme. The finite sample bias can be alleviated by simply increasing the sample size. However, if one needs to make an additional assumption on the substitution or transformation possibilities, FP-constrained DEA can more accurately model fixed proportion technologies not only in large samples but notably in small ones. 
+
+We believe that this paper opens interesting avenues for future research. The proposed FP-constrained DEA can readily be extended to various DEA models. It is possible to generalize the fixed proportion axioms to one or more arbitrary subsets of non-substitutable inputs and/or non-transformable outputs. Such subsets might also include undesirable outputs and thus, it would be relevant to consider alternative axioms such as weak disposability. Extension to convex regression and related techniques is also left as an interesting challenge for future research.
+
+\section*{Acknowledgments}\label{sec:ack}
+
+We are grateful for computational support from the University of York High Performance Computing service, Viking and the Research Computing team.
+
+
+
+\printbibliography
+\baselineskip 12pt
+
+
+
+
+
+
+
+\end{document}

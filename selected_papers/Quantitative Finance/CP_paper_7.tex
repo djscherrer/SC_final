@@ -1,0 +1,708 @@
+\begin{document}
+\affiliation{$$_affiliation_$$}
+\title{Subset SSD for enhanced indexation with sector constraints}
+\maketitle
+
+\begin{center} 
+{\footnotesize
+
+$^1$Departamento de Ci\^{e}ncia da Computa\c{c}\~{a}o, \\
+ Universidade Federal de Minas Gerais, \\
+ Belo Horizonte, MG 31270-010, Brasil \\
+\{arbex,acunha\}@dcc.ufmg.br \\ \vspace{0.3cm}
+$^2$Brunel University \\ Mathematical Sciences, UK \\ john.beasley@brunel.ac.uk \\
+}
+\end{center} 
+
+
+\begin{abstract}
+
+In this paper we apply second order stochastic dominance (SSD) to the problem of enhanced indexation with asset subset (sector) constraints. The problem we
+ consider is how to construct a portfolio that is
+designed to outperform a given market index whilst having regard to the proportion of the portfolio invested in distinct market sectors. 
+
+In our approach, subset SSD,  the portfolio associated with each sector is treated in a SSD manner. 
+In other words in subset SSD we actively try to find sector portfolios that SSD dominate their respective sector indices.
+However the proportion of the overall portfolio 
+invested in each sector is not pre-specified, rather it is decided via optimisation.
+
+Computational results are given for our approach as applied to the S\&P~500 over the period 
+$29^{\text{th}}$ August 2018 to $29^{\text{th}}$ December 2023. This period, over 5 years, includes the Covid pandemic, 
+which had a significant effect on stock prices.
+Our results indicate that the scaled version of our subset SSD
+approach significantly outperforms the S\&P~500 over the period considered. Our approach also outperforms the standard SSD based
+approach to the problem.
+\end{abstract}
+
+{\bf Keywords:} enhanced indexation, finance, optimisation, portfolio optimisation, second order stochastic dominance
+
+\section{Introduction}
+
+In this paper we consider the problem of enhanced indexation with asset subset (sector) constraints. In this problem we aim to 
+outperform a given market index whilst having regard to the proportion of the portfolio invested in distinct market sectors. We apply second 
+order stochastic dominance (SSD) to the problem. Computational results are given for our approach as applied to the S\&P~500.
+
+
+The structure of this paper is as follows. In Section~\ref{sec2} we review the relevant literature as to second order stochastic 
+dominance. In Section~\ref{sec3} we
+ present SSD from a mathematical viewpoint together with discussion of  the standard cutting plane 
+procedure associated with its resolution. 
+In Section~\ref{sec4} we present our subset SSD approach  when we have sector (asset subset) constraints present that constrain 
+investment in a number of different subsets of assets. In Section~\ref{sec5} we present computational results obtained 
+when our subset SSD approach is applied to the S\&P~500. In Section~\ref{sec6} we present our conclusions.
+
+\sloppy We believe that the contribution to the literature of this paper is:
+\begin{itemize}
+\item to present a new approach, \emph{\textbf{subset SSD}}, for the problem of enhanced indexation with asset subset (sector) constraints
+\item to demonstrate computationally,
+using data that we make publicly available,  
+ that our subset SSD approach significantly outperforms both the  S\&P~500 and the standard SSD approach to the problem
+\end{itemize}
+
+\section{Literature review}
+\label{sec2}
+
+\sloppy The importance of stochastic dominance (SD) within financial portfolio selection has been recognised for decades \citep{hadar1969, bawa1975, levy1992}. For two 
+random variables $X$ and $Y$ it is well known that $X$ dominates $Y$ under first-order stochastic
+ dominance (FSD, $ X \succeq_{_{FSD}} Y$) if and only if it is preferrable over any monotonic increasing utility function. Likewise, $X$ dominates $Y$ under
+ second-order stochastic dominance (SSD, $ X \succeq_{_{SSD}} Y$) if and only if it is preferrable over any increasing and strictly concave (risk-averse) utility function \citep{whitmore1978}.
+
+For many years however SD was primarily a theoretical framework in terms of financial portfolio optimisation. This was
+ due to the perceived computational difficulties associated with finding SD-efficient portfolios. In the past twenty years, however, there has been a shift towards applying SD (especially SSD) principles in practice, with several optimisation approaches having been proposed for finding portfolios that are either SSD-efficient (with regards to a
+specified set of feasible portfolios) or SSD-dominating (with regards to a benchmark).
+
+\cite{ogryczak2002} identified several risk measures that can be employed in mean-risk ($\mu_x, r_X$) decision models that are consistent with the SSD relation in the sense that $X \succeq_{_{SSD}} Y$ implies that $\mu_X \geq \mu_Y$ and $r_X \leq r_Y$. These measures include tail value-at-risk, tail Gini mean difference and weighted mean deviation from a quantile. The authors presented stochastic linear programming formulations for these models whose optimal solutions are guaranteed to be SSD-efficient.
+
+ \cite{kuosmanen2004, kuosmanen2001}
+developed the first SSD efficiency tests based on mathematical programming. Their formulation finds, if it exists,  
+the portfolio with the highest in-sample mean that dominates a benchmark in the SSD sense.
+\cite{post2003} developed linear programming models for testing if a given portfolio is SSD-efficient with respect to all possible portfolios given a set of assets. 
+
+\cite{dentcheva2006, dentcheva2003} first combine the available assets to produce a reference (or benchmark) distribution, and then compute a portfolio which SSD-dominates the benchmark. They used the lower partial moment of order one to develop the SSD ranking concerning the benchmark portfolio. Their work has been the basis of several later papers in literature, as referenced below.
+
+\cite{roman2006} introduced a multi-objective optimisation model to find a portfolio that achieves SSD dominance over a benchmark. If no such portfolio exists they find the portfolio whose return distribution comes closest to the benchmark. They showed that SSD efficiency does not necessarily make a return distribution desirable, as demonstrated by the optimal portfolio with regards to maximum expected return (which is SSD-efficient). They emphasised the crucial role played by a carefully selected benchmark in the process.
+
+\cite{luedtke2008} presented a model that generalises that of \cite{kuosmanen2004} which includes FSD constraints based on a cutting-plane formulation for problems with integrated chance constraints. Their model involves integer variables, but relaxing integrality yields a formulation with SSD constraints. Their objective is to maximise expected portfolio return.
+
+\cite{fabian2011,fabian2011b} introduced a cutting plane reformulation of \cite{roman2006} which generalises \cite{dentcheva2006}. The authors replaced the multi-objective nature of the problem by maximising the minimum value in the SSD relation with regards to a benchmark. 
+\cite{roman2013} applied the SSD cutting plane formulation in an enhanced indexation setting. \cite{valle2017} added exogenous constraints and 
+reformulated the problem as an integer linear program, for which a branch-and-cut algorithm was developed.
+
+\cite{kopa2015, post2013} introduced a more generalised efficiency test which allows for unequal probabilities and higher orders. In the case of inefficiency
+their dual 
+model finds a dominating portfolio. If the portfolio being tested is a benchmark, this dual model can be seen as equivalent to a model for
+enhanced indexation. 
+
+The set of SSD efficient portfolios is generally very large, and investors need to decide how to select a portfolio in which to invest
+from within  this set. The formulation from \cite{post2013} may be used to find different SSD-efficient portfolios depending on how some parameters are specified. \cite{hodder2015} proposed ways to assign values to these parameters with the goal of helping investors select a single portfolio out of the efficient set.
+
+
+\cite{bruni2016, bruni2012} developed an alternative approach for SD-based enhanced indexation. They proposed
+ a criterion called ``cumulative zero-order stochastic $\epsilon$-dominance'' (CZS$\epsilon$D). Zero-order SD happens when all returns from a given portfolio are superior to all returns from an alternative portfolio. The authors attempt to minimise underperformance by adding an exponential number of constraints related to the  CZS$\epsilon$D criterion, where $\epsilon$ is the maximum underperformance allowed. The separation algorithm they use  is equivalent to optimising conditional value-at-risk via linear programming.
+
+\cite{sharma2017} introduced a relaxed-SSD formulation for enhanced indexation. The SSD constraints are relaxed by adding under/overachievement
+where  SSD violation is controlled by setting an appropriate upper bound related to the total underachievement. The concept of relaxed-SSD was first introduced by \cite{lizyayev2012}. 
+
+\cite{sharma2017b} proposed a SSD-based approach for producing sector portfolios. 
+For each sector, their model seeks a SSD portfolio that dominates the corresponding sector index, whilst focusing on 
+a number of financial ratios
+when making sector portfolio decisions. These sector portfolios are then combined using another model that optimises 
+their mean return subject to being  (if possible) SSD-dominating with respect to the main market index. If SSD dominance cannot be 
+achieved, either in relation to a sector, or in relation to the main market index, they 
+relax the dominance constraints in their models.
+
+
+\cite{liu2021} showed that FSD and SSD may not be sufficient to discriminate between
+multiple dominating portfolios with regards to a benchmark. They proposed a new criterion called Interval-based SD (ISD) in which different SD orders are applied to different parts of the support of the return distribution. They present a reformulation of \cite{dentcheva2006} that maximises portfolio return subject to ISD constraints.
+
+
+\cite{sehgal2019b} presented a robust version of the SSD-formulation of \cite{dentcheva2006}. Robustness is introduced by varying asset returns, and the model is developed as the deterministic equivalent of a stochastic programming formulation. \cite{goel2021} also generalised \cite{dentcheva2006} by considering the ``utility improvement'' in portfolio returns instead of the returns themselves. The authors proposed replacing the portfolio and benchmark returns by their respective deviations in the SSD constraints.
+
+\cite{malavasi21} compared the performance of SSD portfolios with efficient portfolios derived using the standard mean-variance approach 
+of \cite{mark52}. They also focused on the performance of the global minimum variance portfolio as compared with portfolios 
+that are stochastically dominant to this minimum variance portfolio.
+
+\cite{cesarone2022} compared the formulations of \cite{roman2013} and \cite{kopa2015} with skewed benchmarks obtained by using
+ the reshaping method of \cite{valle2017}. They found that SSD portfolios that dominate the skewed benchmark generally
+perform better out-of-sample. 
+
+\cite{liesio23} considered the problem of generating an efficient  frontier using stochastic dominance. They presented an approach based on Pareto optimal solutions of a multiple objective optimisation problem.
+
+\cite{cesarone2024} presented an alternative to \cite{roman2013} where,
+ instead of maximising the minimum value of the SSD relation, the authors proposed a model that optimises 
+the ordered weighted average of a predefined number of tails.
+
+
+
+
+
+\section{Cutting plane based SSD formulation}
+\label{sec3}
+
+Based on a  reformulation of the conditional value-at-risk
+minimisation problem given by~\cite{kunzi2006},~\cite{fabian2011} proposed a novel cutting plane formulation
+ of the SSD problem, one whose objective is to maximise the minimum value in the SSD relationship between the 
+portfolio and a given benchmark (e.g.~a market index or some reference distribution).~\cite{roman2013} then employed the formulation for
+ enhanced indexation. In this section we outline their approach. Let 
+\begin{compactitem}
+\item $N$  be number of assets available for  investment
+\item $S$ be  number of scenarios, where the scenarios are assumed to be equiprobable
+\item $r_{is}$ be the return of asset $i$ in scenario $s$
+\item $r^I_{s}$ be the benchmark return in scenario $s$
+\item $R_s^P$ be the return associated with a given asset portfolio $P$ in scenario $s$
+\item $\text{Tail}^L_{\frac{\alpha}{S}}(P)$ be the unconditional expectation of the smallest $\alpha$ outcomes in $[R_s^P~|~s=1,\ldots,S]$, so the left tail of the portfolio return distribution 
+\end{compactitem}
+
+\noindent For a portfolio $P$ with asset weights $[w_i]$ and hence return $R_s^P= \sum_{i=1}^N r_{is}w_i$ in scenario $s$ we, as~\cite{fabian2011} 
+albeit with slightly different notation, define $\text{Tail}^L_{\frac{s}{S}}(P)$ using 
+\begin{equation}
+ \text{Tail}^L_{\frac{s}{S}}(P) = \frac{1}{S} \text{(sum of the $s$ smallest portfolio returns in $[R_1^P, R_2^P,\ldots,R_S^P]$)}
+\label{jebt1}
+\end{equation}
+\sloppy Here $\text{Tail}^L_{\frac{s}{S}}(P) $ is the left tail of the cumulative return distribution associated with $[R_1^P, R_2^P,\ldots,R_S^P]$
+weighted by the constant $(1/S)$ factor.
+
+
+ Let $I$ be some index portfolio which we would (ideally) like to outperform. The index portfolio has known return $R_s^I$ in scenario $s,~s=1,\ldots,S$.
+Let $\hat{\tau}_s =  \text{Tail}^L_{\frac{s}{S}}(I)~s=1,\ldots,S$.  Clearly we would like the tails of the chosen portfolio to improve on the index portfolio tails, so define 
+the tail differences  $\mathcal{V}_s$ between the chosen portfolio and the index portfolio using 
+\begin{equation}
+  \mathcal{V}_s   = \text{Tail}^L_{\frac{s}{S}}(P) - \hat{\tau}_s~~~s=1,\ldots,S
+\label{jebt2}
+\end{equation}
+
+If $\mathcal{V}_s \geq 0~s=1,\ldots,S$ then the portfolio is second order stochastic dominant to the index portfolio.
+
+Now it is trivial to observe that the sum of the $s$ smallest portfolio returns in the $S$ scenarios can be found by considering all subsets $\mathcal{J}$
+ of the $S$ scenarios of cardinality $s$. In other words 
+\begin{equation} 
+\text{Tail}^L_{\frac{s}{S}}(P) = \frac{1}{S} \min \left[ \sum_{j \in \mathcal{J}} \sum_{i = 1}^N r_{ij} w_i~|~\mathcal{J} \subseteq \{1, ..., S\}, |\mathcal{J}| = s \right]
+\label{jebt3}
+\end{equation}
+If we are choosing $s$ scenarios from the $S$ scenarios then there are  $\frac{S!}{s!(S-s)!}$ subsets $\mathcal{J}$ that need  
+to be considered. So Equation~(\ref{jebt3}) defines the  $s$ smallest portfolio returns in the $S$ scenarios using a combinatorial number of constraints.
+
+Now to make use of the combinatorial definition of $\text{Tail}^L_{\frac{s}{S}}(P)$ 
+ let $\mathcal{V}$ be the minimum value of  $[\mathcal{V}_s~|~s=1,\ldots,S]$. Then a suitable optimisation program to decide the portfolio
+of assets that should be held is to 
+\begin{equation}
+\mbox{maximise} ~ \mathcal{V}
+\label{jebt4}
+\end{equation}
+subject to 
+\begin{equation}
+\mathcal{V}_s  \leq \frac{1}{S} \sum_{j \in \mathcal{J}} \sum_{i = 1}^N r_{ij} w_i - \hat{\tau}_s~~~~\forall \mathcal{J} \subseteq \{1, ..., S\},~|\mathcal{J}| = s,~s=1,\ldots,S
+\label{jebt5}
+\end{equation}
+\begin{equation}
+\mathcal{V}  \leq \mathcal{V}_s ~~~~s=1,\ldots,S
+\label{jebt5fab}
+\end{equation}
+\begin{equation}
+ \sum_{i=1}^N w_i =1
+\label{jebt6}
+\end{equation}
+\begin{equation}
+0 \leq w_i \leq 1~~~~i=1,\ldots,N
+\label{jebt7}
+\end{equation}
+\begin{equation}
+ \mathcal{V} \in\mathbb{R}
+\label{jebt8a}
+\end{equation}
+\begin{equation}
+ \mathcal{V}_s \in\mathbb{R}~~~s=1,\ldots,S
+\label{jebt8}
+\end{equation}
+
+
+\sloppy Equation~(\ref{jebt4}), in conjunction with Equation~(\ref{jebt5fab}),  maximises the minimum tail difference. 
+Equation~(\ref{jebt5}) is the standard SSD combinatorial definition of the tail differences. 
+Equation~(\ref{jebt6}) ensures that all of our wealth is invested in assets. Equation~(\ref{jebt7}) is the non-negativity constraint 
+(so no short-selling). Equation~(\ref{jebt8a}) ensures that  $\mathcal{V}$ can be positive or negative whilst
+Equation~(\ref{jebt8}) ensures that the tail differences $\mathcal{V}_s$ can be positive or negative.
+
+Equations~(\ref{jebt4})-(\ref{jebt8}) above is a portfolio choice optimisation program with explicit consideration of tails. If the 
+objective function has a non-negative optimal value then the associated portfolio  is second order stochastic dominant with respect to the index.
+
+
+\subsection{Cutting plane resolution}
+We can adopt a cutting plane resolution procedure for the portfolio optimisation program Equations~(\ref{jebt4})-(\ref{jebt8}) above.
+This has been given previously (albeit in a slightly different form) by~\cite{fabian2011}.
+
+First define an initial scenario set $\mathcal{J^*}$  where there is at least one set of cardinality $s$, for all values of $s=1,\ldots,S$, in $\mathcal{J^*}$ and amend Equation~(\ref{jebt5}) to 
+\begin{equation}
+\mathcal{V}_s  \leq \frac{1}{S} \sum_{j \in \mathcal{J}} \sum_{i = 1}^N r_{ij} w_i - \hat{\tau}_s~~~~\forall \mathcal{J} \in \mathcal{J^*},~|\mathcal{J}| = s,~s=1,\ldots,S 
+\label{jeb6}
+\end{equation}
+\begin{enumerate}
+\item Solve the amended optimisation program, optimise Equation~(\ref{jebt4}) subject to Equations~(\ref{jebt5fab})-(\ref{jeb6}).
+\item Consider each value of $s$ ($s=1,\ldots,S$) in turn and if in the solution to the amended optimisation program 
+\begin{equation}
+ \mathcal{V}_s > \frac{1}{S} \text{(sum of the $s$ smallest portfolio returns over the $S$ scenarios)} -  \hat{\tau}_s
+\label{jebt9a}
+\end{equation}
+then add the scenario set associated with these 
+$s$ smallest portfolio returns to $\mathcal{J^*}$. Here the scenario set that is added constitutes a valid cut associated
+ with Equation~(\ref{jebt5}) that is violated by the current solution. 
+\item If scenarios sets have been added to  $\mathcal{J^*}$ go to Step (1), else terminate.
+\end{enumerate}
+
+\noindent Upon
+termination at Step (3) above we will have a set of values satisfying all of the 
+constraints in the amended optimisation program.
+ It remains to prove that we have solved the 
+original (unamended) optimisation program to optimality. Here
+ the only difference between the original optimisation program and the amended optimisation program 
+is the replacement of Equation~(\ref{jebt5}) by Equation~(\ref{jeb6}).
+
+Consider a particular value of $s$. Since we have terminated no cuts of the form shown in 
+Equation~(\ref{jebt9a}) can be added, in other words we must have
+\begin{equation}
+\mathcal{V}_s \leq \frac{1}{S} \text{(sum of the $s$ smallest portfolio returns over the $S$ scenarios)} - \hat{\tau}_s
+\label{jebt9aa}
+\end{equation}
+But the term $\text{(sum of the $s$ smallest portfolio returns over the $S$ scenarios)}$ corresponds to $\min [ \sum_{j \in \mathcal{J}} \sum_{i = 1}^N r_{ij} w_i~|~\mathcal{J} \subseteq \{1, ..., S\}, |\mathcal{J}| = s ]$, since it is the sum of the $s$ smallest portfolio returns. So Equation~(\ref{jebt9aa}) is equivalent to
+\begin{equation} 
+\mathcal{V}_s \leq \frac{1}{S} \min \left[ \sum_{j \in \mathcal{J}} \sum_{i = 1}^N r_{ij} w_i~|~\mathcal{J} \subseteq \{1, ..., S\}, |\mathcal{J}| = s \right] - \hat{\tau}_s
+\label{jebt3aaa}
+\end{equation}
+Equation~(\ref{jebt3aaa})  in turn implies that $\mathcal{V}_s$ satisfies Equation~(\ref{jebt5}) in the original optimisation program. This is because the summation term on 
+the right-hand side of that equation is over all subsets of cardinality $s$, so equivalent to the minimisation term in Equation~(\ref{jebt3aaa}).
+Hence we have found the optimal solution to the original (unamended) optimisation program.
+
+
+\begin{comment}
+Consider a particular value of $s$. 
+Here, since we have terminated, we must 
+some scenario set $k \in \mathcal{J^*}$ corresponding to the $s$ smallest portfolio returns associated with the current solution.  As a consequence there can be no other scenario set of cardinality $s$ for which the sum of the $s$ smallest portfolio returns is less than that associated with $k$. 
+Hence we have found the optimal solution to the original (unamended) optimisation program.
+\end{comment}
+
+\begin{comment}
+At termination at Step (3) above we will have a set of values satisfying all constraints. It remains to prove that there is no better set of values (i.e.~a different set of values which can improve upon the objective function). The proof is by contradiction. We have a feasible set of values for a subset $\mathcal{J^*}$ of all possible scenario sets $\forall \mathcal{J} \subseteq \{1, ..., S\}, |\mathcal{J}| = s, s=1,\ldots,S$. Adding any sets missing from $\mathcal{J^*}$ cannot improve the objective function value as additional constraints can only decrease, or leave unchanged, the objective function value.
+\end{comment}
+
+\subsection{Scaled tails}
+One issue with using Equation~(\ref{jebt4}) as an objective is that there may be multiple distinct portfolios, each of which has the same maximum $\mathcal{V}$ value.
+However the SSD formulation can be tailored to focus on certain aspects of the return distribution associated with the portfolio chosen.
+
+
+With Equation~(\ref{jebt5fab}) and an objective of maximising $\mathcal{V}$ 
+more importance is given to $\text{Tail}^L_{\frac{s}{S}} (P)$ when $s$ is small. Namely, $\text{Tail}^L_{\frac{s}{S}} (P)$ for $s$ approaching $S$ is given the same relative importance by Equation~(\ref{jebt5fab}) as for $s$ close to 1. But since the left tails are cumulative, for large values of $s$ the most positive portfolio returns are \enquote{diluted} among smaller returns. An unintended consequence of this is that solving the maximise $\mathcal{V}$ formulation tends to yield portfolios that have a smaller left tail when compared to benchmark returns $[\hat{\tau}_s~|~s=1,\ldots,S$], but also a smaller right tail.
+
+As an alternative~\cite{fabian2011b} proposed scaling the tails by replacing Equation~(\ref{jebt5fab}) with 
+\begin{equation}
+\frac{s}{S} \mathcal{V} \leq \mathcal{V}_s ~~~~s=1,\ldots,S
+\label{fab1}
+\end{equation}
+Here the effect of scaling is that more importance is given to the returns in the right tails of the distribution. 
+
+
+
+
+\section{Subset SSD}
+\label{sec4}
+
+Above we have a single set of assets and we seek a portfolio chosen from these assets that, in a SSD sense, outperforms (if possible) a given asset index.
+In this section we generalise this approach to the case where it is possible to subdivide the entire set of assets into individual subsets, each with differing characteristics.
+
+We might be interested in different asset subsets for a number of reasons, e.g.~in a given set of index assets it could be that we believe that
+large capitalisation assets and low capitalisation assets exhibit different behaviour. So in our chosen portfolio we might wish to tailor our exposure to these two different asset subsets
+differently.
+Other asset subsets can be easily envisaged e.g.~based on different market sectors, different momentum characteristics or any other economic metric. In our approach we do not assume that the asset subsets are disjoint, in other words a single asset can be in  two or more subsets.
+
+\emph{\textbf{We should be clear here that under the standard SSD approach exposure to different asset subsets can be included 
+by adding additional constraints to the SSD formulation, Equations~(\ref{jebt4})-(\ref{jebt8}), as seen above. However in our approach 
+EACH individual asset subset portfolio is  treated in a SSD manner.}} For clarity this standard  SSD approach is given in Section~\ref{secalt} below.
+
+
+Suppose that we have $K$ asset subsets where $N^k$ are the assets in asset subset $k$ and $\cup^K_{k=1} N^k= [1,...,N]$. 
+We need for each asset subset an underlying index in order to create an appropriate SSD formulation. Such an index may be publicly available. If not,
+ one can easily be produced using weights associated with any index that includes these assets. 
+
+As an illustration of this suppose that the weight associated with asset $i$ in an appropriate benchmark index is $\Gamma_i$, where the index is price based, so  the price $P_{it}$ of asset $i$ at time $t$ contributes to the index. Then the sub-index for the set $N^k$ at time $t$ is given by $\sum_{i \in N^k} \Gamma_i P_{it}$, so the index return associated with asset subset $k$ at time $t$ is $\left[\sum_{i \in N^k} \Gamma_i P_{it}/\sum_{i \in N^k} \Gamma_i P_{it-1}\right]$.
+Let $I^k$ represent the returns on the index associated with asset subset $k$. Then $\hat{\tau}^k = (\hat{\tau}^k_1, \ldots, \hat{\tau}^k_S) = \big( \text{Tail}^L_{\frac{1}{S}} I^k, \ldots, \text{Tail}^L_{\frac{S}{S}} I^k \big)$.
+
+
+
+In the SSD formulation below we add a $k$ superscript associated with asset subset $N^k$ to the previous formulation (Equations~(\ref{jebt4})-(\ref{jebt8})). 
+Let  $\mathcal{V}_s^k$ be the tail difference between the chosen portfolio and the index portfolio associated with asset subset $k$.
+
+
+
+Let $W^k \geq 0$ be the proportion of the portfolio invested in subset $k$, \emph{\textbf{where this proportion will be decided by the optimisation}}. However note here that, as will be seen below, the decision maker has the flexibility to impose bounds on $W^k$, or indeed to specify the exact value that $W^k$ should take.  
+
+
+Then, drawing on the program given above, Equations~(\ref{jebt4})-(\ref{jebt8}), the constraints of the subset SSD optimisation program are
+\begin{equation}
+\mathcal{V}_s^k \leq \frac{1}{S} \sum_{j \in \mathcal{J}} \sum_{i \in N^k} r_{ij} w_i /W^k- \hat{\tau}_s^k~~~~\forall \mathcal{J} \subseteq \{1, ..., S\},~|\mathcal{J}| = s,~s=1,\ldots,S,~k=1,\ldots,K
+\label{exjebt5s}
+\end{equation}
+\begin{equation}
+ W^k = \sum_{i \in N^k} w_i~~~~k=1,\ldots,K
+\label{exjebt6s}
+\end{equation}
+\begin{equation}
+\delta^L_k \leq W_k \leq \delta^U_k~~~~k=1,\ldots,K
+\label{eqjebdelta}
+\end{equation}
+\begin{equation}
+ \sum_{i=1}^N w_i =1
+\label{exjebt6as}
+\end{equation}
+\begin{equation}
+0 \leq w_i \leq 1~~~~i=1,\ldots,N
+\label{exjebt7s}
+\end{equation}
+\begin{equation}
+\mathcal{V}_s^k \in\mathbb{R}~~~~s=1,\ldots,S,~k=1,\ldots,K.
+\label{exjebt8s}
+\end{equation}
+
+Equation~(\ref{exjebt5s}) is the tail difference for each subset $k$. In this equation the summation in the numerator of the first 
+term on the right-hand side of the inequality is the return from the investment in assets associated with subset $k$. But unlike 
+Equation~(\ref{jebt5}) above we do not necessarily have that the sum of the weights (over assets $i \in N^k$) will equal one, 
+so we have to scale this summation by the $W_k$ factor before subtracting the $ \hat{\tau}_s^k$ associated with subset $k$.
+
+Equation~(\ref{exjebt6s}) defines the subset proportion  based on the sum of the proportions of the total wealth invested in the assets in the subset. 
+Equation~(\ref{eqjebdelta}) ensures that the proportion of the total investment in subset $k$ lies between   $\delta^L_k$ and $\delta^U_k$ where these are
+the user defined lower and upper limits on the proportion of the portfolio invested in subset $k$.
+Equation~(\ref{exjebt6as}) ensures that all of our wealth is invested in assets.
+Equation~(\ref{exjebt7s}) is the non-negativity constraint 
+(so no short-selling) and Equation~(\ref{exjebt8s}) ensures that the tail differences $\mathcal{V}^k_s$ can be positive or negative.
+
+
+Now assuming that $W^k > 0~k=1,\ldots,K$ (which we can ensure if we wish by adding constraints $W^k \geq \epsilon~k=1,\ldots,K$, where $\epsilon{>}0$ and small) we can linearise Equation~(\ref{exjebt5s}) to 
+\begin{equation}
+W^k \mathcal{V}_s^k \leq \frac{1}{S} \sum_{j \in \mathcal{J}} \sum_{i \in N^k} r_{ij} w_i – W^k \hat{\tau}_s^k~~~~\forall \mathcal{J} \subseteq \{1, ..., S\},~|\mathcal{J}| = s,~s=1,\ldots,S,~k=1,\ldots,K
+\label{exjebt5slin}
+\end{equation}
+Here the $ W^k \mathcal{V}_s^k$  term is nonlinear, but can be interpreted as the \emph{\textbf{proportion weighted tail difference}} associated with set $k$. 
+
+Now based on Equation~(\ref{jebt4}) we might be tempted to have an objective function of the form 
+$\mbox{maximise}~\mathcal{V}$ where  $\mathcal{V} \leq \mathcal{V}_s^k~s{=}1,\ldots,S,~k{=}1,\ldots,K$
+and $\mathcal{V} \in\mathbb{R}$.
+Here each  tail difference $\mathcal{V}_s^k$ influences the objective, bounding it from above. However we have 
+\emph{\textbf{no prior knowledge of the investment proportion associated with subset \bm{$k$}}}. 
+So for example if we adopt an objective of this form 
+we might have two subsets with the same tail difference (as calculated using Equation~(\ref{exjebt5s})), so with the same influence on $\mathcal{V}$,
+ but very different investment proportions.
+
+This seems perverse - surely an investment with a higher proportion should have more influence with respect to the
+ objective? In other words (somehow) the investment proportion $W^k$ for subset $k$ should ideally be incorporated, 
+so that the higher the value of $W^k$ the more impact subset $k$ has on the maximisation objective.
+
+It is clear that one way forward is to replace the nonlinear proportion weighted tail difference term $ W^k \mathcal{V}_s^k$ 
+in Equation~(\ref{exjebt5slin}) by a single term, say  $\mathcal{Z}_s^k \in\mathbb{R}$, and adopt an objective function of the form
+\begin{equation}
+\mbox{maximise}~\mathcal{V}
+\label{exjebt4sz}
+\end{equation}
+subject to 
+\begin{equation}
+ \mathcal{Z}_s^k \leq \frac{1}{S} \sum_{j \in \mathcal{J}} \sum_{i \in N^k} r_{ij} w_i – W^k \hat{\tau}_s^k~~~~\forall \mathcal{J} \subseteq \{1, ..., S\},~|\mathcal{J}| = s,~s=1,\ldots,S,~k=1,\ldots,K
+\label{exjebt5slina}
+\end{equation}
+\begin{equation}
+\beta \mathcal{V} \leq  \mathcal{Z}_s^k  ~~~~\forall \mathcal{J} \subseteq \{1, ..., S\},~|\mathcal{J}| = s,~s=1,\ldots,S,~k=1,\ldots,K
+\label{exjebt5slina1}
+\end{equation}
+\begin{equation}
+ \mathcal{V} \in\mathbb{R}
+\label{jebt8as}
+\end{equation}
+\begin{equation}
+\mathcal{Z}_s^k \in\mathbb{R}~~~~s=1,\ldots,S,~k=1,\ldots,K.
+\label{zreal}
+\end{equation}
+with the other constraints (Equations~(\ref{exjebt6s})-(\ref{exjebt7s})) remaining as before.  
+In Equation~(\ref{exjebt5slina1}) $\beta$ is the scaling factor where $\beta{=}1$ for no scaling and $\beta{=}s/S$ for scaled tails as in Equation~(\ref{fab1}).
+
+
+
+
+\subsection{Cutting plane resolution - $\mathcal{Z}_s^k$}
+We can adopt what is effectively the same cutting plane resolution procedure for the portfolio optimisation program as given previously by~\cite{fabian2011} 
+and seen above. For completeness here we set out this procedure in full.
+
+First define an initial scenario set $\mathcal{J^*}$ where there is at least one set of cardinality $s$, for all values of $s=1,\ldots,S$, in $\mathcal{J^*}$ and amend Equation~(\ref{exjebt5slina}) to 
+\begin{equation}
+\mathcal{Z}_s^k \leq \frac{1}{S} \sum_{j \in \mathcal{J}} \sum_{i \in N^k} r_{ij} w_i – W^k \hat{\tau}_s^k~~~~\forall \mathcal{J} \in \mathcal{J^*},~|\mathcal{J}| = s,~s=1,\ldots,S,~k=1,\ldots,K
+\label{exjebt6slina}
+\end{equation}
+
+\begin{enumerate}
+\item Solve the amended optimisation program, optimise Equation~(\ref{exjebt4sz}) subject to 
+ Equations~(\ref{exjebt6s})-(\ref{exjebt7s}),(\ref{exjebt5slina1})-(\ref{exjebt6slina})
+
+\item Consider all values of $s$ and $k$ ($s=1,\ldots,S,~k=1,\ldots,K$) in turn and if in the solution to the amended optimisation program 
+{\footnotesize
+\begin{equation}
+\mathcal{Z}_s^k >\frac{1}{S} (\mbox{sum of the $s$ smallest portfolio returns in subset $k$ over the $S$ scenarios)} – W^k \hat{\tau}_s^k
+\label{jebt9az}
+\end{equation}
+}
+
+\noindent then add the scenario set associated with these 
+$s$ smallest returns to $\mathcal{J^*}$. Here the scenario set that is added constitutes a valid cut associated
+with Equation~(\ref{exjebt5slina}) that is violated by the current solution. 
+\item If scenarios sets have been added to $\mathcal{J^*}$ go to Step (1), else terminate.
+\end{enumerate}
+
+\subsection{Standard SSD based approach}
+\label{secalt}
+
+Above we have presented our approach where each individual asset subset is treated in a SSD manner. The standard
+approach to the problem 
+of how to construct a portfolio that is
+designed to outperform a given market index whilst having regard to the proportion of the portfolio invested in distinct asset
+subsets (market sectors)
+is to add 
+ constraints related to asset subsets
+to the standard SSD formulation.
+
+In term of the notation given above this approach would correspond to optimise Equation~(\ref{jebt4}) subject to 
+Equations~(\ref{jebt5})-(\ref{jebt8}),(\ref{exjebt6s}),(\ref{eqjebdelta}).
+Here we have added the subset constraints, Equations~(\ref{exjebt6s}),(\ref{eqjebdelta}), to the standard SSD formulation.
+
+Computational results, presented below, indicate that for the S\&P~500 over the period which we considered, 
+this standard approach is outperformed by our approach.
+
+\section{Computational results}
+\label{sec5}
+
+We used a dataset associated with the S\&P~500, with daily stock prices  from $29^{\text{th}}$ August 2018 until $29^{\text{th}}$
+ December 2023.
+This time period, over 5 years,  includes the Covid pandemic, which had a significant effect on stock prices.
+Our data has been manually adjusted to account for survivorship bias - on a given date only assets that 
+were part of the S\&P~500 index at that time are available to be selected for investment.
+
+In order to define the scenarios  required by SSD we used a lookback approach that included the 
+most recent 85 daily prices, which then yield 84 in-sample returns (roughly a quadrimester in business days). 
+
+The SSD subsets were defined by the economic sectors to which each asset belongs. There are 11 different stock market sectors 
+according to the most commonly used classification system, known as the 
+Global Industry Classification Standard (GICS). These sectors are 
+communication services,
+consumer discretionary,
+consumer staples,
+energy, 
+financials,
+healthcare,
+industrials,
+materials, 
+real estate,
+technology and 
+utilities.
+For each sector, its benchmark consisted of the corresponding time series for the S\&P sector indices\footnote{\url{https://www.spglobal.com/spdji/en/index-family/equity/us-equity/sp-sectors/}}. Table \ref{table1} shows the S\&P~500 sector breakdown as of $9^{\text{th}}$ October 2023 together with the approximate weight of the sector with regard to the index.
+
+
+\begin{table}[!ht]
+\centering
+{\small
+\renewcommand{\tabcolsep}{1mm} \renewcommand{\arraystretch}{1} \begin{tabular}{|l|c|}
+\hline
+\multicolumn{1}{|c|}{Sector} & \multicolumn{1}{c|}{Approximate weight (\\hline
+Technology               & 26.0 \\
+Healthcare               & 14.5 \\
+Financials               & 12.9 \\
+Consumer discretionary   & 9.9 \\
+Industrials              & 8.6 \\
+Communication services   & 8.2 \\
+Consumer staples         & 7.4 \\
+Energy                   & 4.5 \\
+Utilities                & 2.9 \\
+Materials                & 2.6 \\
+Real estate              & 2.5 \\
+\hline
+\end{tabular}
+}
+\caption{S\&P~500 sector breakdown}
+\label{table1}
+\end{table}
+
+All of the data used in this paper is publicly available for the use by other researchers at:
+\begin{center}
+\url{https://github.com/cristianoarbex/subsetSSDData/}
+\end{center}
+
+We used \cite{cplex} as the
+linear and integer programming solver, with default options. Our backtesting tool is developed in Python and all optimisation models are developed in C++. We ran all experiments on an Intel(R) Core(TM) i7-3770 CPU @ 3.90GHz with 8 cores, 8GB RAM and with Ubuntu 22.04.3 LTS as the operating system.
+
+\subsection{Out-of-sample performance}
+
+In this section we evaluate the performance of our subset SSD 
+approach when compared to both the S\&P~500 and the standard SSD approach with sector constraints, which was outlined above in Section \ref{secalt}.
+
+As mentioned above we used an in-sample period of 85 days. 
+We conducted  periodic rebalancing every 21 days (roughly one month in business days). 
+To illustrate our approach  our first in-sample period of 85 days runs from $29^{\text{th}}$ August 2018 until $31^{\text{st}}$ December 2018.
+So using this in-sample period (with 84 return values for each asset) we choose a portfolio (using a SSD strategy) 
+on  $31^{\text{st}}$ December 2018, evaluate its performance out-of-sample for the next 20 business days so from $31^{\text{st}}$ December 2018 to $31^{\text{st}}$ January 2019, then repeat the process until the data is exhausted. In total this involved 60 out-of-sample periods for which we then have a single out-of-sample time series of returns. For simplicity we assume no transaction costs.
+
+
+We evaluated four different strategies. The unscaled and scaled versions of our subset SSD approach and, equivalently, the unscaled and scaled versions of the standard SSD approach with sector constraints. 
+
+In order to define sector bounds, for a given sector $k$ we take its exposure from Table \ref{table1} as $\delta_k$ and define an interval $\Delta = 0.05$ such $\delta_k^L = (1 - \Delta) \delta_k $ and $\delta_k^U = (1 + \Delta) \delta_k$, where
+$\delta_k^L$ and $\delta_k^U$ limit exposure to any particular sector, as in Equation~(\ref{eqjebdelta}).
+These bounds apply to both subset SSD and standard SSD. This choice ensures that the portfolios chosen under both subset and standard SSD
+have similar exposure to S\&P~500 sectors, whilst, at the same time, giving some leeway to the SSD optimiser in its choice of portfolio.
+
+Figures \ref{fig1} and \ref{fig2} show graphically the cumulative returns during the out-of-sample period for all four strategies and the S\&P~500. For easier visualisation, we show these results separately, with
+the subset SSD results in Figure \ref{fig1} and the standard SSD results in Figure \ref{fig2}. Both figures  use exactly the same scale. 
+
+
+\begin{figure}[!htb]
+\centering
+\includegraphics[width=1\textwidth]{fig01.pdf}
+  \caption{Cumulative  out-of-sample returns for both the unscaled and scaled versions of the subset SSD formulation with sector constraints}
+  \label{fig1}
+\vspace{1cm}
+\includegraphics[width=1\textwidth]{fig02.pdf}
+  \caption{Cumulative  out-of-sample returns for both the unscaled and scaled versions of the standard SSD formulation with sector constraints}
+  \label{fig2}
+\end{figure}
+
+
+Considering these figures the effect of the Covid pandemic can be clearly seen, with a dramatic fall in cumulative returns for the S\&P~500 in
+the first half of 2020. It is clear  from these figures
+that the scaled version of our subset SSD approach significantly outperforms the S\&P~500 over the time period considered.
+
+In order to gain some numeric insight into the performance of the four strategies as seen in Figure~\ref{fig1} and Figure~\ref{fig2} we show some selected comparative statistics
+in Table \ref{table2}. These are calculated from the out-of-sample returns for the four strategies, and correspondingly for the S\&P~500 index. 
+
+Let $Q$ be a series of $0,\ldots,T$ daily portfolio values, where $Q_t$ is the value of the given portfolio on day $t$. 
+In Table \ref{table2} \textbf{FV} stands for the final portfolio value, assuming a starting amount of \$1, and is calculated as $Q_{T}/Q_{0}$. \textbf{CAGR} stands for Capital Annualised Growth Rate and as a percentage is calculated as $100  \left( \left(\frac{Q_T}{Q_0}\right)^{\frac{1}{Y}} -1 \right)$, where $Y = T/252$ is an approximation for the number of years in the out-of-sample period. Column \textbf{Vol} represents the annualised sample standard deviation of the out-of-sample returns. \textbf{Sharpe} and \textbf{Sortino} are the annualised Sharpe and Sortino ratios respectively, where for their calculation we use the CBOE 10-year treasury notes (symbol TNX) as the risk-free rate. \textbf{MDD} represents the maximum drawdown and as a percentage is calculated as $\max \left(0, 100 \max_{0 \leq t < u \leq T} \frac{Q_t - Q_u}{Q_t} \right)$. 
+
+\begin{table}[!ht]
+\centering
+{\small
+\renewcommand{\tabcolsep}{1mm} \renewcommand{\arraystretch}{1.4} \begin{tabular}{|l|rrrrrrH|}
+\hline
+\multicolumn{1}{|c|}{Strategies} & \multicolumn{1}{c}{FV} & \multicolumn{1}{c}{CAGR} & \multicolumn{1}{c}{Vol} & \multicolumn{1}{c}{Sharpe} & \multicolumn{1}{c}{Sortino} & \multicolumn{1}{c}{MDD} &
+ \\
+\hline
+Subset SSD (scaled)   &     2.28 &    17.92 &    18.57 &    0.86 &     1.22 &    29.05 &     0.79\\
+Subset SSD (unscaled) &     1.57 &     9.40 &    19.53 &    0.44 &     0.60 &    36.30 &     0.85\\
+\hline
+Standard SSD (scaled)     &     1.80 &    12.48 &    20.89 &    0.56 &     0.77 &    33.93 &     0.82\\
+Standard SSD (unscaled)   &     1.58 &     9.55 &    17.15 &    0.49 &     0.67 &    28.08 &     0.69\\
+\hline
+S\&P~500                 &     1.90 &    13.74 &    21.31 &    0.61 &     0.84 &    33.92 & --      \\
+\hline
+\end{tabular}
+}
+\caption{Comparative out-of-sample statistics}
+\label{table2}
+\end{table}
+
+With regard to the scaling of tails, \cite{fabian2011b, roman2013, valle2017} all concluded that scaled SSD tends to achieve superior out-of-sample returns, but not necessarily superior risk, when compared to unscaled SSD. The reason for this is that by scaling the tails more importance is given to the returns in the right tails of the distribution. Here we observe the same behaviour, with the scaled versions of both standard and subset SSD outperforming their unscaled versions in terms of performance (FV, CAGR). The gain in absolute performance also translates to better risk-adjusted performance (Sharpe, Sortino). As can be seen from
+Table~\ref{table2}
+ the unscaled formulations both show inferior performance when compared to the S\&P~500. 
+
+With regards to the scaled formulations, subset SSD performed considerably better than standard SSD with sector constraints. We would
+remind the reader here that the main difference between the two approaches is that with subset SSD we actively try to find sector portfolios that SSD dominate their respective sector indices, as opposed to standard SSD where there is no attempt to ensure this.
+
+Subset SSD achieved better returns (in terms of FV and CAGR) and better risk (in terms of Vol and MDD) and therefore much improved risk-adjusted performance (Sharpe, Sortino) as compared with  standard SSD and too as compared with the S\&P~500.
+Despite the Covid drop in 2020, during the entire period considered the S\&P~500 had a strong positive performance (almost doubling in value). However subset SSD was able not only to outperform the S\&P~500 in terms of return, but also in terms of risk.
+
+Despite the potentially exponential number of constraints involved in the cutting plane procedures for SSD solution our experience has been that 
+the computational effort required to solve each portfolio rebalance to optimality was negligible. In our experiments a total of 60 rebalances were needed. For the scaled subset SSD formulation the average computational time per rebalance was 0.58s, with a maximum of 1.86s and a minimum of 0.13s (median 0.54s), while for the other strategies the average computational time was between 0.3s and 0.35s and no rebalance required more than a second.
+
+Figure \ref{fig3} shows the exposure per sector for scaled subset SSD. The figure shows comparatively  little variation per sector, as expected, since the strategies are limited by sector bounds to be within $\Delta$, here 5\
+\begin{figure}[!ht]
+\centering
+\includegraphics[width=1\textwidth]{fig03.pdf}
+  \caption{Out-of-sample exposure per sector, scaled subset SSD}
+  \label{fig3}
+\end{figure}
+
+\subsection{Varying sector bounds}
+
+
+To investigate the performance of our subset SSD approach when we varied sector bounds we performed ten different 
+experiments. As above,
+in order to define sector bounds for a given sector $k$ we take its exposure from Table \ref{table1} as $\delta_k$. Using
+ $\Delta$ we have $\delta_k^L = (1 - \Delta) \delta_k $ and $\delta_k^U = (1 + \Delta) \delta_k$, where (as before)
+$\delta_k^L$ and $\delta_k^U$ limit exposure to any particular sector, as in Equation~(\ref{eqjebdelta}).
+
+We evaluated the  out-of-sample performance of both scaled subset SSD and scaled standard SSD for $\Delta = (0.01, 0.02, \dots, 0.10)$.
+The results can be seen in Table~\ref{table3}. In this table we have, for example for FV and scaled subset SSD, that over the ten 
+values of $\Delta$ considered, the mean FV value was 2.18, the median FV value was 2.13, the minimum FV value was 1.97 and the maximum FV value was 2.37.
+
+It is clear from Table~\ref{table3} that, for the data we considered, scaled subset SSD is superior to scaled standard SSD. For the four 
+performance measures where high values are better (so FV, CAGR, Sharpe and Sortino) the \emph{minimum} values for these measures for 
+scaled subset SSD exceed the \emph{maximum} values for these measures for scaled standard SSD.  For the two performance measures 
+where low values are better (so Vol and MDD) the \emph{maximum} values for these measures for scaled subset SSD are below the 
+\emph{minimum} values for these measures for scaled standard SSD.  
+\emph{\textbf{In other words with regard to all six performance measures scaled subset SSD dominates scaled standard SSD.}}
+
+In a similar fashion
+for the four 
+performance measures where high values are better (so FV, CAGR, Sharpe and Sortino) the minimum values for these measures for 
+scaled subset SSD exceed the values associated with the S\&P~500.
+ For the two performance measures 
+where low values are better (so Vol and MDD) the maximum values for these measures for scaled subset SSD are 
+below the values associated with the S\&P~500.
+\emph{\textbf{In other words with regard to all six performance measures scaled subset SSD dominates the S\&P~500.}}
+
+
+
+
+\begin{table}[!ht]
+\centering
+{\small
+\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{|l|rrrr|rrrr|r|}
+\hline
+\multirow{2}{*}{Stats} & \multicolumn{4}{c|}{Subset SSD (scaled)} & \multicolumn{4}{c|}{Standard SSD (scaled)} & S\&P~500\\
+\cline{2-9}
+& Mean & Median & Min & Max & Mean & Median & Min & Max  &\\
+\hline
+FV & 2.18 & 2.13 & 1.97 & 2.37 & 1.80 & 1.80 & 1.80 & 1.81  & 1.90\\
+CAGR & 16.88 & 16.32 & 14.52 & 18.90 & 12.51 & 12.51 & 12.44 & 12.59  & 13.74\\
+Vol & 18.55 & 18.57 & 18.31 & 18.74 & 20.91 & 20.91 & 20.82 & 21.02 & 21.31\\
+Sharpe & 0.81 & 0.79 & 0.70 & 0.91 & 0.56 & 0.56 & 0.56 & 0.57 & 0.61 \\
+Sortino & 1.15 & 1.12 & 0.97 & 1.29 & 0.77 & 0.77 & 0.77 & 0.78  & 0.84\\
+MDD & 29.29 & 29.05 & 28.35 & 30.87 & 33.93 & 34.02 & 33.54 & 34.27 & 33.92 \\
+\hline
+\end{tabular}
+}
+\caption{Summary statistics for the scaled formulations when $\Delta = (0.01, 0.02, \ldots, 0.10)$}
+\label{table3}
+\end{table}
+
+
+\section{Conclusions}
+\label{sec6}
+
+
+In this paper we have considered the problem of
+how to construct a portfolio that is
+designed to outperform a given market index, whilst having regard to the proportion of the portfolio invested in distinct market sectors. 
+
+We presented a new approach, subset SSD, for the problem.
+In our approach portfolios associated with each sector are treated in a SSD manner so that we 
+actively try to find sector portfolios that SSD dominate their respective sector indices.
+The proportion of the overall portfolio 
+invested in each sector is not pre-specified, rather it is decided via optimisation.
+
+Computational results were given for our subset SSD approach as applied to the S\&P~500 over the period 
+$29^{\text{th}}$ August 2018 to $29^{\text{th}}$ December 2023.
+These indicated that the scaled version of our subset SSD
+approach significantly outperforms the S\&P~500 over the period considered. Our approach also outperforms the standard SSD based
+approach to the problem.
+
+
+
+ \clearpage
+\newpage
+\linespread{1}
+\small \normalsize 
+
+\bibliographystyle{plainnat}
+\bibliography{paper}
+
+
+\end{document}
