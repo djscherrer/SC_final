@@ -1,298 +1,182 @@
 \begin{document}
 \affiliation{$$_affiliation_$$}
-\title{Free curves in Fano hypersurfaces must have high degree}
-\begin{abstract}
-The purpose of this note is to show that the minimal \(e\) for which every
-smooth Fano hypersurface of dimension \(n\) contains a free rational curve of
-degree at most \(e\) cannot be bounded by a linear function in \(n\) when
-the base field has positive characteristic. This is done by providing a
-super-linear bound on the minimal possible degree of a free curve in certain
-Fermat hypersurfaces.
+\title{Elliptic Exceptional Belyi Coverings}
+\begin{abstract} An elliptic exceptional Belyi covering is a connected Belyi covering uniquely determined by its ramification scheme or the respective dessin d’enfant when the underlying compact Riemann surface has genus 1. We give our Maple algorithm and table that display our calculations for elliptic exceptional Belyi coverings up to degree 12.
 \end{abstract}
 \maketitle
 
-\thispagestyle{empty}
-\section*{Introduction}
-The geometry of smooth projective Fano varieties is controlled by the rational
-curves they contain. Seminal work \cite{KMM, Campana} of
-Koll\'ar--Miyaoka--Mori and Campana show that, over a field of characteristic
-\(0\), every smooth projective Fano variety \(X\) contains a rational curve
-\(\varphi \colon \PP^1 \to X\) that, informally speaking, can be deformed to
-pass through \(r+1\) general points of \(X\) for any chosen \(r \geq 0\): in
-other words, \(X\) is \emph{separably rationally connected}. The precise
-condition on the curve \(\varphi\) is that
-\(\mathrm{H}^1(\PP^1,\varphi^*\mathcal{T}_X \otimes \sO_{\PP^1}(-r-1)) = 0\);
-by way of terminology, \(\varphi\) is said to be \emph{free} or \emph{very
-free} when \(r = 0\) or \(r = 1\), respectively. See \cite{Kollar,
-Debarre:HDAG} for a presentation of this theory.
+\tableofcontents
+\section{Introduction}
+Let $S_g$ be a compact Riemann surface with genus $g$ and let $\mathbb{P}^1$ denote the Riemann sphere. A {\it Belyi covering} $\beta: S_g \to \mathbb{P}^1$ is a ramified covering of $\mathbb{P}^1$ with ramification points in $\{0,\,1,\,\infty\}\,.$ If $g=0$, we call $\beta$ a rational Belyi covering, if $g=1$, we call $\beta$ an elliptic Belyi covering and if $g>1$, we call $\beta$ a hyperbolic Belyi covering. If the monodromy group is $\left\langle g_{0}, g_{1}, g_{\infty}\right| g_{1} g_{2} g_{\infty}=$ $i d\rangle$, then $\lambda_{0},\,$ $\lambda_{1}\,$ and $\lambda_{\infty},$ as the cycle structures of $g_i$, are called the \textit{ramification indices} and $\left[\lambda_{0}\right]\left[\lambda_{1}\right]\left[\lambda_{\infty}\right]$ is called the \textit{ramification scheme} of $\beta\,.$\\
 
-Whether smooth projective Fano varieties over a field of positive
-characteristic are separably rationally connected is a long-standing open
-question. Results are fragmentary even for smooth Fano hypersurfaces in
-projective space: The general Fano hypersurface is separably rationally
-connected by \cite{Zhu, CZ14, Tian, CR17}; notably, the work of Tian reduces
-the problem of separable rational connectedness to \emph{separable
-uniruledness}---that is, the existence of a free rational curve---a problem
-that often is simpler because free curves typically have significantly lower
-degree than very free curves. More recently, \cite[Theorems
-3.10 and 3.24]{STZ} shows that all smooth Fano hypersurfaces with degree
-less than the characteristic are separably rationally connected and even that,
-up to a minor condition, such hypersurfaces always contain either free lines or
-conics. See also \cite[Theorem 34]{LP} and \cite[Theorem 1.5]{BS} for related
-results.
+In Chapter 2, we revisit \cite{Ku} to give some preliminaries about Belyi coverings. We state Belyi's theorem in \cite{Belyi}. We introduce the bipartite graphs ``dessin d'enfants" with a topological structure which were studied by Grothendieck in \cite{Groth}. As proven in \cite{Zvo}, dessins and Belyi coverings are in 1-1 correspondence. We give two examples for rational Belyi coverings. Our first elliptic Belyi covering example comes from a rational one. Then we define exceptional Belyi coverings. We state a theorem that counts these coverings using the Eisenstein number. The proof of this theorem, as given in \cite{Kurk}, is based on the the works of Tutte in \cite{Tut} and the Burnside theorem. \\
 
-The main result of this note is that, nevertheless and contrary to experience,
-the minimal \(e\) such that there exists a free rational curve of degree
-\(\leq e\) on every smooth Fano hypersurface cannot be bounded by a linear
-function in the dimension (or degree); contrast this with the fact that every
-smooth Fano hypersurface in characteristic \(0\) contains either a free line or
-conic.
+Next, in Chapter 3, we illustrate with an example how it is a challenging thing to draw dessins of elliptic
+exceptional Belyi coverings. We give one more example to introduce the term ``double-covering".\\
 
-\begin{IntroTheorem*}
-For any algebraically closed field \(\kk\) of characteristic \(p > 0\),
-\[
-\limsup_{n \to \infty} \frac{1}{n}
-\inf\Set{ e \in \mathbf{Z} |
-\begin{array}{c}
-\text{for every smooth Fano hypersurface of dimension \(n\) over \(\kk\)} \\
-\text{there exists a free rational curve of degree \(\leq e\)}
-\end{array}}
-=
-\infty.
-\]
-\end{IntroTheorem*}
+We conclude the paper with our calculations for elliptic exceptional Belyi coverings up to degree 12. We attach the Maple algorithm and the table at the end. 
+\section{Exceptional Belyi Coverings}
+\subsection{Belyi coverings and dessin d'enfants}
+Belyi showed that $S_g$ can be defined over a number field if and only if there is on it a meromorphic function with three critical values.
+\begin{thm}{\bf (Belyi)}
+The following are equivalent:
+\begin{enumerate}[(i)]
+    \item $S_g$ is defined over $\overline{\mathbb{Q}}$.
+    \item $S_g$ admits a meromorphic function $\beta: S_g \rightarrow \mathbb{P}^{1}$ with at most three ramification points.  
+\end{enumerate}
+\end{thm} 
 
-It suffices to describe one sequence of increasingly high-dimensional
-hypersurfaces without low degree free curves, and this is given by the Fermat
-of degree \(q+1\) in \(\PP^{q+1}\) with \(q \coloneqq p^\nu\) for
-\(\nu \geq 1\). These hypersurfaces are exceptional and exemplify many positive
-characteristic phenomena: see \cite{Shen} for closely related work and
-\cite[pp. 7--11]{thesis} for a general survey regarding these hypersurfaces.
-What is fascinating is that these hypersurfaces contain many, many rational
-curves---they are unirational!---and so the challenge is to develop techniques
-to study their spaces of rational curves: see \cite{fano-schemes,
-qbic-threefolds} for work in this direction. The method is to exploit a certain
-tension arising from the curious differential geometry of these hypersurfaces:
-the structure of the equation implies that, on the one hand, free curves cannot
-lie in a hyperplane and, on the other hand, there are unexpected constraints on
-the coordinate functions of the curve.
 
-\smallskip
-\noindent\textbf{Acknowledgements. ---}
-This note originates from a question posed to me long ago by Aise Johan
-de Jong; much gratitude for the many discussions and interest over the years.
-Thanks also to Jason Starr and Remy van Dobben de Bruyn with whom I shared
-helpful conversations on this topic. I was supported by a Humboldt Research
-Fellowship during the preparation of this note.
+We also have a geometric way to represent Belyi coverings.
 
-\section*{Free curves in the Fermat \texorpdfstring{\(q\)}{q}-bic}
-In what follows, let
-\(X \coloneqq \mathrm{V}(T_0^{q+1} + \cdots + T_{q+1}^{q+1})\) be the Fermat
-hypersurface of degree \(q+1\) in \(\PP^{q+1}\). The \emph{embedded tangent
-bundle} \(\mathcal{E}_X\) is the vector bundle on \(X\) whose fibre at a point
-\(x\) is the linear space underlying the embedded tangent space of \(X\) at
-\(x\); it fits into a short exact sequence
-\[
-0 \to \sO_X \to \mathcal{E}_X \to \mathcal{T}_X \to 0.
-\]
-The extension class is the pullback via the tangent map
-\(\mathcal{T}_X \to \mathcal{T}_{\PP^{q+1}}\rvert_X\) of the class of the Euler
-sequence, and so there is another short exact sequence
-\[
-0 \to \mathcal{E}_X \to \sO_X(1)^{\oplus q+2} \to \mathcal{N}_{X/\PP^{q+1}} \to 0
-\]
-where the second map is
-\((\psi_0,\ldots,\psi_n) \mapsto \sum\nolimits_{i=0}^{q+1} T_i^q \cdot \psi_i\).
-Remarkably, as already observed by \cite[Equation (2)]{Shen}, this sequence
-twisted down by \(\sO_X(-1)\) is isomorphic to the pullback of the dual Euler
-sequence by the \(q\)-power Frobenius morphism \(\Fr\). In particular, there is
-an isomorphism
-\[
-\mathcal{E}_X(-1) \cong \Fr^*(\Omega^1_{\PP^{q+1}}(1)\rvert_X).
-\]
+\begin{dfn}
+ A \textit{dessin d'enfant} is a pair $(\mathcal{D}, X)$ where $X$ is an oriented compact topological surface, and $\mathcal{D} \subset X$ is a finite graph satisfying the following:
 
-Let \(\varphi \colon \PP^1 \to X\) be a nonconstant morphism of degree
-\(e = mq + r\), where \(m,r \in \mathbf{Z}\) and \(0 \leq r \leq q-1\); to
-simplify notation, \(\varphi\) will sometimes be viewed as a morphism into
-\(\PP^{q+1}\). Viewing \(\mathcal{E}_X\) as an extension of \(\mathcal{T}_X\),
-it follows that \(\varphi\) is free if and only if
-\(\mathrm{H}^1(\PP^1, \varphi^*\mathcal{E}_X \otimes \sO_{\PP^1}(-1)) = 0\).
-Combined with the isomorphism above and the projection formula, this implies
-that, if \(\varphi\) is free,
+\begin{enumerate}[(i)]
+    \item $\mathcal{D}$ is connected.
+    \item $\mathcal{D}$ is bicoloured: two ends of every edge is colored by black and white.
+    \item At each vertex is given a cyclic ordering of the edges meeting it.
+    \item  $X \backslash \mathcal{D}$ is the union of finitely many topological discs, which we call \textit{faces} of $\mathcal{D}$.   
+\end{enumerate}
+\end{dfn}
+
+
+ \begin{thm} {\bf (Zvonkin)}
+    There is a one-to-one correspondence between the following:
+\begin{enumerate}[(i)]
+    \item $\operatorname{dessins}\left(\mathcal{D}, S_{g}\right)$
+    \item Belyi coverings of $\beta: S_{g} \rightarrow \mathbb{P}^{1}$ with degree $n$
+    \item the solutions of the monodromy group relation $g_{0} g_{1} g_{\infty}=i d$, where $g_{i} \in S_{n}$
+\end{enumerate}
+\end{thm}
+The black nodes are the inverse images of 0, the white ones the inverse images of 1, and the edges of the dessin are the components of the inverse image of the line segment (0,1). The cyclic order arises from the local monodromy around the vertices.
+
+\subsection{Examples}
+
+\begin{example}\label{Example 2.1.6}
+{\bf(Rational)} 
+The power function $z\to z^n$ and the Chebyshev polynomial $T_n(\cos\varphi)=\cos n\varphi$ are two rational Belyi coverings. As classified in \cite{A09a}, the dessin d'enfants are in the form of trees. The following figure shows the corresponding dessins and the ramification schemes for these two Belyi coverings.
+\newpage
+\begin{figure}[htp]
+\includegraphics[width=100mm]{pic_3}
+\end{figure}
+\end{example}
+
+\begin{example}{\bf(Rational)}\label{Example 2.1.7} The following dessin is also for a rational Belyi covering but this time it is not a tree.
+
+\begin{figure}[htp]
+\includegraphics[width=80mm]{pic_6}
+\end{figure}
+
+  The poles are denoted by * and as it can be seen in the dessin above, one of the poles is at the center of one of the faces and the other pole is at $\infty$. If 1 and $a$ are the roots of the corresponding function, the Belyi covering will be of the form
+
+$$
+\beta(x)=K \frac{(x-1)^{3}(x-a)}{x}
+$$
+
+since the multiplicities of the black vertices are 1 and 3. The multiplicity of the pole at $\infty$ is 3. Similarly, considering the multiplicities of the white vertices being 2,
+$$
+\beta(x)-1=K \frac{(x^2+bx+c)^2}{x}
+$$
+We find $K=-\frac{1}{64}$ and $a=9$. The roots of $\beta(x)-1$ are $3 \pm 2 \sqrt{3}$.
+\end{example}
+
+
+\begin{example}{\bf(Elliptic)}\label{Example 2.1.8} Now we introduce an example for the genus 1 case.
+Consider the elliptic curve $$E_{1}: y^{2}=x(x-1)(x-(3+2 \sqrt{3})\,.$$ The projection on the first coordinate
+
 \begin{align*}
-0
-= \mathrm{H}^1(\PP^1, \varphi^*\mathcal{E}_X \otimes \sO_{\PP^1}(-1))
-& = \mathrm{H}^1(\PP^1, \varphi^*\Fr^*(\Omega^1_{\PP^{q+1}}(1)\rvert_X) \otimes \sO_{\PP^1}(e-1)) \\
-& = \mathrm{H}^1(\PP^1, \varphi^*(\Omega^1_{\PP^{q+1}}(1)) \otimes \Fr_*\sO_{\PP^1}(e-1)).
+\rho: E_{1} & \rightarrow \mathbb{P}^{1} \\
+(x, y) & \mapsto x
 \end{align*}
-Since
-\(\Fr_*\sO_{\PP^1}(e-1) \cong \sO_{\PP^1}(m)^{\oplus r} \oplus \sO_{\PP^1}(m-1)^{\oplus q-r}\),
-this shows that:
 
-\begin{Lemma}\label{vanishing-H1}
-If \(\varphi \colon \PP^1 \to X\) is free, then
-\(\mathrm{H}^1(\PP^1, \varphi^*\Omega^1_{\PP^{q+1}} \otimes \sO_{\PP^1}(e + m - 1)) = 0\).
-\qed
-\end{Lemma}
+is a meromorphic function on $E_1$ but it is not a Belyi covering since the ramification points are $0,1,3+2 \sqrt{3}$, and $\infty$. Using the rational covering in {\bf Example \ref{Example 2.1.7}}, the composition 
+$$
+(x, y) \rightarrow x \rightarrow-\frac{(x-1)^{3}(x-9)}{64 x}
+$$
+will give us a Belyi covering. Note that $E_{1}$ has also a conjugate curve $$E_{2}: y^{2}=x(x-1)(x-(3-2 \sqrt{3})\,.$$ 
+The following dessins are for $E_1$ and $E_2$ respectively.
 
-The converse also holds. Since
-\(\chi(\PP^1, \varphi^*\Omega^1_{\PP^{q+1}} \otimes \sO_{\PP^1}(e+m-1)) = (q+2)m - e - m = m - r\),
-this gives a relation between \(m\) and \(r\) when \(\varphi\) is free,
-recovering \cite[Theorem 1.7]{Shen}:
-
-\begin{Lemma}\label{r-at-most-m}
-If \(\varphi \colon \PP^1 \to X\) is free, then \(r \leq m\). \qed
-\end{Lemma}
-
-The following gives a geometric restriction on free curves in \(X\), and stands
-in stark contrast to the fact, see \cite[V.4.4]{Kollar}, that a general
-smooth Fano hypersurface contains either a free line or conic:
+\begin{figure}[htp]
+\includegraphics[width=60mm]{Pic_1}
+\end{figure}
 
 
-\begin{Lemma}\label{free-nondegen}
-If \(\varphi \colon \PP^1 \to X\) is free, then \(\varphi(\PP^1)\) is not
-contained in any hyperplane.
-\end{Lemma}
+These elliptic Belyi coverings both have the same ramification scheme $[6,2][6,1,1][4,2,2]$ and they are, as algebraic curves, defined over the field $\mathbb{Q}(\sqrt{3})\,.$ 
+\end{example}
 
-\begin{proof}
-Identifying \(\mathcal{E}_X = \ker(\sO_X(1)^{\oplus q+2} \to \sO_X(q+1))\) and
-using that \(\varphi\) is free shows that
-\[
-\dim\mathrm{H}^0(\PP^1, \varphi^*\mathcal{E}_X \otimes \sO_{\PP^1}(-1)) = e.
-\]
-If \(\varphi\) were contained in a hyperplane \(\PP^q \subset \PP^{q+1}\), then
-\(\varphi^*(\Omega^1_{\PP^{q+1}}(1))\) would split as
-\(\varphi^*(\Omega^1_{\PP^q}(1)) \oplus \sO_{\PP^1}\). Combined with the fact
-that \(\mathcal{E}_X(-1) \cong \Fr^*(\Omega^1_{\PP^{q+1}}(1))\), this would
-imply that
-\[
-e =  \dim\mathrm{H}^0(\PP^1, \varphi^*\mathcal{E}_X \otimes \sO_{\PP^1}(-1)) =
-\dim\mathrm{H}^0(\PP^1, \Fr^*\varphi^*(\Omega^1_{\PP^q}(1)) \otimes \sO_{\PP^1}(e-1)) + e.
-\]
-Therefore \(\Fr^*\varphi^*(\Omega^1_{\PP^q}(1)) \otimes \sO_{\PP^1}(e-1)\)
-could not have global sections; in fact, freeness of \(\varphi\) means that it
-can have no cohomology whatsoever, and so it must be isomorphic to
-\(\sO_{\PP^1}(-1)^{\oplus q}\). However, the Euler sequence for
-\(\varphi^*(\Omega^1_{\PP^q}(1))\) implies that
-\[
-\Fr^*\varphi^*(\Omega^1_{\PP^q}(1)) \otimes \sO_{\PP^1}(e-1) \cong
-\bigoplus\nolimits_{i = 0}^q \sO_{\PP^1}(e-qa_i-1)
-\]
-for some integers \(a_i \geq 0\) such that \(a_0 + \cdots + a_q = e\). So
-if \(e = qa_i\) for all \(i = 0,\ldots, q\), then \(a_0 = \cdots = a_q = e = 0\),
-meaning that \(\varphi\) would be constant: contradiction!
-\end{proof}
+\subsection{Counting exceptional Belyi coverings}
+\begin{dfn}
+    Let
 
-\begin{Remark}\label{frobenius-decomposition}
-Viewing \(\varphi\) as a morphism into \(\PP^{q+1}\) and letting
-\((\varphi_0: \cdots :\varphi_{q+1})\) be its components,
-\parref{free-nondegen} means that the \(\varphi_i\) are linearly independent in
-\(\mathrm{H}^0(\PP^1,\sO_{\PP^1}(e))\). Already, this implies \(e \geq q+1\).
-Now, that \(\varphi\) factors through \(X\) means that
-\(\sum_{i = 0}^{q+1} \varphi_i^q \cdot \varphi_i = 0\). Upon choosing homogeneous
-coordinates \((S_0:S_1)\) for \(\PP^1\), there is a unique decomposition
-\[
-\varphi_i =
-\sum\nolimits_{j = 0}^r \zeta_{ij}^q \cdot S_0^j S_1^{r-j} +
-\sum\nolimits_{k = 1}^{q-r-1} \eta_{ik}^q \cdot S_0^{r+k} S_1^{q-k}
-\]
-where \(\zeta_{ij} \in \mathrm{H}^0(\PP^1, \sO_{\PP^1}(m))\) and
-\(\eta_{ik} \in \mathrm{H}^0(\PP^1, \sO_{\PP^1}(m-1))\). Substituting this into
-the equation of \(X\) and using the fact that \(q\) is a power of the ground
-field characteristic shows that
-\[
-0 =
-\sum\nolimits_{j = 0}^r \Big(\sum\nolimits_{i = 0}^{q+1} \varphi_i \zeta_{ij}\Big)^q \cdot S_0^j S_1^{r-j} +
-\sum\nolimits_{k = 1}^{q-r-1} \Big(\sum\nolimits_{i = 0}^{q+1} \varphi_i \eta_{ik}\Big)^q \cdot S_0^{r+k} S_1^{q-k}
-\]
-and so, upon looking at exponents modulo \(q\),
-\(\sum_{i = 0}^{q+1} \varphi_i\zeta_{ij} = \sum_{i = 0}^{q+1} \varphi_i \eta_{ik} = 0\) for all \(j\) and \(k\). These
-relations are at odds with linear independence of the \(\varphi_i\), and give
-strong restrictions on the degree \(e\):
-\end{Remark}
+$$
+\beta: S_{g} \rightarrow \mathbb{P}^{1}
+$$
 
-\begin{Theorem}\label{free-bound}
-If \(\varphi \colon \PP^1 \to X\) is free, then \(q+1 \leq m^2 + m + r\).
-\end{Theorem}
+be a Belyi covering. We call $\beta$ an \textit{exceptional Belyi covering} if it is uniquely determined by its ramification scheme. The corresponding dessin is also unique. 
+\end{dfn}
 
-\begin{proof}
-Consider the linear map
-\(
-\Phi \colon
-\mathrm{H}^0(\PP^{q+1}, \sO_{\PP^{q+1}}(1)) \to
-\mathrm{H}^0(\PP^1,\sO_{\PP^1}(e))
-\) defining \(\varphi \colon \PP^1 \to \PP^{q+1}\), so that
-the \(i\)-th coordinate \(T_i\) maps to \(\varphi_i\). This has rank \(q+2\) by
-\parref{free-nondegen}. Let \(\Fr \colon \PP^1 \to \PP^1\) be
-the \(q\)-power Frobenius morphism, and identify the target of \(\Phi\) as
-\[
-\mathrm{H}^0(\PP^1, \sO_{\PP^1}(e)) \cong
-\mathrm{H}^0(\PP^1, \Fr_*\sO_{\PP^1}(e)) \cong
-\mathrm{H}^0(\PP^1, \sO_{\PP^1}(m))^{\oplus r+1} \oplus
-\mathrm{H}^0(\PP^1, \sO_{\PP^1}(m-1))^{\oplus q-r-1}.
-\]
-Let \(\Phi_1\) and \(\Phi_2\) be the linear map obtained by post-composing
-\(\Phi\) with projection to \(\mathrm{H}^0(\PP^1, \sO_{\PP^1}(m))^{\oplus r+1}\)
-and \(\mathrm{H}^0(\PP^1, \sO_{\PP^1}(m-1))^{\oplus q-r-1}\), respectively.
-Elementary linear algebra gives
-\[
-q+2 = \rank\Phi \leq \rank \Phi_1 + \rank \Phi_2 \leq (r+1)(m+1) + \rank\Phi_2,
-\]
-so it remains to bound the rank of \(\Phi_2\).
 
-Let \(\Phi_{2,k} \colon \mathrm{H}^0(\PP^{q+1},\sO_{\PP^{q+1}}(1)) \to \mathrm{H}^0(\PP^1,\sO_{\PP^1}(m-1))\)
-be the further projection of \(\Phi_2\) to the \(k\)-th component of its
-target, so that \(\Phi_{2k}(T_i) = \eta_{ik}\), notation as in
-\parref{frobenius-decomposition}. The discussion of
-\parref{frobenius-decomposition} means that the \(\Phi_{2k}\) lie in the kernel
-of the linear map
-\begin{align*}
-\Hom(\mathrm{H}^0(\PP^{q+1},\sO_{\PP^{q+1}}(1)), \mathrm{H}^0(\PP^1, \sO_{\PP^1}(m-1)))
-& \longrightarrow
-\mathrm{H}^0(\PP^1, \sO_{\PP^1}(e + m - 1)) \\
-\Psi & \longmapsto \sum\nolimits_{i = 0}^{q+1} \varphi_i \cdot \Psi(T_i).
-\end{align*}
-Comparing with the Euler sequence shows that the kernel is
-\(\mathrm{H}^0(\PP^1, \varphi^*\Omega^1_{\PP^{q+1}} \otimes \sO_{\PP^1}(e+m-1))\),
-and this has dimension \(m-r\) by \parref{vanishing-H1}. Thus at most \(m - r\)
-of the \(q-r-1\) components \(\Phi_{2,k}\) of \(\Phi_2\) are linearly independent.
-Since each \(\Phi_{2,k}\) has rank at most \(m\), this implies that
-\(\rank\Phi_2 \leq (m-r)m\). Combining with the inequality above gives
-\[
-q+2 \leq (r+1)(m+1) + (m-r)m = m^2 + m + r + 1
-\]
-which, upon subtracting \(1\) from either side, gives the result.
-\end{proof}
+We count the Belyi coverings using the \textit{Eisenstein number} which is defined as  $$\displaystyle\sum_{\beta: S \rightarrow \mathbb{P}^{1}} \frac{1}{\text { Aut } \beta}\,,$$ where $\text { Aut } \beta$ denotes the automorphism group of $\beta\,.$ This number becomes $\frac{1}{\text { Aut } \beta}$ for exceptional Belyi coverings.
 
-Combining \parref{r-at-most-m} with \parref{free-bound} gives
-\(\sqrt{q+2} - 1 \leq m+1\). Writing \(e = mq + r\) and grossly underestimating
-yields a super-linear bound on the minimal degree of a free curve in \(X\):
+\begin{thm}
+\begin{equation*}
+\frac{1}{|\operatorname{Aut} \beta|}=\frac{\left|C_{0}\right|\left|C_{1}\right|\left|C_{\infty}\right|}{(n !)^{2}} \sum_{\chi: \text { irreducible }} \frac{\chi\left(c_{1}\right) \chi\left(c_{2}\right) \chi\left(c_{3}\right)}{\chi(1)} 
+\end{equation*}
+where $n$ is the degree of $\beta$, $\chi\left(c_{i}\right)$ are the irreducible characters of permutations $c_{i}$ in the ramification scheme and $\left|C_{i}\right|$ are the size of conjugacy classes with representatives $c_{i}$. 
+\end{thm}
 
-\begin{Theorem}\label{superlinear-bound}
-If \(\varphi \colon \PP^1 \to X\) is free, then \(e \geq q^{3/2} - q\).
-\qed
-\end{Theorem}
+\section{Elliptic Exceptional Belyi Coverings} 
+Elliptic exceptional Belyi coverings are Belyi coverings for the compact Riemann surfaces of genus 1 that are uniquely determined by their ramification schemes.
+\subsection{Examples}
+\begin{example}
+    The following dessin d'enfant is drawn to be like a ``wall-paper". 
 
-The strongest restrictions on possible degrees of free curves are provided by
-\parref{r-at-most-m} and \parref{free-bound}. They give the following for the first
-few prime powers:
-\begin{center}
-\begin{tabular}{l|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c|c}
-\(q\) & \(2\) & \(3\) & \(4\) & \(5\)  & \(7\)  & \(8\)  & \(9\)  & \(11\) & \(13\) & \(16\) & \(17\) & \(19\) & \(23\) & \(25\) & \(27\) & \(29\) & \(31\) & \(32\) \\
-\hline
-\(e_{\mathrm{min}}\) & \(3\) & \(6\) & \(8\) & \(10\) & \(16\) & \(24\) & \(27\) & \(33\) & \(41\) & \(64\) & \(68\) & \(76\) & \(96\) & \(125\) & \(135\) & \(145\) & \(157\) & \(163\)
-\end{tabular}
-\end{center}
-Free curves achieving these lower bounds are known to exist in the first few
-cases: see \cite[p.6]{Madore}, \cite[p.69]{Conduche}, and \cite{BDENY} for
-\((q,e) = (2,3), (3,6), (4,8)\), respectively. As far as I know, no free
-curves are known to exist when \(q \geq 5\). Finally, observe that the
-arguments of \parref{vanishing-H1} further imply that if \(\varphi \colon \PP^1
-\to X\) is free, then it is \(r\)-free, in the sense that
-\(\mathrm{H}^1(\PP^1, \varphi^*\mathcal{T}_X \otimes \sO_{\PP^1}(-r-1)) =
-0\), so that for many \(q\) above, a minimal possible free curve is
-automatically very free.
+\begin{figure}[htp]
+\includegraphics[width=50mm]{Pic_2}
+\end{figure}
 
-\bibliographystyle{amsalpha}
-\bibliography{main}
+We can equivalently think of a compact Riemann surface of genus 1 as a torus. However, trying to draw the respective dessin over this surface is neither an easy nor an illustrative thing to do. Therefore, we consider torus as $\mathbb{C} / \lambda$, where $\lambda$ is a lattice.\\
+
+The respective ramification scheme for this dessin is $[1,5][3,3][3,3]$. This corresponds to the line E6.4 in our table. We also have the information of monodromy permutation:
+
+$$
+(1)(2,3,4,5,6)|(4,2,1)(3,5,6)|(1,6,4)(2,3,5) \text {. }
+$$
+\end{example}
+
+\begin{example}    
+     Consider the rational covering corresponding to [3][3][1,1,1] which is given by the map $x \mapsto x^{3}$. It is a star-tree with one black vertex and 3 white vertices. This shows that one black vertex corresponds to 0 with multiplicity 3, the solution of $x^{3}=0$ and each white vertex corresponds to the solutions of $x^{3}=1$, with multiplicity 1. The roots are 1 , $\xi$ and $\xi^{2}$, where $\xi=e^{\frac{2\pi}{3}}$. \\
+     
+     Now consider the elliptic curve including the square roots of the roots of $x^{3}-1$. Call this curve $E: y^{2}=\left(x^{3}-1\right)$ and consider the projection $E \rightarrow \mathbb{P}^{1}$ by $(x, y) \mapsto x$.
+
+$$
+E \rightarrow \mathbb{P}^{1} \rightarrow \mathbb{P}^{1}
+$$
+
+The composition in this way yields to a Belyi covering. We call this new covering a ``double-covering" of the rational covering.\\
+
+This corresponds to E6.1 in our table with the ramification scheme $[6][3,3][2,2,2]$. \\
+\end{example}
+
+\begin{rem}
+ A \textit{field of definition} of a Belyi pair $(S_g, \beta)$, or a dessin denfant, is the smallest number field $K$ such that both the algebraic curve $C$ (corresponding to $S_g$) and $\beta$ can be defined with coefficients in $K$. For example; $\mathbb{Q}(\sqrt{3})$ is the field of definition in {\bf Example \ref{Example 2.1.8}}. In general, existing theories give no upper bound on degree of the field of definition of an exceptional covering when $g=1\,.$  
+\end{rem}
+
+
+\subsection{Maple Calculations}
+
+The Maple code in \cite{Ku} is used to count rational exceptional Belyi coverings. The same code also allows us to determine elliptic exceptional Belyi coverings. However, our knowledge for elliptic coverings is limited in contrast to rational coverings. Our results are limited up to degree 12 and also bounded by ramification schemes, monodromy permutations and Eisenstein numbers. We are not able to list all Belyi pairs for elliptic coverings. Similarly, the respective dessins are not easy to draw as we discussed above. We attach the code and the table for elliptic exceptional Belyi coverings up to degree 12 and we add some descriptions regarding whether they come from modular curves or they are referred as double/triple-coverings. The code shows that there is no elliptic covering of degree 7.  It is an open question whether the number of elliptic exceptional Belyi coverings is finite or infinite. 
+\includepdf[pages=-]{maple.pdf}
+
+
+\includepdf[pages=-]{table2.pdf}
+
+\section{Acknowledgements}
+I thank my supervisor Professor Alexander Klyachko for his valuable support and guidance.
+
+
+\bibliographystyle{alpha}
+\bibliography{mybib}
+
 \end{document}

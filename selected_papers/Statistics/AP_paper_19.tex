@@ -1,272 +1,317 @@
 \begin{document}
 \affiliation{$$_affiliation_$$}
-\title{Analysis of Proximity Informed User
-Behavior in a Global Online Social Network}
+\title{Distribution of lowest eigenvalue in $k$-body bosonic random matrix ensembles}
+\begin{abstract}
+
+We numerically study the distribution of the lowest eigenvalue of finite many-boson systems with $k$-body interactions modeled by Bosonic Embedded Gaussian Orthogonal [BEGOE($k$)] and Unitary [BEGUE($k$)] random matrix Ensembles.  Following the recently established result that the $q$-normal  describes the smooth form of the eigenvalue density of the $k$-body embedded ensembles, the first four moments of the distribution of lowest eigenvalues have been analyzed as a function of the $q$ parameter, with $q \sim 1$ for $k = 1$ and $q = 0$ for $k = m$; $m$ being the number of bosons.  Our results show the distribution exhibits a smooth transition from Gaussian like  for $q$ close to 1 to a modified Gumbel like for intermediate values of $q$ to the well-known Tracy-Widom distribution for $q=0$.   
+
+\end{abstract}
 \maketitle
 
-\begin{abstract}
-Despite the earlier claim of "Death of Distance", recent studies revealed that geographical proximity still greatly influences link formation in online social networks. However, it is unclear how physical distances are intertwined with users' online behaviors in a virtual world. We study the role of spatial dependence on a global online social network with a dyadic Logit model. Results show country-specific patterns for distance effect on probabilities to build connections. Effects are stronger when the possibility for two people to meet in person exists. Relative to weak ties, dependence on proximity is looser for strong social ties.
-\end{abstract}
+\section{Introduction} \label{intro}
 
+Extreme value statistics (EVS) is related to, for example,  the statistics of either the lowest few or largest few eigenvalues of a matrix and has found varied applications \cite{Bo-97, De-08, Fo-15}.  Depending on the parent distribution, the classical EVS are classified into Fréchet, Gumbel and Weibull distributions \cite{Gumbel-1958, Galambos-1987}.  The classical EVS deals with the statistics of minimum or maximum of a set of random variables with a given parent distribution whereas in most of the real physical systems, the underlying variables are correlated \cite{Ma-20}.  Complex systems are usually modeled by classical random matrix ensembles - Gaussian Orthogonal (GOE), Unitary (GUE) and symplectic (GSE) Ensembles \cite{Mehta, RMT-book}.  The eigenvalues are correlated for these ensembles and the EVS of the (lowest) largest eigenvalues is described by the celebrated (reflected) Tracy-Widom (TW) distribution \cite{TW-1, TW-2, TW-3}.  For a variety of random matrix ensembles, EVS has been investigated. However, one class of ensembles where there has been very little attention are embedded random matrix ensembles with $k$-body interactions which are now established to be essential while dealing with dynamics of complex quantum many-body systems \cite{MF,  Br-81, BW, vkbk,Ma-2017}.  
 
-\section{Introduction}
+Embedded ensembles are random matrix ensembles that describe the generic properties of many-particle (fermion/boson) interacting complex systems \cite{vkbk}.  Given $m$ number of fermions or bosons distributed in $N$ single particle levels interacting via $k$-body interactions ($k \leq m$),  the $k$-body fermionic or bosonic embedded ensembles are constructed by defining the $k$-particle Hamiltonian to be a GOE (or a GUE) and then propagating it to $m$-particle spaces using the underlying Lie algebra \cite{vkbk}.  The case when rank of interactions $k$ equals number of fermions or bosons $m$, we have a GOE (or a GUE). As the $k$-particle Hamiltonian is embedded in the $m$-particle Hamiltonian, the many-particle matrix elements are correlated for embedded ensembles (EE), unlike a GOE (or a GUE).  Note that although the matrix elements for GOE (or a GUE) are independent and identically distributed random variables, its eigenvalues are correlated. Therefore, the eigenvalues of EE will have additional correlations.
 
-Online social networks are a microcosm of our increasingly globalized world, connecting individuals across vast distances and cultural divides. The structure of these networks, particularly the mechanisms that drive connection and people making new friends, are areas of ongoing research interest. As we delve into the digital age, the importance of geographical proximity, a key player in traditional, offline networks, warrants close examination in the online context.
+Recently, numerical results for distribution of largest eigenvalue within the framework of fermionic embedded ensembles have shown a smooth transition from Gaussian to TW distribution as a function of rank of interactions $k$ \cite{Be-23}.  In addition, for two-body fermionic and bosonic ensembles, the distribution of ground state energies was shown to follow the modified-Gumbel distribution \cite{IJMPE-2018}.  Going further,  in this paper, we focus on Bosonic Embedded Gaussian Orthogonal [BEGOE($k$)] and Unitary [BEGUE($k$)] random matrix Ensembles with $k$-body interactions. 
 
-Many proposed friend recommendation algorithms for online social networks consider physical proximity as an important factor for link formation, e.g. see \cite{xie2010potential, chin2013should, chin2012linking,wang2011interplay}. This is based on the belief that geographical closeness can be a proxy for a higher likelihood of connection. However, other factors, such as users' ethnic group, native language, shared interests and experiences, may also dictate the preference to select whom to follow. Therefore, evaluating the significance of physical proximity in digital spaces could be very helpful in refining friend recommendation algorithms to enhance efficiency. Moreover, for global social networks, the investigation should be conducted separately with respect to users from different countries, because the importance of geographical proximity might differ due to differences in culture, regulatory environment, demographics, etc. Comparative studies have been covered in previous research, but they were typically confined to a comparison between two or three countries, relying largely on subjective self-reported data. This paper embarks on a more comprehensive exploration of the role that geographical proximity plays in the formation of digital connections, particularly in the wake of the 2020 pandemic and subsequent quarantine regulations, which catalyzed an unprecedented reliance on virtual modes of interaction.
+Interestingly, the transition in eigenvalue density for BEGOE($k$) [also BEGUE($k$)] is well described by $q$-normal form, with parameter $q$ being related to the fourth moment of the eigenvalue density  \cite{JSM-2019}.  Note that, $q =1$ gives Gaussian  eigenvalue density and this is valid for $k \lazz m$ and $q = 0$ gives semi-circle (GOE/GUE) eigenvalue density as valid for $k = m$.  We are interested in numerically investigating how the distribution of the lowest eigenvalues for BEGOE($k$) [also BEGUE($k$)] varies as a function of the $q$ parameter.  For $k = m$ (GOE/GUE), the distribution of the lowest eigenvalues follows the well-known TW distribution \cite{TW-1, TW-2, TW-3}.  
 
-For the rest of this paper, section two reviews related literature and generates hypothesis, section three introduces the social network dataset and the model, section four presents empirical results, and the last section concludes.
+Now, we will give a preview.  Section \ref{sec1} defines the BEGOE($k$)/BEGUE($k$) and gives the $q$-normal form for the eigenvalue densities alongwith the formula for the parameter $q$ in terms of $(N,m,k)$.  We also give the various distributions that have been used in the present work to analyze the distribution of lowest eigenvalues.  In Section \ref{sec2}, we then analyze the first four moments of the lowest eigenvalue distribution.  We compare the lowest eigenvalue distribution with EVS and study the spacing distribution between lowest eigenvalue and its nearest neighbor in Section \ref{sec3}.  Finally, Section \ref{sec4} gives conclusions and future outlook.
 
-The study of how spatial propinquity affects the formation of social ties dates back to the 1950s, long before the advent of the Internet, in the context of face-to-face contact and phone calls. Evidence shows that physical space played an essential role and is inversely proportional to interaction frequency \cite{snow1981social,blake1956housing,latane1995distance}. Information technology reshapes the structure of the social network by greatly reducing the cost of making new friends and maintaining relationships, leading to the statement of "Death of Distance" in \cite{cairncross2001death}. It is conceivable that in the modern era, geographical location becomes less of a constraint for building connections, but there is still the desire for people to meet each other and have a cup of coffee physically. For example, \cite{goldenberg2009distance} argues that the ease of communication further strengthens local social ties, and the communication volume is inversely proportional to people's geographic distance. \cite{boase2006article} finds that people who send more emails to each other also have more frequent face-to-face and phone contact.
-There are many other pieces of literature that demonstrate the tendency to form short-distance links or geographically closed friendship clusters \cite{scellato2010distance, liben2005geographic, hipp2009simultaneous, backstrom2010find}. It leads to our first hypothesis with respect to the influences of proximity on online link formation:
+\section{Preliminaries}
+\label{sec1}
 
-\textit{H1. The possibility of a user following another user declines along with the growth of their geographical distance.}
+In this section, we define bosonic embedded ensembles and give the $q$-normal form for the eigenvalue densities \cite{JSM-2019}. Then we explain the various distributions that have been used to analyze the distribution of  lowest eigenvalues for BEGOE($k$) and BEGUE($k$). 
 
-Although online social networks exhibit distance dependence like offline, the spatial dependence may decay in different patterns or at a slower rate. This is because the cost of building online connections (clicking the "follow" button on someone's profile) is much cheaper than breaking the ice and getting acquainted with other people face-to-face. As a result, the network is usually composed of both strong and weak ties, leading to a lower strength of connections. Besides keeping in touch, people have a variety of reasons to follow other people's lives: resonate with others' thoughts, be attracted by posted pictures, or simply follow the crowd. This could be particularly true for weak ties in online directed networks, like Instagram or Twitter. Users follow others to learn new knowledge, seek values to help improve their lives or realize the lifestyles of their dreams. Thus it is possible that in the digital space, the appeal of popularity transcends geographical boundaries, leading users to form connections based on interests, influence, and cultural factors. The simplest hypothesis to test is to see whether users are more likely to follow others from popular places rather than those who are geographically close, especially when they could hardly meet in person:
+\subsection{$q$-normal form for eigenvalue density of BEGOE($k$)}
 
-\textit{H2. People are more likely to follow others from popular countries.}
+Given a system of $m$ spin-less bosons in $N$ degenerate single particle states and say the interaction among the bosons is a $k$-body interactions ($1 \leq k \leq m$),  then the Hamiltonian operator for the system takes the form 
+\be
+H(k,\beta) = \dis\sum_{k_a,k_b} v_{k_a,k_b}^{\beta} B^\dagger(k_a) B(k_b)\;.
+\label{eq.ent1}
+\ee
+Here, $k_a$ and $k_b$ denote $k$-particle configuration states in occupation number basis and 
+$B^\dagger(k_a)$ creates a normalized $k$ particle state $\l.\l|k_a\r.\ran$ with $B^\dagger(k_a)\l.\l|0\r.\ran=\l.\l|k_a\r.\ran$. Similarly $B(k_b)$ is a $k$ particle annihilation operator.  Note that $v_{k_a,k_b}^{\beta}$ are the matrix elements of $H$ in the defining $k$ particle space with the $H$ matrix dimension being $d_k={N+k-1 \choose k}$.  Here,  Dyson's parameter $\beta$ is equal to $1$ for GOE and $2$ for GUE.  Now, representing the $V$ matrix by GOE/GUE in $k$ particle space we have a GOE/GUE ensemble of operators and action of each member of this GOE/GUE on the $m$ particle states will generate a $m$ particle matrix of dimension $d_m={N+m-1 \choose m}$. The ensemble of these matrices form embedded GOE/GUE of $k$ particle interactions [BEGOE($k$)/BEGUE($k$) with $B$ for bosons] in $m$ particle spaces.  In defining the GOE in $k$-particle spaces, we choose the matrix elements to be independent Gaussian variables with variance 2 for diagonal matrix elements and 1 for off-diagonal matrix elements, For GUE, the variance of real and imaginary parts of the off-diagonal matrix elements are chosen to be unity.
 
-This could be due to several reasons. Popular countries often have a significant cultural influence that extends beyond geographical boundaries. For example, users from Italy or France may be seen as more authoritative in fields like fashion due to the perceived status of these places. Users may follow individuals from these places to keep up with trends and ideas, and have exposure to a wide array of opinions, lifestyles, and experiences, thereby enriching their own social media feeds with diverse content. Popular places may also cultivate more Internet celebrities that attract followers.
+In order to introduce the $q$-normal form, firstly one needs the definition of $q$ numbers $[n]_q$ and they are(with $[0]_q=0$), 
+\be
+\l[n\r]_q = \dis\frac{1-q^n}{1-q} = 1+q + q^2 + \ldots+q^{n-1}\;.
+\label{eq.q1}
+\ee
+Note that $[n]_{q \rightarrow1}=n$. Similarly, $q$-factorial $[n]_q! = \dis\Pi^{n}_{j=1} \,[j]_q$ with $[0]_q!=1$. Given these, the $q$-normal distribution $f_{qN}(x|q)$ with $x$ being a standardized variable (then $x$ is zero centered with variance unity), is given by \cite{Ismail,Sza-1} 
+\be
+f_{qN}(x|q) = \dis\frac{\dis\sqrt{1-q} \dis\prod_{k^\pr=0}^{\infty} \l(1-
+q^{k^\pr +1}\r)}{2\pi\,\dis\sqrt{4-(1-q)x^2}}\; \dis\prod_{k^\pr=0}^{\infty}
+\l[(1+q^{k^\pr})^2 - (1-q) q^{k^\pr} x^2\r]\;.
+\label{eq.q2}
+\ee
+The $f_{qN}(x|q)$ is non-zero for $x$ in the domain defined by $\cs(q)$ where
+\be
+\cs(q) = \l(-\dis\frac{2}{\dis\sqrt{1-q}}\;,\;+\dis\frac{2}{\dis\sqrt{1-q}}\r)\;.
+\label{eq.q3}
+\ee
+Note that $\int_{\cs(q)} f_{qN}(x|q)\,dx =1$. Most important property of $q$-normal is that $f_{qN}(x|1)$ is Gaussian with $\cs(q=1)=(-\infty , \infty)$ and similarly, $f_{qN}(x|0)=(1/2\pi) \sqrt{4-x^2}$, the semi-circle with $\cs(q=0)=(-2,2)$. 
 
-In addition, online social networks, especially global ones, comprise far more entities than offline communities from all countries and have multitudinous cultural milieus and diverse lifestyles. Research shows people from different countries have distinct motivations for using online social networks, e.g., \cite{kim2011cultural} found that Korean students attached more importance to gaining social support from their friends, and students from the United States put a larger weight on entertainment. Different motivations may yield divergent social behaviors. \cite{cardon2009online} surveyed university students from 11 countries, showing that users from collectivist nations built more connections with whom they had never met. In contrast, users from individualist nations nurture more relationships offline. In other media, \cite{chen2002global} investigated people who connect with their relatives face-to-face, by telephone, and by email, reported heterogeneity within and beyond 50 kilometers in North America, other developed countries, and developing countries. These form the basis of our third hypothesis:
+The reduced central fourth moment for eigenvalue density is $\gamma_2(N,m,k) = q(N,m,k) - 1$ and the formula for parameter $q(N,m,k)$ for BEGOE($k$)/BEGUE($k$) is \cite{JSM-2019},
+\be
+\barr{l}
+q(N,m,k) = \dis\binom{N+m-1}{m}^{-1} \dis\sum_{\nu=0}^{\nu_{max}}\; \dis\frac{
+\Lambda_B^\nu(N,m,m-k)\;\Lambda_B^\nu(N,m,k) \;d_B(g_\nu)}{\l[\Lambda_B^0(N,m,k)\r]^2}
+\\ \\
+\Lambda_B^\nu(N,m,r) =  \dis\binom{m-\nu}{r}\;\dis\binom{N+m+\nu-1}{r}\;,\\ \\
+d_B(g_\nu)  = \dis\binom{N+\nu-1}{\nu}^2-\dis\binom{N+\nu-2}{\nu-1}^2\;.
+\earr \label{eq.qh9b}
+\ee
+Here, $\nu_{max} = min(k,m-k)$. This formula is pretty accurate for $k \geq 2$ but there are large deviations for $k =1$  \cite{JSM-2019, Rao-21}.  Note that $\Lambda_B^0(N,m,k)$ gives the spectral variance.
 
-\textit{H3. There is heterogeneity in how users' online behaviors are affected by proximity in different regions. }
+\subsection{Extreme value statistics}
 
-Another angle that supports country heterogeneity is provided by papers that study the variation in network structures following geographical variability and unevenly distributed populations. Inhabited areas are usually rich in resources, better in climate, or have other desirable properties. Barren lands and oceans, where there are few or no users at all, could certainly affect the estimated effect of region-specific geographical proximity, e.g., see \cite{butts2012geographical}.
+In the present work, we use three different distributions that characterize EVS - Classical TW distribution, modified Gumbel distribution and $\chi^2$ distribution.  
 
-\section{Dyadic Logit Model with Social Network Data}
+\subsubsection{Classical Tracy-Widom distribution}
 
-The social network data is collected through three processes by the mobile app: user registration, user profile, and user activity. As the first point of contact with the platform, users are asked to provide basic information about themselves during registration, such as name, email address, gender, and date of birth. In the second step, users are encouraged to complete their profiles by adding more personal information, such as their heights and weights, ethnicity, relationship status, and profile pictures. When users start to interact with the app, their online activities are logged as user behavioral data, such as the followers and followees, their liked and commented posts and stories, chat messages that are sent, etc.
-
-We focus on a snapshot of the online social network, on December 16th, 2020, that consists of 11,992 active users, stratifed by country of origin, who have clicked the "follow" or "unfollow" button at least 4 times a day in the sample. Inactive users are not considered, because their actions are not representative of user behaviors in the network, and may obscure the relationship between geographical distance and online interactions.
-
-Similar to other large-scale social networks in reality, the directed network is sparse with 0.59\
-\begin{figure} \centering
-  \caption{Vertex In-degree Distributions}
-  \begin{minipage}[t]{0.45\textwidth}
-    \centering
-    \includegraphics[width=7cm]{Graph/Chapter2/degree_distribution.png}
-  \end{minipage}
-  \begin{minipage}[t]{0.45\textwidth} \centering
-    \includegraphics[width=7cm]{Graph/Chapter2/ave_neighbor_in_degree.png}
-  \end{minipage}
-\end{figure}
-
-Beyond the degree distribution, how users with different numbers of fans are linked could be seen by plotting the vertex in-degree versus the average in-degree of its neighbor. Users with few or no followers are more exploratory in their connections, as they are still trying to build their social network. They may connect with celebrity users due to their popularity or influence, while also following low-degree users who are closer to their own levels of influence. When users have more followers, their neighbors' average in-degree uncertainty decreases. This may imply that vertices with higher degrees are more selective about who they follow, and they tend to connect with other high-degree nodes, leading to a more predictable degree distribution among their neighbors. This could be due to a number of reasons, such as their desire to maintain a certain image, the limited time they have to interact with their followers, or their strategic goal to maximize their influence or reach.
-
-\begin{figure} \centering
-  \caption{Social Network Visualized with Users' Geographical Locations}
-  \includegraphics[width=\textwidth]{Graph/Chapter2/world_map_curve.png}
-\end{figure}
-
-We visualize the network by setting the vertices' size to correspond to the user's followers, and the vertex color to the user’s country of origin. There is an edge between any two users if one user follows the other, and the colors of the edges accord with that of the followers. The user base covers all five continents and a few islands but is mainly located in Asia, Europe, and South America. For countries, 28.67\
-Due to the measuring scale, it is hard to see how the density of connections changes along with distance, so We compare the histogram of the distance between any two users, and the histogram of any two mutually-connected users. Distance between any two users ranges from 0 to 20,000 kilometers. The distribution has three peaks: less than 100 kilometers, near 2,500 kilometers, and around 7,000 kilometers. These may correspond to three typical scenarios: two users from the same area, two cities of the same country, and two cities of different countries. For these three groups of users, mutual connections are most easily formed for those in the first group, when two users are from the same area.
-
-\begin{figure} \centering
-  \caption{Histograms of the Distance between All Users and Mutually Connected Users}
-  \begin{minipage}[t]{0.45\textwidth}
-    \centering
-    \includegraphics[width=7cm]{Graph/Chapter2/distance_all.png}
-  \end{minipage}
-  \begin{minipage}[t]{0.45\textwidth} \centering
-    \includegraphics[width=7cm]{Graph/Chapter2/distance_edge.png}
-  \end{minipage}
-\end{figure}
-
-To explore the user preference for following others among different countries, we produce the heatmap, for the 10 largest countries, by listing followers' nationalities on the y-axis, and followees' nationalities on the x-axis. Users from Thailand, Turkey, Indonesia, and China (Taiwan) mainly build connections internally. Brazilian and Russian users also prefer to follow others from the same country but are open to following users from other places. More diversities are seen among people from Ukraine, Mexico, and the United States. The heterogeneity could be jointly induced by a variety of cultural, linguistic, and sociopolitical factors. For example, users are more likely to follow others who speak the same language and share the same cultural background. Higher diversity in countries like the U.S. may be contributed by higher internet penetration, the larger size of the online community, the presence of more diaspora communities, etc.
-
-\begin{figure} \centering
-  \caption{Heatmap of Users' Countries of Following}
-  \includegraphics[width=0.45\textwidth]{Graph/Chapter2/heatmap.png}
-\end{figure}
-
-In \cite{tinbergen1962shaping}, dyadic regression is initially used to model the logarithm of exports from country $i$ to country $j$ with logged Gross National Product (GNP) of both countries, logged distance of the two countries and other variables. After that, the setting is largely applied to empirical works in international trade, e.g., \cite{anderson2011gravity, rose2004we}. Other fields in social sciences, e.g., \cite{portes2005determinants} explains bilateral financial assets transactions among 14 countries from 1989 to 1996, \cite{atalay2011network} characterized the buyer–supplier network in the U.S., \cite{owsiak2021peaceful} investigates how peaceful country dyads are formed from a territorial perspective, just to name a few. To estimate the influence of geographical proximity on users' probabilities to connect, we implement a series of dyadic Logit regressions to model the data. Following the notation from \cite{de2020econometric}, a simple dyadic Logit model, for either a directed or undirected network, could be specified as:
+The TW distribution of lowest eigenvalues $E_{min}$, corresponding to a $D$-dimensional system,  is given by \cite{TW-1, TW-2, TW-3},
 \begin{equation}
-  \nonumber
-  W_{ij}=1\left\{ D_{ij} \beta_D + X_{ij}^T \beta_X + \epsilon_{ij} \geq 0 \right\}
+F_\beta(E)  \displaystyle\stackrel{D \to \infty}{\longrightarrow} \; P\left[ D^{1/6} (E_{min} + 2\sqrt{\beta D}) \leq E \right] \;,  \beta = 1, 2\;.
 \end{equation}
-where $W_{ij}$ is the connectedness of user $i$ and $j$, $D_{ij}$ are pair-wise covariates of interests, such as geographical distance between the two users, $X_{ij}$ includes control variables which could be user-specific or dyad-specific variables, and $\epsilon_{ij}$ is a logistic random variable. We include a rich set of vertex features as well as a series of constructed dyadic features that reflect homophily in $X_{ij}$. Summary statistics of the vertex attributes are shown in the following table:
-
-\begin{table}[!htbp] \centering
-  \caption{Summary Statistics of Vertex Attributes}
-\begin{tabular}{lcccc}
-\\[-1.8ex]\hline  \hline \\[-1.8ex]
-Statistic & \multicolumn{1}{c}{Mean} & \multicolumn{1}{c}{St. Dev.} & \multicolumn{1}{c}{Min} & \multicolumn{1}{c}{Max} \\
-\hline \\[-1.8ex]
-App Usage in Days & 662.70 & 285.990 & 4 & 910 \\
-App Version & 4.72 & 0.87 & 3 & 7 \\
-Platform IOS & 0.25 & 0.43 & 0 & 1 \\
-Age & 30.253 & 9.95 & 18.00 & 99.00 \\
-Height(cm) & 181.69 & 153.14 & 91.00 & 200.00 \\
-Weight(kg) & 70.79 & 14.23 & 27.00 & 293.00 \\
-Uploaded Photo & 0.82 & 0.39 & 0.00 & 1.00 \\
-Account Visible & 0.97 & 0.17 & 0.00 & 1.00 \\
-Has Email & 0.70 & 0.46 & 0.00 & 1.00 \\
-Photos Rejected by Platform & 6.00 & 26.47 & 0 & 1,477 \\
-Feed Posts Made in V4 & 0.63 & 53.77 & 0 & 5,872 \\
-Feed Posts Made in V5 & 7.55 & 49.70 & 0 & 1,996 \\
-Feed Posts Made in V6 & 14.11 & 70.64 & 0 & 2,744 \\
-Feed Posts Liked/Commented in V4 & 44.94 & 1,101.46 & 0 & 84,481 \\
-Feed Posts Liked/Commented in V5 & 789.14 & 4,130.66 & 0 & 116,539 \\
-Feed Posts Liked/Commented in V6 & 1,079.40 & 4,214.73 & 0 & 205,533 \\
-Stories Read from Feed in V4 & 0.05 & 0.83 & 0 & 56 \\
-Stories Read from Feed in V5 & 47.40 & 228.67 & 0 & 10,625 \\
-Stories read from Feed in V6 & 64.41 & 240.61 & 0 & 14,292 \\
-Chat Messages Sent in V4 & 365.88 & 2,498.43 & 0 & 87,302 \\
-Chat Messages Sent in V5 & 5,047.41 & 11,383.11 & 0 & 175,948 \\
-Chat Messages Sent in V6 & 6,181.82 & 8,414.75 & 0 & 116,155 \\
-Total Followees in V4 & 50.51 & 525.83 & 0 & 22,546 \\
-Total Followees in V5 & 842.16 & 3,080.15 & 0 & 167,086 \\
-Total Followees in V6 & 1,166.10 & 1,656.27 & 0 & 49,161 \\
-Total Followers & 70.21 & 97.15 & 0 & 1,618 \\
-Total Followees & 70.21 & 115.53 & 0 & 4,243 \\
-\hline \hline \\[-1.8ex]
-\end{tabular}
-\end{table}
-
-The sample covers both new users who register an account as late as 4 days ago and old users who have had the account for more than 2 years, including all age groups. Among those who report their races, 47.86\
-To investigate the second hypothesis, we define the popularity index for the country as the number of followers from other countries normalized by the number of users from that country, and include it as an additional regressor:
-
+For $\beta = 1$ and 2, we have
 \begin{equation}
-  \nonumber
-  Popularity = \frac{Number\ of\ Followers\ Outside\ the\ Country}{Country\ User\ Base}
+\begin{array}{l}
+F_1(x) = \exp[\Theta(x)] \; F_2^{1/2}(x) \;, 
+\\ \\
+F_2(x) = \exp \left( - \displaystyle\int_x^\infty (s-x) [Q(s)]^2 \; ds\right) \;,
+\end{array}
+\label{eq-tw}
 \end{equation}
+where $Q$ is given in terms of the solution to Painlevé type II equation $Q^{\prime\prime} = sQ + 2Q^3$ subjected to the boundary condition $Q(s) \approx Ai(s)$ for $s \to \infty$, with $Ai(s)$ denoting the Airy function and $\Theta(x) = -\int_x^\infty Q(s) \; ds/2$.  Note that $\beta$ is the Dyson's parameter.
 
-The country popularity index stands for how many times the number of followers outside the country is to the size of the user base or the average number of foreign followers each user from that country has. Country popularity ranges from 0 to over 80, and the smaller the size of the user base, the more popular the country is. We restrict the user base to be larger than 50 and define the 7 countries with the highest popularity index as popular: Germany, France, United States, Mexico, Ukraine, Iran, and Russia.
+\subsubsection{Modified Gumbel distribution}
 
-\begin{figure} \centering
-  \includegraphics[width=0.5\textwidth]{Graph/Chapter2/Popularity_index.png}
-    \caption{Country Popularity}
+Gumbel distributions are one of the EVS and have been used to analyze ground state distribution in Sherrington-Kirkpatrick model  \cite{Pa-08} and Two-body random ensembles (TBRE) \cite{IJMPE-2018}.  The modified Gumbel distribution is given by \cite{Gumbel-1958, Galambos-1987},
+\be
+G_{\mu}(E)= w \exp \l[\mu\left(\frac{E-u}{v}\right)-\mu\exp \left(
+\frac{E-u}{v}\right)\r] \;,
+\label{gumbel}
+\ee
+with $w$, $u$ and $v$ as functions of parameter $\mu$. The $G_{\mu}$ provides an interpolation between the standard Gumbel ($\mu=1$) and Gaussian ($\mu =\infty$) distribution.  
+
+\subsubsection{$\chi^2_M$ distribution}
+
+Lea Santos {\it et al} demonstrated that $\chi^2_M$ distribution (for a system with $M$ degrees of freedom) explains the distribution of lowest eigenvalues of disordered many-body quantum systems \cite{PRE-22},
+\be
+P(E)=\frac{1}{2^{M/2} \Gamma(M/2)}\, \exp(-E/2)\, E^{M/2-1}\;\; (E\ge0).
+\label{chi2}
+\ee
+This distribution remains well-defined even when the free parameter $M$ is non-integer.  The fitting  parameter $M$ is related to skewness ($S$) as $M=8/S^2$.  For GOE, we have $S = -0.293$, $M \approx 93$ and Eq. \eqref{chi2} fits TW distribution very well.  Similarly,  also for GUE, with $S=-0.224$ and $M \approx 160$, Eq. \eqref{chi2} fits TW distribution very well. .
+
+\section{First four moments of the lowest eigenvalue distribution}
+\label{sec2}
+
+In all the examples considered in this paper, we construct a 1000 member BEGOE($k$) and BEGUE($k$) with following choices of number of single particle states $N$ and number of bosons $m$:  $N=4$, $m=4-14$; $N=5$, $m=5-11$; and $N=6$, $m=6-9$.  Remember that rank of interactions $k$ takes values from 1 to $m$.  In all these examples, we obtain the lowest eigenvalue; we denote this by $\lambda$ hereafter.  For the distribution of $\lambda$, we will present in this Section,  results for the centroid $\lambda_c$, width $\sigma_\lambda$, skewness 
+$S$ (defined by the third central moment) and Kurtosis $\kappa$ (defined by the fourth central moment).
+
+Firstly, we compute the parameter $q$ using Eq. \eqref{eq.qh9b} and its variation with $k$ is shown in Fig. \ref{fig1}. Notice the linear behavior for intermediate values of $k/m$ while there are strong deviations near the two extreme values of $k$. Although the variation of $q$ with $k/m$ is smooth,  there is very weak dependence on $N$. 
+
+\begin{figure}[tbh]
+	\begin{center}
+		\includegraphics[width=0.5\linewidth]{fig1.pdf}
+	\end{center}
+	\caption{Variation of parameter $q(N,m,k)$ as a function of $k/m$ for various values of $(N,m): $ $N=4$, $m=4-14$; $N=5$, $m=5-11$; and $N=6$, $m=6-9$.}
+	\label{fig1}
 \end{figure}
 
-We apply the model for both the weakly-tied directed network, in which $W_{ij}=1$ if user $i$ follows $j$, and the strongly-tied friendship network, in which $W_{ij}=1$ only if user $i$ and $j$ have followed each other. Apart from the models for all users, to investigate country heterogeneity, we run country-specific models for $6$ countries with the largest user base, by restricting the nationality of the follower of each dyad.
+\subsection{Centroid of lowest eigenvalue distribution}
 
-Although the dyadic Logit model assumes independence for all dyads and overlooks the strategic part of building connections, it could still replicate stylized attributes of social networks, see \cite{jochmans2018semiparametric}. The challenge that prevents more advanced settings from being adopted is mainly computational. $11,992$ users generate a sample size of more than $143$ million dyads, each with more than $100$ control variables. The data size makes it impossible to fit into computer memory at one time, and to our best knowledge, there is no off-the-shelf package that runs Logit models at this scale. Thus we used a single-layer neural network, and train it with one smaller batch of the dataset at a time to estimate the parameters.
+The $q$-normal distribution shows that the distribution has a cut-off at $-2 [\beta \Lambda_B^{0}(N,m,k)]^{1/2}/[1-q(N,m,k)]^{1/2}$ at the lower edge when measured with respect to the ensemble averaged eigenvalue centroid; this follows easily from Eq. \eqref{eq.q3}.  For finite $(N,m)$, there will be departures as $q$-normal is an asymptotic form for the eigenvalue densities. Therefore, we use the following parametrization for the centroid $\lambda_c$ of $\lambda$'s for a given $(N,m,k)$,
+\begin{equation}
+\lambda_c(N,m,k)  = \displaystyle\frac{-2}{\displaystyle\sqrt{1- q(N,m,k)}}{\left[ \beta \Lambda_B^{0}(N,m,k) \right]}^{\alpha}.
+\label{eq-alp}
+\end{equation}
+where Eq. \eqref{eq.qh9b} gives the formula for parameter $q(N,m,k)$ and $\Lambda_B^{0}(N,m,k)$ for BEGOE($k$)/BEGUE($k$).  In the limit $q$-normal form is exact, the parameter $\alpha = 1/2$ and secondly, for $k = m$, the Eq. \eqref{eq.qh9b} gives the well-known result for TW for GOE/GUE. Therefore, using the calculated $\lambda$ values, via least-square procedure, we have determined the values of $\alpha$ for all $(N,m,k)$ values listed above.  The corresponding results are shown in Fig. \ref{fig2}. For $0 \leq q \leq 0.75$, the agreement with $q$-normal form result that $\alpha = 0.5$ is almost exact. However,  for $q(N,m,k) \gazz 0.8$, the deviations from $\alpha = 1/2$ are significant and they correspond to $k = 1$.  This appears to be due to the well known result that the eigenvalue centroid scaled by the spectral width fluctuations from member to member are largest for $k =1$ \cite{Chavda2003} and they decrease faster as $k$ increases. This also corresponds to ensemble vs spectral averaging in EE \cite{Brody, SeligmanFlores}; see also Appendix. In addition, the $N = 4$ systems show much larger deviations from $\alpha = 0.5$. This is understandable as one needs atleast five single particle states for asymptotics to work well \cite{KPat-2000-PLA}.  
 
-It is worth mentioning that nationwide travel restrictions and region or city-level stay-at-home orders were enforced for different countries in December 2020. This would rise the probability of people registering and using online social networks, affect the compositions of the user population, or potentially change their social behaviors compared to pre-pandemic times. In addition, 7.14\
-\section{Empirical Results}
-
-We first present the Logit coefficients for the friendship network, on which only mutual connection between any two users is considered an edge. The model is run for users from the world at first, then for users from the 6 largest countries respectively by restricting followers' countries of origin: Thailand, Turkey, Indonesia, China (Taiwan), Brazil, and Russia.
-
-\begin{figure} \centering
-  \includegraphics[width=0.9\textwidth]{Graph/Chapter2/friendship_by_country.png}
-    \caption{Exponentiated Coefficients of Friendship Network by Country}
+\begin{figure}[tbh]
+	\begin{center}
+		\begin{tabular}{cc}
+			\includegraphics[width=0.5\linewidth]{fig2a.pdf}&\includegraphics[width=0.5\linewidth]{fig2b.pdf}\\
+			(a) &(b)
+		\end{tabular}
+	\end{center}
+	\caption{Variation in parameter $\alpha$ defined in Eq. \eqref{eq-alp} for the centroids of the lowest eigenvalue distributions for a 1000 member (a) BEGOE($k$) and (b) BEGUE($k$) with different values of $(N,m)$ ($m$ values corresponding to each $N$ are given in Fig. \ref{fig1}) and $k = 1-m$.  The circles highlight the points corresponding to $k = 1$. }
+	\label{fig2}
 \end{figure}
 
-For geographical proximity, the reference level for all models is set to those pairs of users whose distance is within 5 kilometers. Proximity is still of great importance in online social networks, as shown by the significant coefficients, and users are most likely to establish friendships with their neighbors. When the distance between two users becomes further but is still within the practical range to meet offline on a regular basis (100 kilometers), the probability of forming mutual connections declines. Different user behavior patterns could be observed for different countries when the distance between two users goes beyond 100 kilometers. For China (Taiwan), the probability drops until 500 km, then rises a little when the distance is between 500 and 1,000 kilometers. However, this upswing is not necessarily due to changes in user behaviors but rather the lack of users in the sample, given that China (Taiwan) is an island surrounded by the western Pacific Ocean. The connections are mainly built with users from Hong Kong. Taiwanese hardly establish strong ties with users more than 1,000 kilometers away. Another pattern is found for users from the largest country in the world, Russia: users are the most tolerant to longer distances, compared to other countries, within 100 kilometers, but the probability of friendship formation drops significantly if distances get further and catch up with the other countries near 1,000 kilometers. When distance surpasses 1,000 kilometers, the probability of mutually connecting with others grows slowly until the 3,000-kilometer threshold is reached. Besides those who are from another far-off Russian city, plenty of links are formed with users from Turkey. Correspondingly, geographical proximity plays a weaker role for Turkish users who are not from the same place. The probability of making friends remains the same for pairs of users within the range of 100 and 1,000 kilometers and of 1,000 and 3,000 kilometers. The only country in South America, Brazil, shows particular characteristics of how users use the social network app. Within shorter distances, the probability of establishing mutual connections declines sharply in the wake of growing distance, with the largest decreasing amplitude among all countries. When the two users have no chance to meet in person, the probability of following each other does not descend further and even rises again over a long distance. The other two Asian countries, Indonesia and Thailand, behave similarly: friendship gradually and steadily becomes more difficult to build between two people and the rising distance between them.
+\subsection{Variance of lowest eigenvalue distribution}
 
-\begin{table}[!htbp] \centering
-  \caption{Logit Coefficient of Countries' Friendship Network}
-\begin{tabular}{lccccccc}
-\\[-1.8ex]\hline \hline
-\\[-1.8ex] & World & Thailand & Turkey & Taiwan & Indonesia & Brazil & Russia   \\
-\hline \\[-1.8ex]
- Same Platform & 0.16$^{***}$ & 0.11$^{***}$ & 0.28$^{***}$ & 0.01 & 0.21$^{***}$ & 0.28$^{***}$ & 0.30$^{***}$ \\
-    & (0.00) & (0.00) & (0.01) & (0.01) & (0.01) & (0.01) & (0.01) \\
-    Same Continent & -0.73$^{***}$ & -0.70$^{***}$ & -0.99$^{***}$ & -0.68$^{***}$ & -0.70$^{***}$ & 1.83$^{***}$ & 1.15$^{***}$ \\
-    & (0.01) & (0.01) & (0.01) & (0.02) & (0.01) & (0.02) & (0.01) \\
-    Same Country & 1.04$^{***}$ & 1.44$^{***}$ & 1.41$^{***}$ & 0.07$^{***}$ & 1.18$^{***}$ & 0.03 & 0.20$^{***}$ \\
-    & (0.01) & (0.01) & (0.01) & (0.02) & (0.02) & (0.05) & (0.02) \\
-    Same Region & 0.34$^{***}$ & 0.91$^{***}$ & 0.11$^{**}$ & -0.03$^{**}$ & 0.06$^{***}$ & -0.08$^{***}$ & 0.57$^{***}$ \\
-    & (0.01) & (0.02) & (0.05) & (0.01) & (0.01) & (0.02) & (0.07) \\
-    Same City & -0.35$^{***}$ & -0.97$^{***}$ & -0.08$^{*}$ & 0.47$^{***}$ & 0.13$^{***}$ & 0.15$^{***}$ & -0.71$^{***}$ \\
-    & (0.01) & (0.02) & (0.05) & (0.05) & (0.02) & (0.02) & (0.08) \\
-    Age within 5 Years & 0.15$^{***}$ & 0.15$^{***}$ & 0.13$^{***}$ & 0.11$^{***}$ & 0.14$^{***}$ & 0.08$^{***}$ & 0.10$^{***}$ \\
-    & (0.00) & (0.00) & (0.01) & (0.01) & (0.01) & (0.01) & (0.01) \\
-    Same Ethnicity & 0.35$^{***}$ & 0.16$^{***}$ & 0.06$^{***}$ & 0.20$^{***}$ & 0.24$^{***}$ & 0.38$^{***}$ & 0.17$^{***}$ \\
-    & (0.00) & (0.00) & (0.01) & (0.01) & (0.01) & (0.01) & (0.01) \\
-    Height within 5cm & 0.25$^{***}$ & 0.28$^{***}$ & 0.08$^{***}$ & 0.21$^{***}$ & 0.10$^{***}$ & 0.13$^{***}$ & 0.08$^{***}$ \\
-    & (0.00) & (0.00) & (0.01) & (0.01) & (0.02) & (0.01) & (0.01) \\
-    Weight within 5kg & 0.10$^{***}$ & 0.18$^{***}$ & 0.01 & 0.07$^{**}$ & 0.04 & 0.10$^{**}$ & 0.12$^{***}$ \\
-    & (0.01) & (0.02) & (0.02) & (0.03) & (0.06) & (0.05) & (0.03) \\
-    Same Language & 0.31$^{***}$ & 0.24$^{***}$ & 0.31$^{***}$ & 0.10$^{***}$ & 0.44$^{***}$ & 0.14$^{***}$ & 1.05$^{***}$ \\
-    & (0.00) & (0.00) & (0.01) & (0.02) & (0.01) & (0.04) & (0.02) \\
-\hline \hline \\[-1.8ex]
-\textit{Note:}  & \multicolumn{7}{r}{$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01} \\
-\end{tabular}
-\end{table}
+The variance for TW distribution is $D^{-1/6}$ for $D$-dimensional GOE/GUE. This corresponds to BEGOE($k$)/BEGUE($k$) with $k = m$ and $D = \binom{N+k-1}{k}$. This is also proportional to the spectral width. Therefore, we use the following two parametrizations for bosonic EE, 
+\be
+\sigma_{\lambda} (N,m,k) = \left[\beta \Lambda^{0}_B(N,m,k) \right]^{\mu_1},
+\label{eq-mu1}
+\ee
+and
+\be
+\sigma_{\lambda}(N,m,k) = {\left[\beta \Lambda^{0}(N,m,k) \right]}^{\mu_2} {N+k-1 \choose k}^{(-1/2)}.
+\label{eq-mu2}
+\ee
+For $k=m$ case, i.e. for classical Gaussian ensembles, the exponent $\mu_1=-1/6$ for Eq. \eqref{eq-mu1} and $\mu_2=1/3$ for Eq. \eqref{eq-mu2}. Both of these will give $\sigma_{\lambda}=D^{-1/6}$ for the case $k=m$.
 
-To transform the scale from log odds to probability, we compute the marginal effects of geographical proximity at mean, for a typical dyad of each country. At the world level, compared with two users who live within 5 kilometers, the probability of the dyad connecting decreases 0.028 when the distance is between 5 and 10 kilometers, and 0.043 when the distance is between 10 and 50 kilometers. Probability reduces along with the increase in distance, and it decays slower for further distances. The table of the marginal effects is shown in \ref{marginal_effect_friendship}.
+Now, using the calculated $\lambda$ values, via least-square procedure, we have determined the values of $\mu_1$ and $\mu_2$ for all $(N,m,k)$ values listed above. The results are shown in Fig. \ref{fig3}. For small values of $q \lazz 0.1$, the coefficients $\mu_1$ and $\mu_2$ increase linearly and then, essentially become a constant. The values decrease for $k =1$. Note that $\mu_1$ becomes positive (also $\mu_2$ increases) which implies larger variance compared to that for TW. This trend is common for both EGOE/EGUE.
 
-For covariate effects, users who use the same platform (IOS/Android) have a higher likelihood to connect. This correlation is found to be significant globally and within countries, with the coefficients ranging from $0.11$ to $0.30$, notably high in Turkey, Brazil, and Russia. This may be due to users who share the same platform having similar online social behaviors or belonging to similar demographic groups.
-
-Residing on the same continent surprisingly reduces the odds of connection among users, except in Brazil and Russia. Looking more closely at national boundaries, being from the same country significantly increases the odds of connection, with particularly strong effects noted in Thailand, Turkey, and Indonesia. Region and city-level analysis produce mixed outcomes. While being in the same region generally leads to a higher probability of connection, the effects of being in the same city vary by country. These findings imply a nuanced and potentially complex relationship between geographical proximity and online social networking. The contrasting patterns among various places may reflect diverse social dynamics, such as varying urbanization rates or digital penetration levels.
-
-Apart from geographical homophily factors, physical and cultural attributes also play a role. For instance, age differences of fewer than 5 years, sharing the same ethnicity, and being within 5 centimeters of height all positively influenced the likelihood of connection. The effect was most pronounced when the users speak the same language, particularly in Russia, indicating the vital role of the language barrier in online social interactions.
-
-\begin{figure} \centering
-  \includegraphics[width=0.9\textwidth]{Graph/Chapter2/directed_by_country.png}
-    \caption{Exponentiated Coefficients of Directed Network by Country}
+\begin{figure}[tbh]
+	\begin{center}
+		\begin{tabular}{cc}
+			\includegraphics[width=0.5\linewidth]{fig3a.pdf}&\includegraphics[width=0.5\linewidth]{fig3b.pdf}\\
+			(a) &(b)
+		\end{tabular}
+	\end{center}
+	\caption{Variation in the parameters $\mu_1$ and $\mu_2$ defined respectively in Eqs. \eqref{eq-mu1} and \eqref{eq-mu2} for the variances of the lowest eigenvalue distributions for a 1000 member  (a) BEGOE($k$) and (b) BEGUE($k$) as a function of parameter $q(N,m,k)$,  with different values of $(N,m)$ ($m$ values corresponding to each $N$ are given in Fig. \ref{fig1}) and $k = 1-m$.  }
+		\label{fig3}	
 \end{figure}
 
-When it comes to weaker social ties in a directed follow-unfollow network, country heterogeneity is observed as well. For the three Asian countries, China (Taiwan), Indonesia, and Thailand, probabilities of following another user in response to longer distances change in almost identical fashions with that in a friendship network, albeit with slightly larger distance decays. In Europe, the odds of Russian users following others now also change monotonically with proximity. $1,000$ kilometers is still a threshold near which the probability sharply declines. In South America, users from Brazil still treasure the opportunity to meet up very much whenever possible within a short range. However, when it is infeasible with distances further than $100$ kilometers, Brazilians are also interested in forming weaker connections by following users from other places.
+\subsection{Skewness and excess of lowest eigenvalue distribution}
 
-Surprisingly, coming from popular countries seems to have no impact or negative impacts on the likelihood of being followed. Users tend to follow others of similar ages, and follower being older tends to increase the likelihood of a follow. Being in the same ethnicity generate higher probability to connect in Thailand, China (Taiwan) and Brazil, but not in other countries. People like to connect with others of similar heights, but the effect is not significant for building connections with users of similar weights. Preference for the height of the followee differs across countries. Taller users, compared to the followers, are more likely to be followed in China (Taiwan), Indonesia, and Brazil, but are less likely to be followed in Thailand and Turkey. User activities in the app, particularly in terms of posts made and stories read, vary widely in their impacts on the connecting likelihood.
-The coefficients are shown in appendix \ref{logit_directed_coef_geo}, \ref{logit_directed_coef_homophily}, \ref{logit_directed_coef_cov_1}, \ref{logit_directed_coef_cov_2}.
+We have computed the shape parameters - skewness $S$ and kurtosis $\kappa$ for the $\lambda$ distribution and analyze their variation with parameter $q$ in Fig. \ref{fig4} using some examples. For very small and very large $q$ values, we see departure from the linear decreasing behavior in both skewness and kurtosis. For $0.1 \lazz q \lazz 0.8$, the $S/S_{TW}$ value decreases from $\sim$ 4 to 2 while $\kappa/\kappa_{TW}$ value decreases from $\sim$ 1.5 to 1.0. Thus, the skewness and kurtosis values are larger than those for TW distribution for intermediate $q$ values.
 
-In both the friendship and directed online social networks, users appreciate geographical proximity, and are most likely to connect with others who are within 5 kilometers:
-
-\textit{Finding 1. Geographical proximity plays an important role in online social networks, despite the occurrence of country-specific patterns. }
-
-Although connections are hard to establish with distance for all countries in general, the decay of odds to form social ties is slower for the friendship network, especially when the distance is beyond 500 kilometers, particularly for Russia and Brazil:
-
-\textit{Finding 2. Strong social ties (mutual connections) are less sensitive to the change of physical distance than weak ties (unidirectional connections). }
-
-Relative to the unidirectional relationship of a follower and a followee, users who follow each other are tended to send more chat messages, read each other's posts, share common values, and thus yield stronger bounds that help bridge the gap induced by geographical locations.
-
-It is reported that people desire to catch up face-to-face or hang out together from time to time so that the majority of edges cluster within closed areas, e.g., see \cite{ugander2011anatomy, ellison2006spatially}. Nevertheless, it is unclear if the intensity of spatial dependence would remain the same at longer distances. In this data, the effects of proximity are lessened for pure net friends who are not able to meet offline, as depicted by the flattening slopes of all curves:
-
-\textit{Finding 3. Spatial dependence is stronger when two users may meet in person and becomes looser when distances are longer. }
-
-As pointed out in \cite{graham2020dyadic}, the dyadic Logit model assumes independence across dyads even when they share one or two users in common. It does not usually hold in reality, and uncontrolled interdependence may lead to standard errors and hinder the identification of coefficients. For example, apart from observed covariates, many unobserved user characteristics have not yet been controlled, such as personality, cultural background, etc. It is possible that these factors may also affect link formation, induces correlations among dyads, and thus obscure the identification of coefficients for geographical proximity, e.g., outgoing people may send friend requests to others indifferently regardless of their locations. To allow for correlated dyads and control for unobserved user heterogeneity, \cite{charbonneau2017multiple} and \cite{graham2017econometric} incorporate fixed effects into the model for directed and undirected networks, respectively. Borrowing the idea from panel data literature, the estimators are able to difference-out the unobserved individual fixed effects by focusing on tetrads that satisfy certain conditions.
-
-To illustrate the method, assume user $i$ follows $j$ based on the following rules in a directed network:
-\begin{equation}
-  \nonumber
-  W_{ij}=1\left\{ D_{ij} \beta_D + X_{ij}^T \beta_X + \alpha_i^{out} + \alpha_j^{in} + \epsilon_{ij} \geq 0 \right\}
-\end{equation}
-where $\alpha_i^{out}$ and $\alpha_j^{in}$ are unobserved individual fixed effects. To estimate coefficients, consider tetrads composed of four users, $i$, $j$, $k$, and $l$. The likelihood of $l$ follows $j$, conditional on either $l$ follows $j$ or $l$ follows $k$, could be shown that it does not depend on $\alpha_k^{out}$:
- \begin{equation}
- \nonumber
-P(W_{lj}=1|D,X,\alpha,W_{lj}+W_{lk}=1)= \frac{exp\left[(D_{lj}-D_{lk})\beta_D+(X_{lj}-X_{lk})^T\beta_X+\alpha_j^{in}+\alpha_k^{in}\right]}{1+exp\left[(D_{lj}-D_{lk})\beta_D+(X_{lj}-X_{lk})^T\beta_X+\alpha_j^{in}+\alpha_k^{in}\right]}
-\end{equation}
-Similar derivations could be done for events $P(W_{lj}=1|W_{lj}+W_{lk}=1)$, $P(W_{lj}=1|W_{lj}+W_{ij}=1)$, etc., and the conditional likelihood of $l$ follows $j$ does not depend on any fixed effect:
-\begin{equation}
-\nonumber
-P(W_{lj}=1|D,X,\alpha,W_{lj}+W_{lk}=1,W_{ij}+W_{ik}=1,W_{lj}+W_{ij}=1)=
-\end{equation}
-\begin{equation}
-\nonumber
-\frac{exp\left[((D_{lj}-D_{lk})-(D_{ij}-D_{ik}))\beta_D+((X_{lj}-X_{lk})-(X_{ij}-X_{ik}))^T\beta_X\right]}{1+exp\left[((D_{lj}-D_{lk})-(D_{ij}-D_{ik}))\beta_D+((X_{lj}-X_{lk})-(X_{ij}-X_{ik}))^T\beta_X\right]}
-\end{equation}
-Although few data points would be used for estimation, the model does not induce the incidental parameter problem and works well in sparse settings. We apply the method to both the directed network and the friendship network, then compare the coefficients with that before adding user fixed effects into the models.
-
-\begin{figure} \centering
-  \begin{minipage}[t]{0.45\textwidth}
-    \centering
-    \includegraphics[width=9cm]{Graph/Chapter2/directed_by_fe.png}
-  \end{minipage}
-  \begin{minipage}[t]{0.45\textwidth} \centering
-    \includegraphics[width=9cm]{Graph/Chapter2/friendship_by_fe.png}
-  \end{minipage}
-  \caption{Exponentiated Coefficients of Directed (left) and Friendship (right) Network with User Fixed Effects}
+\begin{figure}[tbh]
+	\begin{center}
+			\includegraphics[width=0.65\linewidth]{fig4.pdf}
+	\end{center}
+	\caption{Variation in skewness (upper panel) and kurtosis (lower panel) for BEGOE($k$) (squares) and BEGUE($k$) (circles) as a function of parameter $q(N,m,k)$.  Results are shown for 1000 member ensembles with $N=5$, $m=10-11$ (solid symbols) and $N=6$, $m=6-8$ (open symbols).  Note that $S_{TW}=-0.2935$, $\kappa_{TW}=3.1652$ for $\beta=1$ and $S_{TW}=-0.2241$,  $\kappa_{TW}=3.0934$ for $\beta=2$.}
+		\label{fig4}
 \end{figure}
 
-For the friendship network, omitting unobserved characteristics makes the Logit model overstate the odds for all proximity levels. The error is larger for users who are between 50 and 2,000 kilometers, and smaller for users who live in the same place (within 50 kilometers) or beyond 2,000 kilometers. For directed network, the error is generally smaller, and the Logit model would underestimate the effects for users from the same place, but overestimate if the distance between two users is further than 50 kilometers.
+It might be insightful to derive the expressions for variance, skewness and kurtosis from first principles but this is beyond the scope of the present paper.
 
-\section{Conclusion}
+\section{Lowest eigenvalue distribution: Comparison with EVS}
+\label{sec3}
 
-In this paper, we study the role of geographical proximity with respect to link formation in a global online social network with dyadic logit models. We test on three hypotheses: people still prefer to connect with others nearby in a virtual world; users like to connect with those who come from popular countries; users from different countries may exhibit varying behaviors in sending friend requests. Data supports the first and the third hypothesis but has not found significant evidence for the second hypothesis.
+\begin{figure}[tbh]
+		\includegraphics[width=\linewidth]{fig5.pdf}
+	\caption{Normalized probability distributions $P({\tilde\lambda})$ for the lowest eigenvalues for a 1000 member BEGOE($k$) with $(N,m) = (5,10)$. The Gaussian (smooth green curves), modified Gumbel (smooth red curves) distribution using Eq. \eqref{gumbel}, $\chi^2$ distribution using Eq.~\eqref{chi2} (black dashed curves) and the TW (smooth blue curves) distribution using Eq. \eqref{eq-tw} are superimposed in each panel with the numerical histograms.}
+	\label{fig5}
+\end{figure}
 
-Generally, the probabilities to form connections decrease with the rising physical distance between two users, and how they decay depends on users' countries of origin. Proximity is crucial for link formation when the two users are within meeting distance, but becomes weaker if they live in different cities or countries. It also has a lesser effect on a network composed of strong ties, or mutual connections, relative to a network with weak ties, or unidirectional connections.
+\begin{figure}[tbh]
+		\includegraphics[width=\linewidth]{fig6.pdf}
+	\caption{Same as Fig.~\ref{fig5} but for BEGUE($k$).}
+	\label{fig6}
+\end{figure}
 
-It is important to note that the potential confounding factor of the app's friend recommendation algorithm, which could also be location-based, could contaminate the empirical results. Isolating the effect of geographical proximity is challenging using the current data, and a few strategies may be adopted when additional information is available. For example, additional control variables for the recommendation algorithm could be included provided the logic of the algorithm is known. Identifying instrumental variables that affect physical distance but are unrelated to the recommendation algorithm is also helpful, e.g. travel time between the two users' locations, policy changes that impact the layout or accessibility of certain areas, etc.
+In this section, we compare the distribution of lowest eigenvalues with EVS given in Section \ref{sec1} and also compare them to Gaussian distribution. The results for a 1000 member BEGOE($k$) and BEGUE($k$) are given in Figs. \ref{fig5} and \ref{fig6}, respectively. These are obtained for $N = 5$ and $m = 10$ system with $k$ varying from 1 to 10. The numerical histograms are computed using the scaled lowest eigenvalues 
+\be
+\tilde{\lambda} = \displaystyle\frac{\lambda - \lambda_c(N,m,k)}{\sigma_\lambda(N,m,k)} \;.
+\label{eq-lam-sc}
+\ee 
+We choose $N = 5$ and $m = 10$ system as the distributions may have smooth form only in the asymptotic limit with $m >> N$ for bosons.  Note that the modified Gumbel (smooth red curves) distributions are obtained using Eq. \eqref{gumbel}. Similarly, TW (smooth blue curves) and $\chi^2$  (black dashed curves) distributions are obtained using Eqs.~ \eqref{eq-tw} and \eqref{chi2} respectively.  For $k=1$, the distributions are close to Gaussian form. However, for $2 \leq k \leq 6$ the distributions are close to modified Gumbel form and it transitions to TW for $k = 10$. For BEGOE($k$), the values of the fitting parameter $\mu$ are  13($k=1$), 1.8($k=2$), 2.6($k=3$), 1.0($k=4$), 1.5($k=5$), 1.0($k=6$), 3.2($k=7$), 5.7($k=8$), 4.4($k=9$) and 6.0($k=10$). Similarly, the fitting parameter $M$ for $\chi^2$ distribution are 135($k=1$), 17($k=2$), 26($k=3$), 9($k=4$), 15($k=5$), 12($k=6$), 28($k=7$),  82($k=8$), 41($k=9$) and 93($k=m=10$). Beyond $k = 6$, the $\chi^2$ distributions are close to TW distributions.  For BEGUE($k$), the values of fitting parameters $\mu$ and $M$, respectively, are [12($k=1$), 4.2($k=2$), 2.8($k=3$), 2.9($k=4$), 1.5($k=5$), 1.5($k=6$), 6.2($k=7$), 7.3($k=8$) 8.4($k=9$), 5.5 ($k=10$)] and [136($k=1$), 34($k=2$), 28($k=3$), 24($k=4$), 14($k=5$), 14($k=6$), 97($k=7$), 145($k=8$), 69($k=9$) and 160($k=10$)]. Thus, the lowest eigenvalue distribution for BEGOE($k$)/BEGUE($k$) changes from Gaussian to modified Gumbel to Tracy-Widom as $q(N,m,k)$ changes from $\sim 1$ ($k = 1$) to 0 ($k = m$). For fermion systems, it was concluded that there is a transition from Gaussian to TW form for the largest eigenvalue distribution \cite{Be-23}.
 
-Apart from the potential confounding factors, there is still room left for future work. Firstly, from the graph topology, it can be seen that the network is composed of many regular-type users with fewer connections and a few celebrity users with a great number of followers. There may be reasons to believe that regular type users and celebrity type users behave differently in making connections and thus should be modeled separately. Thirdly, the topology of the network has not been fully taken advantage of in the current model. New variables that reflect both local and global network structure, such as graphon, could be added into the model to capture users’ structural tastes for the network, just to name an example. Fourthly, in the present study, all possible dyads are considered, and the assumption is that each user goes over all 11,992 profiles and selects whom to follow. However, users may not be aware of at least some groups of people, e.g. they may only evaluate others who show up in their feeds unless they intentionally search all users worldwide. Thus it is reasonable to develop a model that assumes the users make their follow-unfollow decisions based on some limited consideration sets instead of the entire population. Lastly, it would be interesting to see how social networks in different countries evolve each day, by analyzing more daily snapshots within an observation window and comparing the degree of homophily versus transitivity, as in \cite{graham2016homophily}.
+Before concluding, we also studied the distribution of the spacings between lowest and the next lowest eigenvalue, which is also an extreme statistic. We use the normalized spacing $s$ which is the ratio of actual spacing with the average spacing and the results are shown in Figs. \ref{fig7} and \ref{fig8} respectively for BEGOE($k$) and BEGUE($k$). The numerical histograms are compared with Poisson and the Wigner's surmise results. It shows that as $q$ parameter changes, there is a transition from Wigner's surmise to Poisson to Wigner's surmise. An analytical derivation of this result might be valuable. 
 
-\newpage
-\bibliographystyle{unsrt}  
-\bibliography{references}  
+\begin{figure}[tbh]
+	\begin{center}
+		\includegraphics[width=\linewidth]{fig7.pdf}
+	\end{center}
+	\caption{Distribution of normalized spacings $s$ between the lowest and the next lowest eigenvalue for the same system considered in Fig. \ref{fig5}. We compare the numerical histograms with Poisson distribution (black smooth curve) and the Wigner's surmise (red smooth curve) for GOE \cite{Mehta}.}
+		\label{fig7}
+\end{figure}
 
+\begin{figure}[tbh]
+	\begin{center}
+		\includegraphics[width=\linewidth]{fig8.pdf}
+	\end{center}
+	\caption{Same as Fig.~\ref{fig7} but for BEGUE($k$). Note that the corresponding Wigner's surmise is for GUE \cite{Mehta}.}
+	\label{fig8}
+\end{figure}
 
-\end{document}
+\section{Conclusions and future outlook}
+\label{sec4}
+
+We have presented numerical results for the first four moments of the lowest eigenvalue distribution for BEGOE($k$) and BEGUE($k$). We have analytical understanding of the centroid, from the $q$-normal form of the ensemble averaged eigenvalue density for EE(k),  and for the other three moments, one needs to derive analytical results. Numerical results suggest that the distribution of the lowest eigenvalues for BEGOE($k$) and BEGUE($k$) make a transition from Gaussian $[q(N,m,k) \sim 1]$ to modified Gumbel (intermediate $q(N,m,k)$ values) to TW $(q = 0)$ as we change the rank of interactions $k$. Similarly, the distribution of normalized spacing between the lowest and next lowest eigenvalues exhibits a transition from Wigner's surmise to Poisson to Wigner's surmise with decreasing $q$ value. The set of numerical calculations presented in this paper for BEGOE($k$) and BEGUE($k$) and similarly,  those in \cite{Be-23} for the fermionic EGOE(k) and EGUE(k) may be used may be used as a starting point for further exploring the EVS in random matrix ensembles appropriate for quantum many-body interacting systems.  
+
+\section*{Acknowledgments}
+
+M. V.  acknowledges financial support from CONAHCYT project Fronteras 10872.  
+
+\onecolumngrid
+\setcounter{figure}{0}
+\renewcommand{\thefigure}{A\arabic{figure}}
+
+\appendix*
+\section{Fluctuations in $\alpha$ values for centroids}
+\label{app1}
+
+\begin{figure}[tbh]
+	\begin{center}
+		\includegraphics[width=0.65\linewidth]{fig9.pdf}
+	\end{center}
+	\caption{Variation in parameter $\alpha$ for the centroids $\lambda_c(N,m,k)$ of the lowest eigenvalue distributions for a 1000 member BEGOE($k$) with different values of $(N,m)$ ($m$ values corresponding to each $N$ are given in Fig. \ref{fig1}) and $k = 1-m$.  We have computed the parameter $q_i(N, m,k)$ for each member $i$ of the ensemble using the kurtosis. Then, used $q_i(N, m,k)$ along with the minimum eigenvalue $\lambda_i(N,m,k)$ for each member of the ensemble to calculate $\lambda_c(N,m,k) = \langle \lambda_i(N,m,k) \sqrt{1-q_i(N,m,k)} \rangle$.  Then the exponent $\alpha$ is obtained using the equation $\lambda_c(N,m,k) = -2.0 {[\beta \Lambda^{0}(N,m,k)]}^{\alpha})$.  Thus, we account for the member-to-member fluctuations in lowest eigenvalues $\lambda_i(N,m,k)$ and $q_i(N,m,k)$ parameter and find $\alpha \sim 0.5$ for all $k$ values, unlike in Fig. \ref{fig2}.}
+		\label{fig9}
+\end{figure}
+
+To further probe into the fluctuations in $\alpha$ values from $0.5$ as shown in Fig. \ref{fig2}, we computed the parameter $q_i(N, m,k)$ for each member $i$ of the ensemble using the kurtosis. Then, used $q_i(N, m,k)$ along with the minimum eigenvalue $\lambda_i(N,m,k)$ for each member to calculate $\lambda_c(N,m,k) = \langle \lambda_i(N,m,k) \sqrt{1-q_i(N,m,k)} \rangle$.  Then the exponent $\alpha$ is obtained using the equation $\lambda_c(N,m,k) = -2.0 {[\beta \Lambda^{0}(N,m,k)]}^{\alpha})$.  The results for a 1000 member BEGOE($k$) are shown in Fig. \ref{fig9}.  One can see that $\alpha \sim 0.5$ for all $k$ values, unlike as in Fig. \ref{fig2}. Thus, the member-to-member fluctuations in the minimum eigenvalues $\lambda_i(N,m,k)$  and parameter $q_i(N,m,k)$ are giving the large deviations for $\alpha$ from $0.5$ in Fig. \ref{fig2}.  Though not shown, we expect similar results for BEGUE($k$).  The systems with $k=1$ appear to be special and there are results in \cite{Majumdar-NIP} for different types of $k=1$ interactions. 
+
+\section*{References}
+
+\begin{thebibliography}{99}
+
+\bibitem{Bo-97} J. Bouchaud and M. M{\'e}zard,  Universality classes for extreme-value statistics,  J.  Phys.  A {\bf 30}, 7997 (1997). 
+
+\bibitem{De-08} D. S. Dean and S. N. Majumdar, Extreme value statistics of eigenvalues of Gaussian random matrices, Phys. Rev. E {\bf 77}, 041108 (2008).
+
+\bibitem{Fo-15} J.  Fortin and M. Clusel,  Applications of extreme value statistics in physics,  J.  Phys.  A: Mathematical and Theoretical {\bf 48}, 183001 (2015). 
+
+\bibitem{Gumbel-1958} E. J. Gumbel,  {\it Statistics of Extremes}, (Columbia University Press,  New York Chichester, West Sussex, 1958).
+
+\bibitem{Galambos-1987} J.  Galambos,  {\it The Asymptotic Theory of Extreme Order Statistics},  (Malabar, FL: Krieger, 1987).
+
+\bibitem{Ma-20} S. N. Majumdar,  A. Pal and G. Schehr, Extreme value statistics of correlated random variables: A pedagogical review, Phys. Rep. {\bf 840}, 1 (2020).
+
+\bibitem{Mehta} M.L. Mehta, {\it Random Matrices}, 3rd edition (Elsevier B.V., The Netherlands, 2004).
+
+\bibitem{RMT-book} G. Akemann, J. Baik, and P. Di Francesco (eds.), {\it The Oxford Handbook of Random Matrix Theory},  (Oxford University Press, Oxford, 2011).
+
+\bibitem{TW-1} C. A. Tracy and H. Widom, Level-spacing distributions and the Airy kernel, Comm. Math. Phys. {\bf 159},  151 (1994).
+
+\bibitem{TW-2} C. A. Tracy and H. Widom, Level-spacing distributions and the Airy kernel,  Phys. Lett. B {\bf 305},  115 (1993).
+
+\bibitem{TW-3} C. A. Tracy and H. Widom, On orthogonal and symplectic matrix ensembles,  Comm. Math. Phys. {\bf 177},  727 (1996).
+
+\bibitem{MF} K. K. Mon and J.B. French, Statistical properties of many-particle spectra, Ann. Phys. (N.Y.) {\bf 95}, 90-111 (1975).
+
+\bibitem{Br-81} T. A. Brody, J. Flores, J. B. French, P. A. Mello, A. Pandey, and S. S. M. Wong, Random Matrix Physics: Spectrum and Strength Fluctuations, Rev. Mod. Phys. {\bf 53}, 385-479 (1981).
+
+\bibitem{BW} L.  Benet and H.  A.  Weidenm\"{u}ller, Review of the $k$-body embedded ensembles of Gaussian random matrices, J. Phys. A {\bf 36},  3569-3594 (2003).
+
+\bibitem{vkbk} V. K. B. Kota,  {\it Embedded Random Matrix Ensembles in Quantum Physics}, (Lecture Notes in Physics, Springer International Publishing, 2014).
+
+\bibitem{Ma-2017} Manan Vyas and T.  H.  Seligman,  Random matrix ensembles for many-body quantum systems, AIP Conference Proceedings {\bf 1950},  030009 (2018).
+
+\bibitem{Be-23} E. Carro, L. Benet and I. P. Castillo, A smooth transition towards a Tracy–Widom distribution for the largest eigenvalue of interacting $k$-body fermionic embedded Gaussian ensembles, J. Stat. Mech. {\bf 2023}, 043201 (2023).
+
+\bibitem{IJMPE-2018} V. K. B. Kota and N. D. Chavda, Embedded random matrix ensembles from nuclear structure and their recent applications, Int.  J.  Mod.  Phys.  E {\bf 27}, 1830001 (2018).
+
+\bibitem{JSM-2019} Manan Vyas and V. K. B. Kota,  Quenched many-body quantum dynamics with k-body interactions using q-Hermite polynomials,  J. Stat. Mech. {\bf 2019}, 103103 (2019).
+
+\bibitem{Ismail} M. E. H.  Ismail, D. Stanton and G. Viennot,  The Combinatorics of $q$-Hermite polynomials and the Askey—Wilson Integral, Eur.  J.  Comb.  {\bf 8},  379 (1987).
+
+\bibitem{Sza-1} P. J.  Szablowski,  On the $q$-Hermite polynomials and their relationship with some other families of orthogonal polynomials, Demonstratio Math.  {\bf 46}, 679 (2013).
+
+\bibitem{Rao-21} P. Rao and N.D. Chavda, Structure of wavefunction for interacting bosons in mean-field with random $k$-body interactions, Phys. Lett. A {\bf 399}, 127302 (2021).
+
+\bibitem{Pa-08} M. Palassini,  Ground-state energy fluctuations in the Sherrington–Kirkpatrick model, J. Stat. Mech. {\bf 2008}, P10005 (2008).
+
+\bibitem{PRE-22} W. Buijsman, T. Lezama,  T. Leiser, and L. F.  Santos, Ground-state energy distribution of disordered many-body quantum systems, Phys. Rev. E {\bf 106}, 054144 (2022).
+
+\bibitem{Chavda2003} N. D. Chavda, V.  Potbhare, V. K. B.  Kota,  Statistical properties of dense interacting boson systems with one- plus two-body random matrix ensembles,  Physics Letters A {\bf 311}, 331 (2003).
+
+\bibitem{Brody} T.  A.  Brody,  J.  Flores,  J.  B.  French,  P.  A.  Mello,  A.  Pandey and S.  S.  M.  Wong,  Random-matrix physics: spectrum and strength fluctuations, Rev.  Mod.  Phys.  {\bf 53}, 385 (1981).
+
+\bibitem{SeligmanFlores} J.  Flores, M.  Horoi, M.  Mueller and T.  H.  Seligman,  Spectral statistics of the two-body random ensemble revisited,  Phys.  Rev.  E {\bf 63}, 026204 (2000).
+
+\bibitem{KPat-2000-PLA} K. Patel, M. S. Desai, V. Potbhare, V. K. B.  Kota, Average-fluctuations separation in energy levels in dense interacting Boson systems, Physics Letters A {\bf 275}, 329 (2000).
+
+\bibitem{Majumdar-NIP} D. S. Dean, P. L. Doussal, S. N. Majumdar and G. Schehr, Noninteracting fermions at finite temperature in a $d$-dimensional trap: Universal correlations, Phys. Rev. A {\bf 94}, 063622 (2016).
+
+\end{thebibliography}
+
+\ed

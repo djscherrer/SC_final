@@ -1,142 +1,294 @@
 \begin{document}
 \affiliation{$$_affiliation_$$}
-\title{Explainable Automatic Grading with Neural Additive Models}
-\maketitle              \begin{abstract}
-The use of automatic short answer grading (ASAG) models may help alleviate the time burden of grading while encouraging educators to frequently incorporate open-ended items in their curriculum. However, current state-of-the-art ASAG models are large neural networks (NN) often described as "black box", providing no explanation for which characteristics of an input are important for the produced output. This inexplicable nature can be frustrating to teachers and students when trying to interpret, or learn from an automatically-generated grade. To create a powerful yet intelligible ASAG model, we experiment with a type of model called a Neural Additive Model that combines the performance of a NN with the explainability of an additive model. We use a Knowledge Integration (KI) framework from the learning sciences to guide feature engineering to create inputs that reflect whether a student includes certain ideas in their response. We hypothesize that indicating the inclusion (or exclusion) of predefined ideas as features will be sufficient for the NAM to have good predictive power and interpretability, as this may guide a human scorer using a KI rubric. We compare the performance of the NAM with another explainable model, logistic regression, using the same features, and to a non-explainable neural model, DeBERTa, that does not require feature engineering.
+\title{Integrating socioeconomic and geographic data to enhance infectious disease prediction in Brazilian cities}
+\begin{abstract}       
 
-\keywords{Explainable AI \and Automatic Grading \and ASAG \and Neural Additive Models.}
+    Supervised machine learning models and public surveillance data has been employed for infectious disease forecasting in many settings. These models leverage various data sources capturing drivers of disease spread, such as climate conditions or human behavior. However, few models have incorporated the organizational structure of different geographic locations for forecasting. Traveling waves of seasonal outbreaks have been reported for dengue, influenza, and other infectious diseases, and many of the drivers of infectious disease dynamics may be shared across different cities, either due to their geographic or socioeconomic proximity. In this study, we developed a machine learning model to predict case counts of four infectious diseases across Brazilian cities one week ahead by incorporating information from related cities. We compared selecting related cities using both geographic distance and GDP per capita. Incorporating information from geographically proximate cities improved predictive performance for two of the four diseases, specifically COVID-19 and Zika. We also discuss the impact on forecasts in the presence of anomalous contagion patterns and the limitations of the proposed methodology.
+
 \end{abstract}
+\maketitle
+
+
 \section{Introduction}
-It has been shown that the use of open-ended (OE) items is beneficial for student learning due to the generation effect \cite{bertsch2007generation} or in combination with self-explanation \cite{chi1994eliciting}. However, assessing OE items is time consuming for teachers \cite{hancock1995implementing} and consequently, educators default to using multiple choice (MC) questions instead. Automatic short answer grading (ASAG) may alleviate this time burden while encouraging educators to frequently incorporate OE items in their curriculum. 
 
-Many of the best performing ASAG models include some variation of a deep neural network (NN) \cite{haller2022survey}. NNs are impressive predictors for high dimensional inputs like text embeddings, but predictive power tends to come at the cost of intelligibility. These models are often described as "black box" which means that users only have access to inputs and outputs, yet no information as to the process in-between. Further, unlike explainable models such as a logistic regression (LR), with NN ASAG models, we are not choosing which features the model may consider, and the model provides no explanation for which characteristics of an input are important for the produced output. Whereas educators typically use a scoring rubric to provide an explanation to stakeholders about which features of a given response substantiate the assigned score, and despite that attempts have been made to integrate scoring rubrics into ASAG models \cite{condor2022representing}, NN ASAG models provide no justification for their predictions. The inexplicable nature of ASAG models can be frustrating to both teachers and students when trying to make sense of, or learn from an automated grade. Teachers are unable to monitor student understandings at a fine-grained level, and students may not productively learn without knowing why they received a certain grade. It is critical that researchers find more explainable models if ASAG systems are to be of greater practical use.
 
-In an effort to create a powerful yet intelligible ASAG model, we experiment with a type of model that combines the performance of a NN with the explainability of an additive model called a Neural Additive Model (NAM) \cite{agarwal2020neural}. NAMs allow us to visually examine the contribution of each feature to the final predicted score for each response, similar to testing the significance of a regression coefficient. For this type of model, we must engineer features of a response as inputs to the model instead of allowing the model to create its own text features like typical Large Language Model (LLM) classifiers do. The research questions we seek to answer include, (1) can NAMs provide intelligible automatic grading such that stakeholders can understand which features of a response are important for its prediction, and (2) is the predictive performance of NAMs better than that of legacy explainable models like a LR and commensurate with that of an LLM classifier? This research is unique as NAMs have not yet been explored for educational applications, or more specifically for explainable automatic grading. 
 
-We demonstrate our NAM approach for ASAG with one item designed under a Knowledge Integration (KI) perspective from the learning sciences and corresponding rubric to guide our feature engineering. KI is a framework for strengthening science understanding that emphasizes incorporating new ideas and sorting out alternative perspectives with evidence \cite{linn2000designing}. We hypothesize that the inclusion (or exclusion) of predefined KI ideas as features will be sufficient for the NAM to have good predictive power, as this is precisely what would guide a human scorer using the KI rubric. We compare the performance of the NAM with another explainable model, a LR, using the same features as those used for the NAM, and to a non-explainable model, DeBERTa, an improved version of the popular BERT model \cite{he2021debertav3}. The DeBERTa model does not utilize the engineered features that are used by the NAM or LR model, but creates its own features from the text. For a more extensive comparison of the performance of these three models, we extend our analysis to include results from five additional questions from an open-source data set that has been used extensively in ASAG research - the Automatic Student Assessment Prize (ASAP) Short Answer Scoring (SAS) data \cite{prize2019hewlett}. 
+Data driven models are increasingly used for disease forecasting given the availability of public health records and advances in machine learning algorithms and their applications to epidemiology \cite{Zhao2020Sep, Rahimi2023Nov}, with Brazil's \textit{DataSUS} \cite{Datasus_site} reporting over 50 unique diseases and health conditions being actively monitored, including multiple endemic diseases and also COVID-19, which had widespread repercussions in the country and beyond in recent years. 
 
-\section{Related Work}
-In this section, we describe previous works relating to Explainable AI and more particularly Explainable ASAG, as well as applications of NAMs.
-\subsection{Explainable AI and ASAG}
-A recent review article outlines the increase in demand for explainable AI (XAI), especially for people who are affected by AI driven decisions \cite{xu2019explainable}. They describe the rising popularity of NN models for their state-of-the-art  performance, despite that their inference processes are not known or interpretable. Many researchers aim to increase the explainability of AI systems. Initiatives such as DARPA’s "Explainable AI (XAI) program" \cite{gunning2019darpa} and the European Union’s "General Data Protection Regulation" which demands citizen’s rights to an explanation for decisions made by AI \cite{Goodman2017} are contributing to an increased demand for XAI. 
-	
-Only recently are researchers beginning to think about XAI in terms of ASAG models. Schlippe et al. \cite{schlippe2022explainability} surveyed over 70 educators about preferences for explainability in ASAG and learned that most prefer to see matches between student answers and exemplary answers to justify scores over other explainability methods like highlighting the importance of certain words. Poulton et al. \cite{poulton2021explaining} proposed an XAI framework using SHAP values to assess popular LLMs for ASAG such as BERT and RoBERTa. Zeng et al. \cite{zeng2022deep} investigated whether autograding models align with human graders in terms of the important words they use when assigning a grade by conducting a randomized controlled trial to see if highlighting words deemed important by an autograder can assist human grading. Singh et al. \cite{singh2023explaining} introduced Summarize and Score (SASC) to explain ‘text modules’, which map text to scalar values within LLMs, providing a natural language explanation of the module’s selectivity. Finally, Tornqvist et al. \cite{tornqvist2023exasag} introduced ExASAG, an explainable framework for ASAG that generates natural language explanations for predictions, and Condor and Pardos train a reinforcement learning agent to alter students' short responses so that these alterations provide insight as to why a ASAG score was assigned \cite{condor2022deep}.
+When employing theoretical procedures, one has the possibility of understanding the dynamics and properties of the infectious agents through compartmental models, such as done analysing the different COVID-19 variants \cite{Dutta2022Jun} and Dengue's serotypes \cite{Andraud2012Nov}, with works also considering the co-circulation of diseases transmitted by the \textit{Aedes} mosquito \cite{Hirata2023Aug}. However, the main advantage of current supervised machine learning approaches over those approaches lies in their ability to directly infer the relationship between features of interest without the necessary knowledge of the epidemic's dynamics to arrive at reasonable predictions \cite{Roster2022Sep}. 
 
-\subsection{Applications of Neural Additive Models}
-Although Neural Additive Models (NAMs) were introduced only a few years ago \cite{agarwal2020neural}, there has been substantial interest in their use as the machine learning community has increased efforts to promote understandable models. Some researchers have proposed altered or improved versions of NAMs for specific applications. Mariotti et al. \cite{mariotti2023exploring} explored the tension between interpretability and performance of NAMs and introduce a constrainable NAM (CNAM) which includes specifications for model regularization. The CNAM model is able to consider the performance-interpretability tradeoff during training, and is demonstrated to work well for both regression and classification tasks \cite{mariotti2023exploring}. Luber et al. \cite{luber2023structural} introduced Structural NAMs (SNAMs) which incorporate neural splines to a typical NAM. SNAMs offer improved intelligibility over NAMs by enabling direct interpretation of estimated parameters, as well as quantification of parameter uncertainty and post-hoc analysisr. Bouchiat et al. \cite{bouchiat2023laplace} take a Bayesian perspective and develop a Laplace approximated NAM (LA-NAM) to enhance interpretability, and Jo and Kim \cite{jo2022neural} introduced NAMs for multivariate time series modeling called NAM nowcasting (NAM-NC). Others have used NAMs for applications in finance \cite{chen2022monotonic}, mortality prediction \cite{moslehi2022interpretable}, and survival analysis \cite{utkin2022extension}. Importantly, we found no previous works that used NAMs for educational applications.
+In terms of computational costs and explainability, decision trees ensembles, such as the Random Forests or the XGBoost algorithms, often proves to be a reliable method, specially when the neural networks' requirement of data availability is in the tens of thousands of measurements, which could also bias these models towards over-fitting.
+ 
 
-\section{Background}
-In this section, we provide a description of the data, and a brief overview of NAMs, LR, and the DeBERTa model. 
-\subsection{The Data}
-The KI item used for this project was collected during a previous research project at the Web-based Inquiry Science Environment (WISE) research center at the University of California, Berkeley consisting of OE science items designed for middle school students \cite{riordan2020empirical}. Students accessed the items via an online classroom system, and responses were scored with a Knowledge Integration (KI) rubric. For this project, we use one item from a unit about the physics of sound waves that engages students to refine their ideas about concepts such as wavelengths, frequency and pitch. For this item, students must distinguish how the pitch of sound made by tapping a full glass of water compares to the pitch made by tapping an empty glass. They are asked to explain why they think the pitch of the sound waves may be the same or different for the two glasses \cite{riordan2020empirical}. See Figure \ref{soudwavesitem} for a visual of the Soundwaves item. The KI data include 1,313 OE student responses that were carefully rated from 1 to 5 by subject matter experts. A detailed rubric was created by researchers and used for scoring which includes a description of the rating level, examples of correct/incorrect mechanisms and conclusions, and exemplar student responses that would fall into each category. \ref{soudwavesrubric} provides a sample of the KI scoring rubric.
+A range of data sources has been used for forecasting, including active and passive surveillance records (cases, hospitalizations, serosurveys) \cite{Ebi2016Nov}, meteorological and environmental conditions \cite{Xu2020Mar}, human behavior and internet searches \cite{Moran2016Dec}. The importance of different data sources varies among infectious diseases.  
 
-The ASAP data used to extend our model comparison is from a 2012 Kaggle competition sponsored by the Hewlett Foundation, and consists of almost 13,000 short answer responses to 10 science and English questions \cite{prize2019hewlett}. We used only the 5 science questions to match the domain of the KI data. Each of the five items have between 1300-1800 OE student responses and corresponding human-rated scores between 1 and 4 with 4 being the most correct score. Each item has an expert created scoring rubric, and we aggregate the 5 items for training, testing and the resulting model comparisons.
+As a vector-borne disease, dengue cases depend on vector suitability conditions and human behavior, such as socioeconomic factors affecting vector suitability, mobility, and susceptibility to infection\cite{Shepard2011Feb}, with Brazil currently accounting for the most cases reported in Latin America, with an increase of 13$\
+COVID-19 on the other hand is a respiratory condition and thus cases are more closely correlated with measures of human interactions, such as crowding in public spaces and traveling, with early lock-downs, mask and latter vaccination adoption also had significant implications to its development, with the rate, delays and general adoption of those methods varying significantly between countries \cite{Basak2022Feb, An2021Nov}. 
 
-\begin{figure}
-\centering
-  \includegraphics[width=10cm]{SoundwavesItem.png}
-  \caption{The Sound Waves item bundle}
-  \label{soudwavesitem}
-\end{figure}
+Concurrently, other endemic infectious diseases also affects the country, such as Zika virus, which was shown to be linked to Dengue and Chikungunya \cite{Pessa2016InvestigationIA}; and also Influenza as another influential airborne disease, both which also amplify the effects of Dengue and COVID-19 on the Brazilian population.
 
-\begin{figure}
-\centering
-  \includegraphics[width=10cm]{SoundwavesRubric.png}
-  \caption{The KI Scoring Rubric}
-  \label{soudwavesrubric}
-\end{figure}
+Studying those socioeconomic components as possible means of understanding the main factors of propagation could in turn increase the accurateness of predictions for those diseases, which would likely enable faster responses to new outbursts, as demonstrated in the case of malaria forecasting in Guyana \cite{Menkir2021Nov}. Previous studies on the spreading of dengue in Brazil shown that geographic proximity and hierarchical levels of influence between cities are impactful in the transmission process, with highly influential cities with many transport links having increased odds of an outbreak. \cite{Lee2021Dec}. Also, the readiness for a given country to respond and its vulnerability to the effects of epidemic diseases have also been quantified in terms of several socioeconomic indicators \cite{Chan2013Feb, Jain2019Dec}. For this study, the gross domestic product (GDP) of each municipality will be considered as the chosen indicator of economic growth.
 
-\subsection{Neural Additive Models}
-Neural Additive Models (NAMs) impose a restriction on the structure of NNs in order to make the model interpretable. NAMs belong to a family of models called Generalized Additive Models (GAMs) which have the form: 
 
-\[g(E[y]) =  + f_1(x_1) +f_2(x_2) + ... + f_k(x_k)\]
-Where \(x = (x_1, x_2, \dots, x_k)\) represents the input with K features and each \(f_i\) is a univariate shape function with \(E[f_i] = 0\) \cite{agarwal2020neural}. NAMs learn a linear combination of jointly-trained NNs where each NN attends to a single input feature. They can approximate complex, high-dimensional functions and their predictions are easily interpretable. NAMs provide advantages over standard GAMs such as their superior scalability with the use of GPU/TPU hardware developed for NNs, differentiability, and visual interpretability \cite{agarwal2020neural}. 
 
-\subsection{Logistic Regression}
-Multinomial LR is a classification model that predicts probabilities of different outcomes for a categorical dependent variable. To generalize to a K-class setting, the model runs K-1 independent binary LR models where one outcome is chosen as a “pivot” and other K-1 outcomes are separately regressed against the pivot outcome. We use the Limited-memory Broyden-Fletcher-Goldfarb-Shannon (LBfGS) algorithm for optimization \cite{fletcher2000practical}, and incorporate L2 regularization. 
 
-\subsection{DeBERTa}
-DeBERTa (Decoding-enhanced BERT with disentangled attention) is a Large Language Model (LLM) that improves upon the popular BERT \cite{devlin2018bert} model by using a different version of the standard attention mechanism \cite{vaswani2017attention} and a novel position encoding method. DeBERTa uses a ‘disentangled attention’ mechanism where each word is represented with two vectors - one to encode the word’s context, and another to encode the word’s relative position. Further, an enhanced masked decoder incorporates absolute positions to predict masked tokens during training. Finally, DeBERTa uses a unique adversarial training method to fine-tune the model’s generalizability performance on downstream tasks. We use an improved yet smaller version of the original DeBERTa model called DeBERTaV3-base \cite{he2021debertav3}, consisting of 12 layers, a hidden size of 768, and 86 million parameters.
+In this work, the aim was to develop and apply a strategy utilizing the underlying information contained in socioeconomic and geographic data from Brazilian cities as a way to increase the effectiveness of predictions for diseases, while also verifying the impact of this protocol for intrinsically different conditions. Multiple decision tree frameworks were employed and analyzed under a criteria that includes the seasonal naïve baseline, selecting the best model for each city via cross-validation and then evaluating on a hold-out test set. Predictions for COVID-19 notably benefits from this methodology, while Dengue, Zika and Influenza benefits less from socioeconomic and geographic associations.
 
-\section{Methods}
-To fit a NAM, we utilize the python library, "nam" \cite{kayid2020nams}, created by the researchers who introduced NAMs for easy implementation of the model. We altered the package code to accommodate our multi-class classification setting and allow for our evaluation procedure and corresponding metrics. Further described in the "Evaluation" section below, we use a cross validation (CV) evaluation procedure for model comparison, so for each model class, we train a total of 10 models on a different sample of the data. We train each of the 10 NAMs for 120 epochs with a batch size of 64 and a learning rate of 0.002. An epoch is one complete pass of the training data through the model, batch size represents the number of samples used in a single forward and backward pass through the network, and the learning rate governs the pace at which the model updates its parameter estimates. Further, we use a regularization technique called dropout with a value of 0.15 to help avoid over fitting. Hyperparameters were chosen using a standard grid search where different combinations of values are tested on a held-out validation set, and those that result in the best performance are chosen. Each of the DeBERTa models were trained for six epochs using a batch size of eight, and a learning rate of 0.0007. The LR models were fit using the scikit-learn "LogisticRegression" python library. 
 
-\subsection{Feature Engineering}
-To create features from student response texts for the NAM and LR models, we utilize KI phrases from the rubric that represent both correct, and incorrect mechanisms and conclusions. We chose to use KI ideas to create features because these are exactly what a human identifies to assign a grade to a student response within the KI framework. Because students often express their ideas using a variety of words (i.e., the idea that \textit{"sound moves faster in air"} could be stated as \textit{"sound travels faster through air"}), we scan the responses for n-grams that are similar to the chosen KI phrases. An n-gram is a series of n consecutive words within a string of text. For example, 2-grams of the phrase \textit{"the dog ran"} would be \textit{"the dog"} and \textit{"dog ran"}. We use n-grams of size n=1 through 5 for each response as students can also express the same ideas in a different number of words. Features for the ASAP science questions were created in the same manner (and use the same number of features for each item), although we provide the feature phrases only from the KI data for demonstration.
+\section{Materials and methods}
 
-To calculate the similarity between a given feature phrase and an n-gram from a student response, we first embed both the n-gram and the phrase using sentence-BERT. Sentence-BERT utilizes siamese and triplet network structures to create semantically meaningful sentence embeddings \cite{reimers2019sentence}. We then calculate the cosine similarity of the KI phrase and the n-gram. Cosine similarity is a metric used to measure the similarity of text using the cosine of the angle between the vector embeddings of the two texts being compared. Once the KI phrase has been compared with all respective n-grams in a response, we use the largest cosine similarity found as the feature for that phrase. Thus the feature representation for each phrase provides a measure of whether or not some form of the phrase is included in the student response. We use 34 phrases and 28 key words from the KI Sound Wave Rubric (shown in Figure \ref{soudwavesrubric}) for a total of 62 features. The same number of phrases and words were chosen for each ASAP item from their corresponding scoring rubrics. The KI phrases are shown below, and the individual words were chosen from the phrases: \\
-\\
-\textit{"I don’t know", "idk", "sound bounces", "water blocks sound", "water mutes ringing", "sound moves more in air", "sound moves less in water", "sound echoes", "sound sinks in water", "sound moves fast in air", "frequency is height of wave", "pitch higher in full glass", "the density is different",  "water is more dense", "water vibrates less", "affects vibration",  "pitch is lower in water", "pitch is different",  "higher frequency in air", "frequency is different", "sound moves faster in water", "water has more mass",  "mass is different", "sound is denser in water", "sound is slower in water", "amplitude is number of waves", "pitch lower in empty glass", "air is less dense", "empty glass vibrates more", "vibration is different", "pitch is higher in air", "lower frequency in water", "sound moves slower in air", "empty glass less mass"} 
+\subsection{\label{sec:data} Data}
 
-\subsection{Evaluation}
-We use a standard ASAG evaluation metric in our results table: Quadratic Weighted Cohen’s Kappa (QWK). QWK reports the agreeability between two scores beyond random chance - a more robust measure than accuracy. A 5x2 cross validation (CV) paired t-test was used to evaluate the statistical significance of the difference in models. The 5x2 CV paired t-test is based on five iterations of twofold cross-validation, and is presented in \cite{dietterich_1998} as the recommended approximate statistical test for whether one machine learning model outperforms another because of it’s more acceptable type I error, and stronger statistical power than other methods such as McNemar’s test, or a paired t-test based on 10-fold CV. We used the QWK metric for the 5x2 CV paired t-tests (with 5 degrees of freedom). We perform a t-test comparing the QWK metric for the NAM to the LR model and the DeBERTa model. The null hypothesis for each t-test states that the QWK metric for the NAM is no different than the QWK metric for LR and DeBERTa. Further, we report the magnitude of the difference in performance of the NAM to LR and DeBERTa using the QWK metric from the CV model fits with a Cohen's D effect size. Cohen's D is essentially a difference of means, scaled by a standard deviation value \cite{kelley2012effect}. A low value of Cohen's D which represents a small magnitude of difference is typically below 0.20, and a large value would be around 0.80 or higher. We use a pooled standard deviation to calculate Cohen's D, which represents a weighted combination of the standard deviations from each model. 
+Weekly cases for the diseases were sourced by the official Brazilian government database. Dengue, Zika and Influenza registers can be found on the System of Information on Aggravations and Notifications (\textit{Sistema de Informação de Agravos de Notificação}, \textit{SINAN}) \cite{Datasus_site} and also on the official government panel for COVID-19 data \cite{Covid_weekly_data}. As for geographic and economic data, the information utilized to generate the correlations between cities can be found on IBGE platform (\textit{Instituto Brasileiro de Geografia e Estatística}) \cite{IBGE_site}, with data ranging from 2014 to 2020. The latitude, longitude, and GDP per capita of all available cities in this time frame were considered, with the geographic distance between municipalities calculated through the euclidean distances between latitude and longitude, while the yearly GDP data for each city was treated as time series and similarities were defined as discussed in Section \ref{sec:expansion}.
 
-\section{Results}
-Comparisons of each ASAG model's performance are presented in tables \ref{CV} and \ref{Avg}. In Table \ref{CV}, we present results of the 5x2 CV paired t-test using the QWK metric for both the KI data and the aggregate ASAP data. We compare the NAM against both LR and DeBERTa. For the KI data, the NAM performs better than LR at a significance level of 0.05 (t=2.1732, p=0.0409), and the NAM performs slightly worse than the DeBERTa model but not statistically at a significance level of 0.05 (t=-0.8410, p=0.2194). Further, for the ASAP data, the NAM does not perform significantly better than the LR at a significance level of 0.05 (t=1.691, p=0.0758) although the p-value is quite small. For the ASAP data, we also see that the NAM performs worse than the DeBERTa model but not at a statistically significant level of 0.05 (t=-1.741, p=0.071), although similarly, the p-value is quite small. As shown by the CV average metrics in Table \ref{Avg}, on average, DeBERTa performs better than the NAM and the NAM performs better than the LR across both data sets. Additionally, in Table \ref{CV} we present the Cohen's D effect sizes for the difference in performance from the NAM to the two other models. The magnitude of difference between the NAM and both models is quite large for the KI data, with effect sizes greater than 1.0 for each comparison. For the ASAP data, the effect size is moderate when comparing the NAM and LR.
+After combining the available cities on DataSUS with IBGE's database, and also accounting for all years in the time range considered for Dengue, Zika and Influenza, the analysis respectively accounted for 1804, 211 and 274 cities that fit this criteria, while the COVID-19 database encompass 5565 unique cities: notice that, although with much larger coverage on Brazilian cities, the endemic diseases have measurements on a greater array of years. Data was then split into a training set (Dengue: Jan. 2014 - May. 2020; Zika: Jan 2016 - May. 2022 ; COVID-19: Mar. 2020 - Fev. 2023; Influenza: Jan 2013 - Jul. 2018) and a hold-out test set (Dengue: Jun. 2020 - Dec. 2021; Zika: Jun. 2022 - Dec. 2023 ; COVID-19: Mar. 2023 - Dec. 2023; Influenza: Aug. 2018 - Dec. 2019). The data was normalized to have the maximum cases count of one for each trained model. 
 
-\begin{table}
-\centering
-  \caption{5x2 Cross Validation Paired t-test (5 df) and Cohen's D Effect Sizes}
-  \label{CV}
-  \begin{tabular}{cccc}
-    \toprule
-    NAM versus: & t(5) & p-val & Cohen's D \\
-    \midrule
-     & \textbf{KI data} & \\
-    \midrule    
-    DeBERTa & -0.8410 & 0.2194 &  -1.111 \\
-    Log Reg & 2.1732 & 0.0409 &  1.003 \\
-        \midrule
-     & \textbf{ASAP data} & \\
-    \midrule    
-    DeBERTa & -1.741 & 0.0711 &  -1.070 \\
-    Log Reg & 1.691 & 0.0758 &  0.222 \\
-  \bottomrule
-\end{tabular}
+For the four diseases included in this project, the skewness, mean and standard deviation of data was also included on Table \ref{tab:table_stats}.
+
+\begin{table}[h]
+	\caption{\label{tab:table_stats}		Basic statistic description for the weekly number of cases to the investigated diseases.
+	}
+	\begin{tabular}{llll}
+     \centering
+		\textrm{Disease}&
+		\textrm{Mean}&
+		\textrm{Maximum}&
+        \textrm{Skewness}\\
+		\hline
+		Dengue & $178 \pm 566$  & 13540 & $5.3 \pm 1.9$  \rule{0pt}{2.6ex}\\
+		\hline
+        Zika & $85 \pm 244$  & 2472 & $5.3 \pm 2.0$  \rule{0pt}{2.6ex}\\
+		\hline
+		COVID-19 & $552 \pm 2680$  & 107057 & $4.5 \pm 2.5$  \rule{0pt}{2.6ex}\\
+        \hline
+        Influenza & $18 \pm 51$  & 885 & $3.8 \pm 1.2$  \rule{0pt}{2.6ex}\\
+	\end{tabular}
 \end{table}
 
-A visual of feature importance from the NAM for the KI data is presented in Figure \ref{featImportance}. We show the top 40 most important features in order of increasing importance. We see that the feature importance for the words \textit{"density"} and \textit{"higher"} is much larger than that of most other words and phrases. The phrase \textit{"the density is different"} also has a comparatively high importance. Further, in Figure \ref{density}, we present NAM Shape functions for the top 8 important words and phrases. As each feature of the NAM is handled independently by a learned shape function, we can see how the model makes its predictions, or in our case ratings, by graphing the shape functions for each feature. The scores are averaged and centered so that the shape functions can be directly compared on the same scale. As our NAM is a multi-class classifier, we can visualize five shape functions for each feature representing each of the five classes. We choose to show only the shape function for the lowest rating class and the highest rating class to retain the most important information yet avoid a messy, undecipherable visual. However, Figure \ref{shapeall} provides an example of shape plots with all five shape functions shown for reference. A negative y-axis score signals a low probability of a certain class, and a positive score represents a high probability. Noticeably, the shape functions are jagged-like with sharp jumps. \cite{agarwal2020neural} emphasizes the unique capability of NAMs to model highly “jumpy” 1-dimensional functions due to the use of an exponential-centered (ExU) non-linear function, whereas standard neural network models are bias towards smoothness with the use of Rectified Linear Unit (ReLU) functions. We could hypothesize that the true shape functions for the features in this project are more smooth, and in future work we could employ regularization techniques such as weight decay to provide smoother shape functions. On the same plot, we see the data density in the form of pink shaded bars. The darker the shade of pink, the more data there is in that region. In some areas with a really low data density, the model may not have had enough data to adequately learn the shape function.
+\subsection{\label{sec:model} Methods}
+We employed the predictive algorithms Random Forests and XGBoost for all predictive tasks, where the training set used 5 delays (or lags) for the disease's time series. These two models function as ensembles of decision trees with intrinsically different methods of achieving forecasts. In all of them, the trees are generated by selecting subsets of observations through sampling with replacement methods, in this work using a random subset of features in each splitting process and selecting the best fit using Mean Absolute Error (MAE).
 
-\begin{table*}
-\centering
-  \caption{5x2 Cross Validation QWK Averages}
-  \label{Avg}
-  \begin{tabular}{ccc}
-    \toprule
-    Model & KI data & ASAP data \\
-    \midrule
-    DeBERTa & 0.7475 & 0.7176 \\
-    Log Reg & 0.6929 & 0.6342 \\
-    NAM & 0.7174 & 0.6473 \\
-    \bottomrule
-  \end{tabular}
-\end{table*}
+Random Forests \cite{Breiman2001Oct} determine the final result using a combination of multiple decision trees, being an approach with few parameters to tune throughout the training processes and thus presenting a robustness to over-fitting. 
+As for the Gradient Boosting Regression method XGBoost \cite{Chen2016Aug} chosen, the trees are built individually, where weights are added depending on the performance shown by that tree to a given example, that is, the ensemble will be able to account for higher variability in data by evaluating trees based on the difficulty of prediction for those examples.
 
-\begin{figure}
-  \includegraphics[width=\textwidth]{NAM_featureimportance.png}
-  \caption{NAM Mean Feature Importance}
-  \label{featImportance}
-\end{figure}
+Mean absolute scaled error (MASE) was used to evaluate the performance of predictions, due to its interpretability and scale-invariant properties \cite{Metricas_paper}.
+
+	\begin{equation}
+		\label{eq:MASE}
+		MASE =  \frac{ \frac{1}{J} \sum_j |\hat{y}_j - y_j|}{ \frac{1}{T-m} \sum_{t=m+1} ^T |y_t - y_{t-m}|},
+	\end{equation}
+    \noindent
+    where the upper term is just the mean average error (MAE).
+    
+MASE's main advantage is its interpretability, which is directly linked to the performance of the seasonal naïve model for a given city, which is defined in the denominator of Eq. \ref{eq:MASE}. Models with $MASE < 1$ will outperform the naïve forecast. Moreover, MASE is scale-invariant, a known limitation of MAE when comparing multiple time series with varying amplitudes, as was observed for all data and illustrated on Figure \ref{fig:series_examples}. It is also symmetric and robust when the predicted value $\hat{y}$ approaches 0, which is often the case in epidemiological records. The algorithm employed will take $m$ to be the same length of the prediction window for each disease.
+
+
+In order to evaluate the performance of the implemented models, we began by defining the hyper-parameters of each model and using an exhaustive search method over those to define the optimal combination for the trained models, alongside employing cross-validation with four splits of the train data in each case. These parameters are listed in the following table.
+
+\begin{table}[h]
+	\caption{\label{tab:table2}		Parameters for each regression model. For both diseases, four splits of the train set were used for cross-validation.
+	}
+	\centering
+	\begin{tabular}{lll}
+		\textrm{Algorithm}&
+		\textrm{Hyperparameter}&
+		\textrm{Values}\\
+		\hline
+		RF & number of trees:    & [25,50,100,150,200] \rule{0pt}{2.6ex}\\
+		& maximum tree depth: & [2,4,None] \\
+		\hline
+		XGBoost & number of trees:    & [25,50,100,150,200] \rule{0pt}{2.6ex}\\
+		& maximum tree depth: & [2,4,None] \\
+		& learning rate:      & [0.001, 0.005, 0.01]\\
+	\end{tabular}
+\end{table}
+
+It is important to note that the cross-validation model in this approach selects the best hyperparameters for each city independently from the rest of the data set, both for the direct prediction baseline and for the methodology described in Sec. \ref{sec:expansion}.  
+
+The data was filtered to exclude cities with anomalies, defined as cases outside the expected distribution in the training with z-score $z>4$ observed on the hold-out test set of each disease (see Sec. \ref{sec:data}). Despite all diseases displaying non-normal distribution of cases, according to the mean skewness on Table \ref{tab:table_stats}, the second moment of these distributions can still present an informed criteria according to Chebyshev's inequality, where at least $94\
+
+
+\subsection{\label{sec:expansion} Feature Engineering}
+The main objective of this study was to evaluate the predictive performance of different approaches for selecting features from related cities. We compared the baseline model described above to models that incorporate features from cities with correlated time series, defined below. 
+
+\begin{enumerate}
+	\item Geographic proximity between cities, with the euclidean distances being calculated from IBGE's data described in Sec. \ref{sec:data}. This allows one to generate a network of municipalities using only distances as the connection criteria, that is, the closest city to a given target will be part of its neighborhood;
+	\item Optimal match distance calculated through the use of Dynamic Time Warping \cite{DTW_article} for both yearly GDP data for each city from the IBGE database (see Sec. \ref{sec:data}), and the diseases' time series. Applying this algorithm to the latter data is done as a way to compare the patterns of contagions between cities, generating a non-informed baseline for the other two (geographic distances and GDP) selection criteria.
+\end{enumerate}
+
+To quantify the optimal match distances for diseases cases and GDP data, dynamic time warping is employed as a method to evaluate which of the time series will have the minimum traversal cost to a given target. Defining such traversals as $T = ( (i_1, j_1), ..., (i_t, j_t) )$, with $i_1 = j_1, i_t = n, j_t = m$ for each time step $k \in {1,...,t-1}$, the algorithm will then minimize the function:
+
+	\begin{equation}
+		\label{Eq:DTW_min}
+		\sum_{k=1}^{t} d \left( p_{i_k} , q_{j_k} \right) ,
+	\end{equation}
+\noindent
+where $p_{i_k}$ and $q_{j_k}$ are points in the curves $P = (p_1, ..., p_n) $ and $Q = (q_1, ..., q_m)$ that are being analyzed. The optimal match will be denoted as DTW$(P,Q)$.
+Notice that Eq. \ref{Eq:DTW_min} requires a choice of distance metric $d(.,.)$, which in this work was taken to be the Euclidean metric, where $d(x,y) = || x-y ||_p$.
+
+For all methods, new features made from the time series of cities that fulfilled the criteria above were added to the training sets, using up to the top three cities' time series with optimal, or minimal, distances with respect to a given target. 
+
+
+
+\section{Results}
+
+
+To first generate a baseline, the selection of optimal hyperparameters for each individual city was performed with two regression models: Random Forests and XGBoost. The resulting best model on this validation stage was then evaluated on the test set slice of the city being studied. Table \ref{tab:best_model} show the average MASE performance of this approach for all cities.
+
+\begin{table}[h]
+	\centering
+	\caption{\label{tab:best_model} MASE performance on the train and hold-out test set of each regression framework for both diseases.}
+	
+		\begin{tabular}{c | c | c  c | c  c }
+			\hline\hline
+			\multicolumn{1}{c|}{} & \multicolumn{1}{c|}{} & \multicolumn{2}{c|}{$z < 4$} & \multicolumn{2}{c}{$z \geqslant 4$}\\
+			
+			\multicolumn{1}{c|}{Disease} & \multicolumn{1}{c|}{Algorithm} & \multicolumn{1}{c}{Train} & \multicolumn{1}{c|}{Test} &\multicolumn{1}{c}{Train} & \multicolumn{1}{c}{Test}\\[1ex]
+			
+			\hline
+			Dengue	& \textbf{Random Forests} & 0.697 & \textbf{0.552} & 0.694 & 1.148 \rule{0pt}{2.6ex} \\
+					& XGBoost 		          & 0.871 & 0.586 & 0.857 & 1.228 \\[1ex]
+			  \hline
+            Zika	& \textbf{Random Forests}  & 1.100 & \textbf{0.604} & 1.040 & 1.044 \rule{0pt}{2.6ex} \\
+			 			& XGBoost		       & 1.287 & 0.703 & 1.199 & 1.134 \\ [1ex]
+            \hline
+			COVID-19	& \textbf{Random Forests}      & 0.605 & \textbf{0.362} & 0.605 & 0.423 \rule{0pt}{2.6ex} \\
+			 			& XGBoost 	                   & 0.643 & 0.508 & 0.643 & 0.566 \\ [1ex]
+            \hline
+            Influenza	& Random Forests       & 0.798 & 1.070 & 0.786 & 1.274 \rule{0pt}{2.6ex} \\
+			 			& \textbf{XGBoost} 	   & 0.866 & \textbf{1.061} & 0.847 & 1.277 \\ [1ex]
+       
+		\hline\hline	
+		\end{tabular}
+\end{table}
+
+As shown in Table \ref{tab:best_model}, for Dengue and Zika the Random Forest algorithm performed best both in cities displaying anomalies or those without then in the test set; while for COVID-19 and Influenza data, XGBoost was the best overall model for cities. Nonetheless, excluding Zika, applying the models for the dataset that included anomalous cities significantly reduced the observed accuracy of the prediction. 
+
+\begin{figure}[h!]
+	\centering
+    \caption{\label{fig:results_all_models} MASE performance using varying number of features on the training set, with the amount represented by the numbers associated with the bar colors, for all investigated diseases. Brighter colors indicate the use of the dataset without anomalous cities ($z<4$).}
  
+	\begin{subfigure}[t]{0.4\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figures/results/dengue_MASE.pdf}
+		\subcaption{ Dengue forecasts using Random Forests.}
+        \label{fig:res_dengue}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.4\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figures/results/zika_MASE_no_label.pdf}
+		\subcaption{ Zika forecasts using Random Forests. }
+        \label{fig:res_zika}
+	\end{subfigure}
+    \begin{subfigure}[t]{0.4\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figures/results/covid_MASE_no_label.pdf}
+		\subcaption{ COVID-19 forecasts using Random Forests.}
+        \label{fig:res_covid}
+	\end{subfigure}
+    \begin{subfigure}[t]{0.4\textwidth}
+		\centering
+		\includegraphics[width=\textwidth]{figures/results/flu_MASE_no_label.pdf}
+		\subcaption{ Influenza (pre-COVID-19) forecasts using XGBoost. }
+        \label{fig:res_flu}
+	\end{subfigure}
+	
+\end{figure}
+
+
+
+The results shown in Figs. \ref{fig:results_all_models} used the best regression models from the baseline, respectively Random Forests for Dengue, Zika and COVID-19, and XGBoost for Influenza, along with the expanded train sets generated through the methodology described in Sec. \ref{sec:expansion} for the three different association criteria. The parameter optimization and cross-validation were executed independently from the baseline selection. 
+
+When considering the augmentation of the training set with the proposed methodology, simulations performed for Dengue and Influenza cases do not display considerable benefits of increasing the features past the initial five lags from the target time series, given that all results are within the uncertainty range and are comparable to the baseline performance, shown in Figures \ref{fig:res_dengue}, \ref{fig:res_zika}, \ref{fig:res_flu}. 
+
+COVID-19 and Zika predictions including such features shown in Fig. \ref{fig:res_covid}, on the other hand, notably increases the regression effectiveness, and more evidently for the hold-out test set for the pandemic, with geographical associations resulting in the best performance for both cases. Overall, aside from Influenza, all results without including anomalies in the test set displayed higher accuracy than the seasonal naïve model. 
+
+Fig. \ref{fig:series_examples} illustrates the forecasts, and also the mentioned advantages of using MASE as a evaluation metric instead of MAE, as discussed in Section \ref{sec:model}, for selected municipalities using the best models for each disease according to the results of Fig. \ref{fig:results_all_models}. 
+
+
+\begin{figure*}
+    \caption{\label{fig:series_examples} Example predictions for three sample cities for both diseases, using the geographic distances as the aggregation method on the train set and including three new features from associated cities. From left to right: Dengue, Zika, COVID-19 and Influenza cases. None of these time series contain anomalous patterns in the hold-out test set. MAE and MASE results are presented for the test set.}
+	\begin{subfigure}[t]{0.22\textwidth}
+		\includegraphics[width=\textwidth]{figures/dengue_rf_sp.pdf}
+		\caption{Dengue on São Paulo, SP. MAE: 64.31, MASE: 0.63.}
+	\end{subfigure}
+    \begin{subfigure}[t]{0.22\textwidth}
+		\includegraphics[width=\textwidth]{figures/zika_rf_sp.pdf}
+		\caption{Zika on São Paulo, SP. MAE: 0.70, MASE: 0.41.}
+	\end{subfigure}
+	\begin{subfigure}[t]{0.22\textwidth}
+		\includegraphics[width=\textwidth]{figures/covid_xgb_sp.pdf}
+		\caption{COVID-19 on São Paulo, SP. MAE: 2146.37, MASE: 1.33.}
+	\end{subfigure}
+    \begin{subfigure}[t]{0.22\textwidth}
+		\includegraphics[width=\textwidth]{figures/flu_xgb_sp.pdf}
+		\caption{Influenza on São Paulo, SP. MAE: 18.94, MASE: 1.22.}
+	\end{subfigure}
+	
+	\begin{subfigure}[t]{0.22\textwidth}
+		\includegraphics[width=\textwidth]{figures/dengue_rf_niteroi.pdf}
+		\caption{Dengue on Niterói, RJ. MAE: 0.76, MASE: 0.11.}
+	\end{subfigure}    \begin{subfigure}[t]{0.22\textwidth}
+		\includegraphics[width=\textwidth]{figures/zika_rf_niteroi.pdf}
+		\caption{Zika on Niterói, RJ. MAE: 0.16, MASE: 0.02.}
+	\end{subfigure}	\begin{subfigure}[t]{0.22\textwidth}
+		\includegraphics[width=\textwidth]{figures/covid_xgb_niteroi.pdf}
+		\caption{COVID-19 on Niterói, RJ. MAE: 137.34, MASE: 0.43.}
+	\end{subfigure}
+    \begin{subfigure}[t]{0.22\textwidth}
+		\includegraphics[width=\textwidth]{figures/flu_xgb_niteroi.pdf}
+		\caption{Influenza on Niterói, RJ. MAE: 1.66, MASE: 1.55.}
+	\end{subfigure}	
+	\begin{subfigure}[t]{0.22\textwidth}
+		\includegraphics[width=\textwidth]{figures/dengue_rf_brasilia.pdf}
+		\caption{Dengue on Brasília, SP. MAE: 67.2, MASE: 0.89.}
+	\end{subfigure}    \begin{subfigure}[t]{0.22\textwidth}
+		\includegraphics[width=\textwidth]{figures/zika_rf_brasilia.pdf}
+		\caption{Zika on Brasília, SP. MAE: 1.90, MASE: 0.43.}
+	\end{subfigure}	\begin{subfigure}[t]{0.22\textwidth}
+		\includegraphics[width=\textwidth]{figures/covid_xgb_brasilia.pdf}
+		\caption{COVID-19 on Brasília, SP. MAE: 1164.87, MASE: 0.80.}
+	\end{subfigure}
+    \begin{subfigure}[t]{0.22\textwidth}
+		\includegraphics[width=\textwidth]{figures/flu_xgb_brasilia.pdf}
+		\caption{Influenza on Brasília, SP. MAE: 11.98, MASE: 2.84.}
+	\end{subfigure} 
+\end{figure*}
+
+
 \section{Discussion}
-The CV averages in Table \ref{Avg} give us an idea for how well each model performs for ASAG. We are not surprised to see that the NAM provides more predictive power than the LR, but not as much as the DeBERTa model. The DeBERTa model uses the entire student response as input text and learns many hundreds of features for its predictions, whereas with the NAM and LR, we are limited to the particular features we choose and it would be an unreasonable task to engineer the same number of features as the DeBERTa model learns. Additionally, the results of the 5x2 CV paired t-test in Table \ref{CV} give evidence that the NAM outperforms the LR model - across both data sets at a significance level of 0.10 and more notably with the KI data at a significance level of 0.05. Importantly, the NAM and the LR model use the same exact features. Further, the Cohen's D effect size values show that the magnitude of difference in performance of the models is quite large for the KI data, and smaller but still notable for the ASAP data. Not only is the difference statistically significant, but it seems to be practically meaningful. 
+\label{sec:discussion}
 
-\begin{figure}
-  \includegraphics[width=\textwidth]{NAM_density.png}
-  \caption{NAM shape functions of the highest and lowest rating category for the top 8 most important phrases/words. The y-axes show the log odds of predicting a given rating category, and the x-axes represent the range of similarity scores. The pink shades represent the data density at varying similarity scores.}
-  \label{density}
-\end{figure}
 
-Figure \ref{featImportance} allows us to visually interpret the ASAG NAM through overall feature importance, and Figure \ref{density} gives us more detail about how each feature contributes with NAM shape functions. Human grading of OE responses can often consist of identifying which ideas - correct or incorrect - are included in a student's response. The KI scoring rubric allowed us to identify \textit{which} ideas (phrases and words) may help guide the NAM to correctly rate student responses, and the resulting NAM visualizations enable us to discern \textit{how} these ideas contribute to an automated rating. The feature importance plot can help stakeholders identify which ideas are most indicative of the student's grade, and the NAM shape function gives a notion of how the directionality of the model's prediction changes for different values of different rating classes. For example, for the \textit{“higher”} feature, the probability for the highest rating class (shown by the green line in Figure \ref{density}) goes down significantly with decreasing cosine similarities. So, including the word \textit{“higher”} in a response seems to correspond to higher scores. Additionally, with the density shading in the NAM shape function plots, we can infer the density of responses that include the given word or phrase. For example, the words \textit{“more”}, and \textit{“higher”} both have dense regions near high cosine similarities, so we can assume that many responses include these words or similar words. This can give an educator insight into which ideas students are more or less likely to write about.  
+The main proposal of this method is to verify the potential of including variables that are known to be linked to a given disease's spread dynamic, thus not only creating predictions that are robust to reporting fluctuations, but also identifying ``signaling cities" and help understand the wave-like patterns of disease transmission across Brazil. The positive outcome of including disease's data from geographically close cities for Zika and COVID-19 can be interpreted as a reflection of such patterns, indicating that regional-level health policies also can be effective in the containment of those outbreaks.
 
-\begin{figure}
-  \includegraphics[width=\textwidth]{NAM_density_all.png}
-  \caption{An Example of NAM shape functions with \textbf{all} rating categories}
-  \label{shapeall}
-\end{figure}
+It is important to also note the limitations of this study. The official reports on dengue, for example, could be instead a mislabel of Zika or Chikungunya, that shares some symptoms with Dengue, as shown by \cite{Pessa2016InvestigationIA}. Furthermore, the predictions for Dengue and Influenza were not substantially enhanced through this method, which could imply that the variables selected are less impactful for these endemic diseases, or the trends included in the correlated time series does not contain information that can positively influence the model. 
 
-Limitations of using a NAM for ASAG include that the performance of the model in terms of its match to human ratings is less than that of a LLM ASAG model. Also, engineering features for the NAM is more costly than preparing student responses for a LLM ASAG model, as the model will create features from the text itself. Further, we only show results for science questions so we cannot conclude that our results would generalize to other short answer items from different subject areas. Our results suggest that the NAM may be a sufficient alternative to legacy explainable models, like a LR. Not only did the NAM generally perform better than the LR with the same features, but the NAM provides easily interpretable visualizations of the model’s prediction functions which can give an educator insights about their students’ understanding of the item content. Many researchers in the field of Learning Analytics still use LR over NNs for classification when the advantages of intelligibility outweigh that of performance \cite{le2018communication}\cite{deho2022existing}\cite{alonso2020predicting}\cite{misiejuk2021using}. The Learning Analytics community may benefit from investigating the use of NAMs for various classification tasks as well. In future work, we hope to experiment with using NAMs for ASAG with different question types from different domains, and perform qualitative interviews with educators to see if the NAM visualizations are understandable and helpful. 
+As for the use of GDP as the selection criteria for the training set, none of the considered diseases benefited significantly from including this metric. This implies that 
+other, more specific measurements of social and economic aspects should be used instead. Chan et al. \cite{Chan2013Feb} demonstrated the effectiveness of using health and infrastructure indicators to the prediction of outbreaks in multiple countries, including Brazil.
 
-\bibliographystyle{splncs04}
-\bibliography{NAM}
+Moreover, most common regression models, including decision trees, learn from seasonal patterns and trends, and as such would not be able to predict significant deviations from the training data should such pattern emerge in future measurements, as demonstrated by the notable difference in evaluating the performance on target series within or without the z-score threshold. 
+
+
+\section{Conclusions}
+\label{sec:conclusion}
+In this work, the predictive performance of machine learning models that incorporate information from related cities was evaluated by comparing three methods for selecting related cities, through similarity in geography, GDP and seasonal patterns in the data. We implemented these methods for four different diseases in Brazil. COVID-19 and Zika predictions improved when enriching the training data with features from geographically proximate cities, while dengue and influenza forecasts did not benefit significantly from the same procedure. Moreover, forecasting is improved when applying the models for data that does not include unseen variations on the test set, with better performance than baseline in those cases. These results suggest that predictive models incorporating information from related cities can help infectious disease forecasts and create more robust early warning systems for public health departments. 
+
+
+Expansions of this work could be done in multiple ways. First, data describing the travel flux between cities could help clarify the association of distances with the spreading of diseases, and consequently the impact observed of the use of this property in the prediction of COVID-19. Moreover, other indicators could be applied to this methodology, such as the Gini coefficient, the existence and investment levels in public health measures and sanitary services along with their coverage in a given city, hospitalization and mortality rates of the disease under study, and also other structural indicators, such as communications networks. It also could be useful to consider climate variables, specially for diseases transmitted through non-human vectors, as done in \cite{Stolerman2019Aug}.
+
+An alternative method that could be used to reduce the influence of outliers in the modeling process would be to use a \textit{cellwise robust} filtering task, where it would flag cells in the data matrix as outlying and down-weight the influence of outliers, such as proposed on \cite{Alqallaf2009Feb}. In the case of large datasets complying to sparsity requirements, a recent work could also provide further insights to the modeling process \cite{Bottmer2022Mar}.
+
+Furthermore, the explainability of a acute outbreak would require causal inference of multiple factors that goes beyond the scope of this project; while a halt, or a markedly decrease, of cases may be related to the implementation of lock-downs and other containment measures and should be taken into account when asserting the accuracy of predictions. In this context, the proposed methodology will then be effective in scenarios where the epidemic does not include such variations, unless those changes in the disease's pattern can be explained by known data. These models will then provide useful insights into the diseases dynamics by employing variables known to be linked to it that also improve forecastings, which in turn could contribute as an additional information source for public health decision-making.
+
+
+\begin{acknowledgments}
+    Luiza Lober thanks the support given by São Paulo Research Foundation (FAPESP) (grants number 2022/16065-3 and 2013/07375-0). Francisco A. Rodrigues acknowledges CNPq (grant 308162/2023-4) and FAPESP (grants 20/09835-1 and 13/07375-0) for the financial support given for this research. This project was conducted with the computational resources of the Center for Research in Mathematical Sciences Applied to Industry (CeMEAI) funded by FAPESP, Grant 2013/07375-0.
+\end{acknowledgments}
+
+\section*{Code availability}
+All data and code used in this work are publicly available at \url{https://github.com/luizalober/epidemics-using-features}.
+
+
+\bibliography{dengue_network}
 \end{document}

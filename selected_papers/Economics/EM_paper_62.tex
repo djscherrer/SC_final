@@ -1,0 +1,643 @@
+\begin{document}
+\affiliation{$$_affiliation_$$}
+\title{Early warning systems for financial markets \\ of emerging economies }
+\maketitle
+\sloppy
+
+\begin{abstract}
+
+\noindent We develop and apply a new online early warning system (EWS) for what is known in machine learning as concept drift, in economics as a regime shift and in statistics as a change point. The system goes beyond linearity assumed in many conventional methods, and is robust to heavy tails and tail-dependence in the data, making it particularly suitable for emerging markets. The key component is an effective change-point detection mechanism for conditional entropy of the data, rather than for a particular indicator of interest. Combined with recent advances in machine learning methods for high-dimensional random forests, the mechanism is capable of finding significant shifts in information transfer between interdependent time series when traditional methods fail. We explore when this happens using simulations and we provide illustrations by applying the method to Uzbekistan's commodity and equity markets as well as to Russia's equity market in 2021-2023. 
+
+\bigskip
+\noindent\emph{Keywords:} early warning, copula, local random forest, machine learning, Shiryaev-Roberts statistic, spillover effects
+\end{abstract}
+\setstretch{2}
+\newpage
+
+\section{Introduction}
+
+Financial markets of emerging economies are characterized by unusually high volatility, structural breaks, non-linear dependence, asymmetry and strong correlation in extremes also known as tail-dependence. There is evidence that these stylized facts are particularly pronounced in emerging markets \cite[see, e.g.,][]{CHAUDHURI:03, Chen/ibra:19}. Moreover, modern financial markets generally have a complicated structure of information flows often represented by  various global and local spillover and contagion effects, involving emerging markets and manifesting themselves with significant lags and frictions in information transfer \cite[see, e.g.,][]{ZHAO/etal:22, KHALFAOUI/etal:23, AHMAD/etal:18}. In this setting, rapid and reliable detection of shifts in information channels at work in  emerging markets is key to ensuring stability of the markets, effective economic policy and prevention of financial contagion \cite[see, e.g.,][]{NEAIME:16, SMIMOU:15, YANG:23}.  
+
+
+From the statistical perspective, the area that develops principled ways of constructing early warning systems (EWS) which react to changes in a stochastic process with the shortest delay, is known as change-point detection. This literature tracks back to \cite{shiryaev:61, Shiryaev} and \cite{Roberts}, among others, and has by now accummulated an impressive set of optimality results \cite[see, e.g.,][]{Chen:19, Chu/chen:19, Pergamenchtchikov/tartakovsky:18, Pergamenchtchikov/tartakovsky:19}. Importantly, various versions of the so called Shiryaev-Roberts (SR) statistic have been shown to be optimal in terms of minimizing the detection delay as the probability of false alarm approaches zero, for a wide range of stochastic processes including autocorrelated time series of financial returns with unknown pre- and post-change distribution. This has spurred the development of online financial surveillance systems based on the SR statistic where ``online'' means real-time \cite[see, e.g.,][]{pepelyshev/poluchenko}.
+
+The use of these methodologies in economic applications and, in particular, for emerging markets has been lagging. In econometrics, most of what is known as structural breaks methodology has been ``offline,'' that is, it uses historical time series to find regime shifts \cite[see, e.g.,][]{HAMILTON:16, Bai-Perron, bai/perron:03}. The focus has been on obtaining consistent tests for the number and location of regime shifts in the available data, rather than on sequential monitoring for change points. The conventional econometric methodology often assumes the number of regime shifts to be known or to be within a fixed region. Comparisons of performance between online and offline methods requires re-designing the offline methods to make them applicable in an online environment for which they were not designed. Therefore, there is little guidance in the literature on choosing between these methods. Moreover, traditionally economics has focused on linear models of information transfer, represented in such concepts and models as \cite{granger:69} causality, vector autoregression (VAR) and dynamic conditional covariance (DCC) models, which use primarily parametric specifications and may suffer from large misspecification biases. 
+
+Meanwhile, the field of machine learning has seen remarkable advances in areas related to the task of change-point detection. Known as concept drift or data drift detection, this field of machine learning recognizes that the conditional distribution of target variable given explanatory variables may change, drastically affecting predictive capacity of a machine learning engine trained on data from that distribution \cite[see, e.g.,][]{Hoens, Han}. This brings to the fore the recent successes of advanced machine learning methods such as random forests and artificial neural networks in estimating flexible nonparametric  conditional distributions with high dimensions of the conditioning set \cite[see, e.g.,][]{Breiman, Pospisil, Friedberg}. 
+
+
+
+
+
+Much relevant work is now happening in the intersection of machine learning and statistics. For example, \cite{Barros} develop a statistical estimator for concept drift detection based on Wilcoxon rank sum test to investigate the stationarity of the concept. \cite{Baidari} apply  the  \cite{Bhattacharyya}  test to online concept drift detection. \cite{Wang} used shifts in the estimates covariance matrix to detect change points which restricts the attention to linear shifts; \cite{Ditzler} used shifts in the target variable distribution over time  more generally. \cite{Bifet} effectively did the same but focused on developing a method of adaptive windowing (ADWIN) for high-frequency data streams monitoring. \cite{Raab} extended ADWIN to use the Kolmogorov-Smirnov statistic (KSWIN) and provided a more stable and precise estimation. 
+\cite{Tajeuna}  develop method for finding regime shifts in multivariate time series via analyzing the co-evolving time series representation called mapping grid, while \cite{Yuxuan} and \cite{Alanqary} develop new ways for measuring  changes in statistical properties of multivariate distributions. Empirical economics is yet to benefit from these methodological advances.
+
+The goal of this paper is to advance the early warning methodology by combining these advances in statistics and machine learning with application in economics and finance, in particular in settings with highly volatile and tail-dependent data. Specifically, we design a new version of the change-point detection methodology based on conditional entropy. The novelty here is that information transfer is not restricted to be linear and incorporates regime shifts in any feature of the distribution, not only the mean or the variance. In fact, the mean and variance of the underlying series may not even be well defined. The EWS we design is sensitive to any shift in the conditional entropy based on a local random forest estimator of a conditional density, which relates the present state of the target variable to the information in the explanatory variables not captured by the lags of the target variable.  In this setup,  we directly measure the amount of uncertainty that cannot be explained either by the lags of the target or by explanatory variables without restricting the relationships to be linear and parametric, or focusing on a specific feature of the target distribution. 
+As a starting point we take the conventional linear specification of the kind commonly used for Granger causality testing and convert it into a time series of conditional entropy estimates based on a sliding window of residuals from an autoregression (AR) of the target variable. This gives rise to an online sequential SR statistic. To our knowledge, the use of conditional entropy in the SR statistic is novel and of interest  in its own right. Then, we develop extensions of this baseline setting to take advantage of the benefits provided by the random forest estimation and by fact that based the procedure on ranks of the data, rather than the data itself. This permits for non-linearity, tail-dependence and infinite moments as we now deal with the statistical copula which captures non-linear dependence present in the data even if the data is extremely heavy tailed. The simulations we present demonstrate that the new approach dominates application of the SR statistic directly to the target variable or the AR process residuals. They also outline the cases when using ranks permits to pick regime shifts that cannot be detected by the conventional SR statistic and when the other methods of change-point detection fail or perform suboptimally. The empirical section provides illustrations of use but is not aimed at providing meaningful macroeconomic interpretations of the uncovered information flows.    
+
+The paper proceeds as follows. Section \ref{sec:prelims} sets the stage by defining notation and concepts such as entropy, random forest estimation and change-point detection. Section 
+\ref{sec:proc} describes the baseline version of the proposed procedure. Section \ref{sec:extensions} describes extensions of the baseline method to better account for non-linearity and ranks. Numerous simulations are provided in Section \ref{sec:sims}, and Section \ref{sec:appl} contains applications. Section \ref{sec:concl} concludes. All the codes and data for this paper are available at \url{https://github.com/kraevskiyAA/EWS_CondEnt}
+
+\section{Preliminaries and related literature}\label{sec:prelims}
+
+
+
+\subsection{Entropy and information transfer}
+
+Suppose we have a target time series $Y_t$ and a history of explanatory variables available at time $t$, $\mathcal{X}_t = \{{X}_{t-1}, {X}_{t-2}, ..., {X}_{t-l}\}$, where each ${X}_{s}$ is a matrix containing $d$ explanatory variables (or their lags). As an example, to which we return in our empirical application, $Y_t$ can be a composite stock index of an emerging market and $\mathcal{X}_t$ can contain histories of commodity prices the country trades in. Our goal is to detect shifts in information transfer between the target and explanatory variables, causing an early warning for the state of the market described by the target variable.
+It is common to evaluate information transfer intensity from $X$ to $Y$ by \emph{conditional entropy of $Y$ given $\mathcal{X}$} \cite[see, e.g.,][]{ORLITSKY2003751} which can be written as follows:
+\begin{equation}\label{eq:H(x|Y)}
+    H = -\int\limits_{\mathcal{X},\mathcal{Y}} f(y, x) \cdot \log f(y|x) dydx = -\int\limits_{\mathcal{X}} f(x)\int\limits_{\mathcal{Y}} f(y| x) \cdot \log f(y|x) dydx = \mathbb{E}_{\mathcal{X}} \mathbb{E} \log f(y|x),
+\end{equation}
+where $f(y| x)$ is the conditional density of $Y_t$ given $\mathcal{X}_t$,  $f(y,  x)$ is the joint density of $(Y_t, X_t)$, and $f(X_t)$ is the marginal density of $X_t$. The last equality follows from the definition of expectations and the law of interated expectations.
+
+Fundamentally, the concept of entropy measures the uncertainty about $Y_t$ given the information $\mathcal{X}_t$. In the context of signal transmission and unconditional distributions, \cite{hartley:28} is credited for observing that the information to be gained from $n$ outcomes each having a different probability $p_i$ can be defined as 
+\[-\sum_{i=1}^n p_i \log_2 p_i.\]This has become known as the Shannon entropy \citep{shannon:48}. The higher this value, the higher is the uncertainty about the $n$ realizations.\footnote{A famous and straightforward example is a coin flip: the uncertainty is limited to two outcomes, head or tail. The information to be gained from a flip, known as a bit, is binary and can be defined by $\log_2 (2)=1$. Then, the information to be gained from $n$ flips is $\log_2(2)^n=n$.}  The largest amount of uncertainty corresponds to uniformly distributed outcomes, i.e. the same $p_i$ for all $i$. Eq.~(\ref{eq:H(x|Y)}) can be viewed as a generalization of this concept to continuous conditional distributions, showing the average amount of information to be supplied before one can communicate the information in $Y$ given that the other party knows the information in $\mathcal{X}$.
+
+
+\subsection{Nonparametrics and random forests}
+
+An important component of computing $H$ is estimation of the conditional density. A flexible way of estimating $f(y|x)$ without making questionable distributional assumptions is to use the tools from nonparametric econometrics \cite[see, e.g.,][]{li/racine:23}. However, most of the standard methods will not work  when the dimension of $\mathcal{X}_{t}$ is even moderately large. This is known as the curse of dimensionality. Additionally, the nonparametric methods are known to perform poorly in the extremes of the distribution, which are of particular interest when dealing with data from emerging markets.
+
+An alternative approach that has been gaining popularity but has not been explored in the context of entropy-based EWS is to use machine learning techniques. For example, \cite{Pospisil} propose to use random forest for conditional density estimation (RFCDE). The estimator improves on a standard nonparametric method of kernel density esimation (KDE) by employing adaptive weights obtained using random forests of \cite{Breiman}. The main advantage here is that random forests break the curse of dimensionality by using random subsamples of the entire set of conditioning variables. This allows RFCDE to achieve consistent conditional density estimation with low computational costs and high accuracy.
+
+It is then intuitive that a spike in $H$ evaluated using RFCDE over a sliding window should indicate an increase in uncertainty (a decrease in the information transfer from $\mathcal{X}$ to $Y$) and the remaining question is how to identify significant spikes. 
+
+
+\subsection{Change-point detection}
+
+The change-point detection literature, going back at least 60 year \citep{shiryaev:61, Shiryaev, Roberts}, looks at an aggregated sequence of likelihood ratios based on the likelihood of a break at time $t$ versus the likelihood of no break, over a history of observations, where the densities before and after the change are known but the change point is not. There are important relaxations of the assumptions of known densities and operational methods that look at a sliding window of data rather than the entire history. However, this literature has not looked at the settings of entropy- or rank-based evaluation of information transfer with no knowledge of the true densities.     
+
+Define the Shiryaev-Roberts statistic as follows:
+\begin{equation}
+    SR_t = \sum\limits_{k=1}^{t}\prod\limits_{i=k}^{t}\dfrac{f_{0}(\xi_i)}{f_{\infty}(\xi_i)},
+\end{equation}
+where $\xi_i, i=1,\ldots, t,$ are generic independent random variables or vectors, $f_0$ is the density of $\xi_i$ before the change and $f_\infty$ is the density of $\xi_i$ after the change. Then, it is easy to derive the recursive version
+\begin{equation}
+    SR_t = (1+SR_{t-1})\frac{f_0(\xi_t)}{f_{\infty}(\xi_t)}.
+\end{equation} 
+
+We use a version of  the weighted SR statistics proposed by \cite{Tartakovsky}. The procedure permits randomness in the drift of $H$ in the sense that at each $t$ the change may take one of $m$ values and the weighted statistic has the form
+\begin{equation}
+        SR_t^{w} = \frac{1}{m}\sum\limits_{i=1}^{m}  SR_t(\Delta\mu_i),
+\end{equation}
+where  $SR_t(\Delta\mu_i)$ is the value of $SR_t$ when the difference between the mean of $f_0(\xi_t)$ and the mean of $f_\infty(\xi_t)$ is $\Delta\mu_i$.\footnote{We use $m=6$  shifts in the mean with a fixed step $\Delta \mu$ equal to the range of data divided by m.} This affords a much better performance in cases when distribution  parameters are unknown. Other than that, the construction of the $SR_t$ statistic is standard \cite[see, e.g.,][]{pepelyshev/poluchenko}. 
+
+
+An alarm will sound when $SR_t$ exceeds a threshold value that controls the false alarm rate and, based on a series of important results, the SR procedure is optimal in the sense of minimizing the average detection delay \cite[see, e.g.,][]{poluchenko/tartakovsky:10}. 
+
+
+
+\section{The new procedure: baseline version}\label{sec:proc}
+\noindent The core of the new procedure is application of the Shiryaev-Roberts statistic to a sequence of entropy estimates of $H$ assessed on a moving window of length $\Delta_t =t_1-t_0$. The window length needs to be short enough so that the regime shift is noticeable but long enough not to pick noise (we use window lengths of 50 to 100 observations in practice).
+An EWS signal is  triggered when $SR_t^w$ evaluated using the $H_t$ process surpasses a threshold $A>0$, indicating a significant shift in information transmission from $Y_t$ to $X_t$. In this section we discuss how we construct the sequence, statistic, and threshold. 
+
+
+ 
+
+
+
+
+
+    
+    
+    
+
+
+
+
+
+    
+    
+
+
+We start by fitting an autoregressive model for the target variable $Y_t$ on a moving window of length $\Delta_t$: 
+    \begin{equation}
+        \hat{Y_t} = \hat{\alpha}_0 + \sum\limits_{s=1}^{k} \hat{\alpha}_i Y_{t-s},
+    \end{equation} 
+where we use the BIC to determine the optimal AR order $k$. This gives the part of $Y_t$ orthogonal to the history of the target variable, which is the unexpected component of $Y_t$ we are interested in: 
+    \begin{equation}\label{eq:resid}
+        e_t = Y_t - \hat{Y}_t.
+    \end{equation}
+The AR(k) residuals $e_t$ capture any remaining news of the target variable $Y_t$ and we wish to explore how the distribution of this variable changes depending on the explanatory variables $\mathcal{X}$. We wish to remain agnostic about the specific moment of the distribution that changed or the form of the distribution. 
+
+Then, we obtain the fitted value from the regresion of $e_t$ on lags of the explanatory variables contained in $\mathcal{X}$ using the same moving window: 
+\begin{equation}\label{eq:granger}
+        \hat{e}_t = \hat{\beta}_0 + \sum\limits_{j=1}^{d}\sum\limits_{s=1}^{l} \hat{\beta}^{(j)}_{s}X_{t-s}^{(j)},
+    \end{equation}
+where $X_{t-s}^{(j)}$ is one of the $d$ available explanatory variables, lagged $s$ times, $s=1, \ldots, l, j=1, \ldots, d$. Again, the optimal lag $l$ can be selected by BIC. Clearly, these two steps are equivalent to a one-step regression of $Y_t$ on both its own history and history of the covariates. This would correspond to the familiar concept of Granger causality, which could be detected by a joint significance test on  $\hat{\beta}^{(j)}_{s}$.
+We go beyond the Granger causality and compute the conditional entropy of $e_t$ given $\hat{e}_t$. This recognizes the fact that change-point detection should be based on the conditional distribution $f(e_t|\hat{e}_t)$ rather than linear regression, thus accommodating more complex (than linear in mean) patterns of dependence. 
+
+Let $\hat{f}$ denote the RFCDE of the conditional density of $e$ given $\hat{e}$ obtained using the moving window of size $\Delta_t$. Let  $\hat{\mathcal{E}}_{[t_0, t_1]} = \{\hat{e}_{t_0}, \hat{e}_{t_0+1}, ..., \hat{e}_{t_1}  \}$ denote the set of $\hat{e}$'s that fall into the window. Then, the estimator of aggregate information transfer over the window can be written as a sum of the entropy contributions for the values of $\hat{e}$ that fall into the window: 
+ \begin{equation}\label{eq:simpson}
+        \hat{H}_{[t_0, t_1]} = \sum\limits_{\hat{e} \in \hat{\mathcal{E}}_{[t_0, t_1]}} \bigg[\int\limits_{\mathbb{R}}  \hat{f}(\varepsilon| \hat{e}) \cdot \log \hat{f}(\varepsilon| \hat{e}) d \varepsilon\bigg].
+    \end{equation}
+We can approximate the summand integrals using stochastic or deterministic integral appoximation, e.g., Simpson's rule which is a deterministic method. We are interested in early identification of spikes in $\hat{H}_{[t_0, t_1]}$ as we move across time. Denote the sequence of entropy estimates over a sliding window of size $\Delta_t$ as follows
+    \begin{equation*}
+        \hat{H}_{[t_0, t_0 + \Delta_t]}, \hat{H}_{[(t_0+1), (t_0+1) + \Delta_t]}, ...    \end{equation*}
+We note that the step between the values of $H$ in the sequence can be larger than one time period but this delays detection while expediting computation. This is the time series to which we apply the SR statistic in the baseline version of our approach. 
+
+Algorithm \ref{alg:SR} outlines the Shiryaev-Roberts procedure for entropy-based change-point detection described above. The algorithm uses several inputs besides the sequence of $H$, namely, the set of shift values $M_{\Delta}=\{\Delta\mu_1, \ldots, \Delta\mu_m\}$, the threshold $A$ and the smoothing parameters $\alpha$ and $\beta$.  Although there is no strict rule for selecting the value of threshold $A$, it is customary to consider two minimization criteria, namely, average detection delay (ADD) defined as $   \mathbb{E}_{\theta}[\tau-\theta|\tau>\theta]$ and probability of false alarm (PFA) defined as $ \mathbb{P}_{\theta}( \tau < \theta)$, where $\theta$ is the actual moment of the change-point and $\tau = \arg\min_{t} \{t|SR_t > A\}$  is the moment of time it is detected. 
+
+    \begin{algorithm}[H]
+    \caption{Shiryaev-Roberts procedure for change-point detection in entropy}\label{alg:SR}
+    
+    \textbf{Data:} Time series $H_1, H_2, ..., H_n$; set of possible shifts in mean $M_\Delta$; threshold $A$\\
+    $SR_0 = 0; \hat{\mu}_1 = H_1; \hat{\sigma}_1^2 = 1$;
+    
+    \While{$2\le t \leq n$}{
+    $\xi_t = \dfrac{H_t - \hat{\mu}_{t-1}}{\hat{\sigma}_{t-1}}$\;
+        \For{${\Delta}\mu_{i} \in M_{\Delta}$}{
+          
+          $SR_t^{(i)} = (1+SR_{t-1}^{(i)})\cdot \exp\{{\Delta}\mu_{i}(\xi_t - \frac{{\Delta}\mu_{i}}{2} )\}$\;
+        }
+        $SR_t^{w} = \dfrac{1}{m}\sum\limits_{i = 1}^{m} SR_t^{(i)}$
+
+        \If{$SR_t^{w} > A $}{
+            $\tau = t$\;
+            \textbf{break}
+            }
+
+       $\hat{\mu}_t = \alpha \hat{\mu}_{t-1} + (1-\alpha)H_t$\;
+       $\hat{\sigma}_t^2 = \beta \hat{\sigma}_{t-1}^2 + (1-\beta)(H_t - \hat{\mu}_t)^2$\;
+
+        $t=t+1$;
+    }
+        \KwResult{change-point $\tau$}
+
+    \end{algorithm} 
+
+\vspace{1cm}
+
+
+
+\cite{Pergamenchtchikov/tartakovsky:18, Pergamenchtchikov/tartakovsky:19} show that the weighted SR procedure approximately minimizes ADD  among all change-point detection procedures with a given PFA within a window of a fixed length for non-i.i.d.~data, including autoregressions and conditional heteroskedasticity GARCH-type models. However, these quantities are generally unavailable to the researcher in practice, unless one deals with synthetic data and is able to generate it for a given constellation of these parameters. For instance, in Section \ref{sec:sims} where we consider simulations, we are able to set $A$ by choosing the values of ADD and PFA via the numerous relationships derived in the literature \cite[see, e.g.,][]{Tartakovsky_th}. 
+
+Smoothing parameters $\alpha$ and $\beta$ are used at the end of each iteration of Algorithm \ref{alg:SR} in order to produce an exponential moving average update of the conditional expectation and variance of $H$, balancing the past values and the new information. The natural value for $\alpha$ is 0.5, reflecting equal weights on the old value of the mean $\hat{\mu}_{t-1}$ and the current $H_t$, while for the variance update, we choose $\beta = 0.9$, putting more weight on the estimate of $\hat{\sigma}$ from the previous period and thus dampening the variance update. Larger values result in smoother trajectories of the moments of $H$.
+
+
+
+
+
+
+
+\section{Extensions to non-linear and rank-based estimation}\label{sec:extensions}
+
+The baseline procedure described in previous section uses a conditional density estimator of the AR process residuals ${e}_t$ given $\hat{e}_t$, where $\hat{e}_t$ represents the linear span of the lagged explanatory variables $X_{t}^{(j)}$ in Eq.~(\ref{eq:granger}). This aligns with the traditional view of the Granger causality, which identifies information transfer by testing joint significance the lagged regressors in a linear autoregressive model. In the previous section, we extended the traditional approach by constructing a flexible, kernel-based estimator of $\hat{f}(e_t|\hat{e}_t)$ and by applying the SR statistic to a moving window of entropy estimates $\hat{H}_{[t_0, t_1]}$ obtained using $\hat{f}(e_t|\hat{e}_t)$. The goal here is to adapt the approach to the most flexible non-linear specification, recognizing the well documented presence of non-linearities in financial market data \cite[see, e.g.,][]{CAPORALE:20} 
+
+\subsection{Local linear forest}\label{subsec:llf}
+
+The univariate conditioning in $\hat{f}(e | \hat{e})$ substantially simplifies the task of nonparametric density estimation. The alternative of conditioning on the entire set of covariates $X_{t-s}^{(j)}$ separately, without obtaining $\hat{e}_t$, leads to a nonparametric estimator $\hat{f}(e_t | \mathcal{X}_t)$ which suffers from a severe curse of dimensionality due to high dimensionality of $\mathcal{X}_t$, making the estimate very imprecise. The problem is further  exacerbated by the trade-off between quick detection delay and accuracy of density estimation. It is well known in the change-point detection literature that if we increase the rolling window, making the density estimation more precise,  the time before change-point detection increases. Thus, a multivariate nonparametric estimator either suffers from a curse of dimensionality or detects the change point with a suboptimal delay. 
+
+To overcome this issue without increasing the dimensionality of density estimation, we use a recently developed method of local linear forest  (LLF) proposed by \cite{Friedberg}. LLF constructs an estimate of the conditional mean $\tilde{e}_t= \mathbb{E}[e_t|X_{t-1}=x_{t-1},\ldots, X_{t-l}=x_{t-l}]$ achieving a faster convergence rate than traditional nonparametric estimators of the same dimensionality, and preventing the overfitting. The standard (non-local) random forest estimator \cite[see, e.g.,][]{Breiman, Probst} is sensitive to hyperparameter  selection and tends to overfit. 
+
+Therefore, our first extension of the baseline methodology is to use the flexible LLF estimator $\tilde{e}_t$ instead of the fitted value $\hat{e}_t$ in constructing $\hat{f}(e_t | \tilde{e}_t)$. The SR statistic is now based on a sequence of the new estimates of $H$ on a sliding window $[t_0, t_1]$:
+\begin{equation}
+    \hat{H}^{LLF}_{[t_0;t_1]} = \sum\limits_{\tilde{e} \in \Psi_{[t_0; t_1]}} \bigg[ \int\limits_{\mathbb{R}} \hat{f}(\varepsilon| \tilde{e}) \cdot \log{\hat{f}(\varepsilon| \tilde{e}) d\varepsilon}\bigg],
+\end{equation}
+where $\Psi_{[t_0; t_1]} = \{\tilde{e}_{t_0}; \tilde{e}_{t_0+1}; ...; \tilde{e}_{t_1}\}$. The rest of the methodology remains unchanged.
+
+
+We note that both $\hat{H}_{[t_0, t_1]}$ and $\hat{H}^{LLF}_{[t_0, t_1]}$ permit non-linearity in the relationship of $Y_t$ on $\mathcal{X}_t$ because both use RFCDE to construct the conditional density of $e_t$. The additional advantage of using the new estimates $\tilde{e}_t$ is that implies a non-linear conditional mean of $Y_t$ in terms of $\mathcal{X}_t$, given lags of $Y_t$. Therefore, it aligns with the notion of non-linear Granger causality where $\mathcal{X}_t$ Granger-causes $Y_t$ if the nonparametric estimator  $\tilde{e}_t$ is indistinguishable from a constant in each dimension of $\mathcal{X}_t$. Unfortunately, powerful statistical tests of this null hypothesis in a setting with many covariates in $\mathcal{X}_t$  do not exist. The procedure we propose does not require such testing. 
+
+\subsection{Copulas}
+
+Our second extension addresses the problem of heavy tails and tail-dependence, in addition to the problem of non-linearity. It is well documented that financial markets of emerging economies are characterized by asymmetric heavy-tailed distribution, which make application of standard econometric methods problematic \cite[see, e.g.,][]{Chen/ibra:19}. As an alternative we follow the growing literature on copula-based estimation in finance \cite[see, e.g.,][]{Ibragimov/prokhorov:17} and re-formulate the problem of density estimation using ranks instead of actual values. It is important to note that for any set of random variables, their copula function contains all information about the dependence structure between the random variable as well as between any rank-preserving transformations of the random variables \cite[see, e.g.,][for a survey of copula methods in finance]{cherubini/etal:11}.  Therefore, if we use the copula instead of the original data distribution in the baseline method, the structure of information transfer will remain unchanged while the estimation is now over ranks and $H$ uses conditional copula density which is robust to heavy tails in the marginal distributions and is well defined even when moments of the original distributions may be infinite. 
+
+In the proposed modification, the baseline RFCDE estimator $\hat{f}(e_t|\hat{e}_t)$ is replaced by the rank-based RFCDE estimator $\hat{f}(u_t|\hat{u}_t)$, where 
+\begin{equation*}
+    u_{t} = \dfrac{1}{\Delta_t} \sum\limits_{s=1}^{\Delta} \mathds{1}\{e_{t-s} \leq e_t \}, \qquad \hat{u}_{t} = \dfrac{1}{\Delta_t} \sum\limits_{s=1}^{\Delta_t} \mathds{1}\{\hat{e}_{t-s} \leq \hat{e}_t \},
+\end{equation*}
+where, as before, $\Delta_t$ is the length of the sliding window over which we estimate the densities. The values of $u_t$ and $\hat{u}_t$ are known as pseudo-observations; they are values between $[0,1]$ corresponding to the ranks of observations $e_t$ and $\hat{e}_t$, respectively, in the sliding window, divided by the number of observations in the window.
+The corresponding entropy estimates can be written as follows
+\begin{equation}\label{eq:H_ranks}
+    \hat{H}_{[t_0;t_1]}^{rank} = \sum\limits_{{\hat{u}} \in \mathcal{U}_{[t_0; t_1]}} \bigg[\int\limits_{0}^{1} \hat{f}(w |{\hat{u}}) \cdot \log \hat{f}(w |{\hat{u}}) dw\bigg],
+\end{equation}
+where $\mathcal{U}_{[t_0; t_1]} = \{\hat{u}_{t_0}; {\hat{u}}_{t_0+1}; ...; {\hat{u}}_{t_1} \}$ and  $\hat{f}(u |{\hat{u}})$ can be interpreted as the conditional copula density of $e_t$ given $\hat{e}_t$.
+The remaining parts of the procedure are unchanged. We also considered using the LLF estimates $\tilde{e}_t$ instead of $\hat{e}_t$.
+
+Rank-based estimates as in Eq.~(\ref{eq:H_ranks}) are invariant to rank-preserving transformations of variables and thus make heavy tails in marginal distributions irrelevant. This permits additional focus on shifts in the distributional characteristics that go beyond the first two moments of the data. For example, we can consider situations when the first two moments of the data may not exist due to the extreme volatility on the markets and when linear correlations are too simplistic as dependence measures such as when data are tail-dependent. 
+
+\section{Monte Carlo simulations}\label{sec:sims}
+
+\subsection{Simulation designs}\label{subsec:sim_design}
+
+In this section we compare the performance of the baseline and extension methods with alternative procedures and among themselves, using synthetic data. We use two common scenarios in the literature, namely, termination of transfer and inversion of transfer. Examples of the two designs we use are as follows: 
+
+(a) Termination of information transfer: at a change point the information transfer from $X$ and $Z$ to $Y$ stops. We consider the following data generating process (DGP): 
+\begin{equation*} Y_t = 
+    \begin{cases}
+      0.5 \ln X_{t-1} + 0.2 Z_{t-1}^2 + 0.3 \nu_t, \hspace{0.3cm} t \leq 500\\
+      \xi_t, \hspace{0.3cm} t > 500
+    \end{cases}\,
+\end{equation*}
+where $\nu_1, ... , \nu_{500} \overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0,1)$, $\xi_501, ... , \xi_T \overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(5,36)$ $X_1, ... , X_T  \overset{\mathrm{i.i.d.}}{\sim} Exp(3)$, and $Z_1, ... , Z_T  \overset{\mathrm{i.i.d.}}{\sim} \Gamma(3,1)$.
+
+(b) Inversion of information transfer: at a change point the information flow from $X$ and $Z$ to $Y$ is reversed. The DGP we use is as follows
+\begin{equation*} Y_t = 
+    \begin{cases}
+      0.5 \ln X_{t-1} + 0.2Z_{t-1}^2 + 0.3 \nu_t, \hspace{0.3cm} t \leq 500\\
+      \xi_t, \hspace{0.3cm} t > 500
+    \end{cases}\,
+\end{equation*}
+where 
+\begin{equation*} X_t = 
+    \begin{cases}
+      \upsilon_t, \hspace{0.3cm} t \leq 500\\
+      0.3Y_{t-1} + 0.1 \psi_t, \hspace{0.3cm} t > 500
+    \end{cases}\,
+\end{equation*}
+\begin{equation*} Z_t = 
+    \begin{cases}
+      \delta_t, \hspace{0.3cm} t \leq 500\\
+      0.6Y_{t-1}^2 + 0.1 \zeta_t, \hspace{0.3cm} t > 500
+    \end{cases}\,
+\end{equation*}
+and where $\nu_1, ... , \nu_{500}, \psi_{501}, ..., \psi_{T}, \zeta_{501}, ..., \zeta_{T} \overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0,1)$, $\xi_{501}, ... , \xi_{T} \overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(5,9)$ and $    \upsilon_1, ... , \upsilon_{500}  \overset{\mathrm{i.i.d.}}{\sim} Exp(3)
+$, $\delta_1, ... , \delta_{500}  \overset{\mathrm{i.i.d.}}{\sim} \Gamma(3,1)$.
+
+The summary statistics of simulated data using the two DGPs are presented in Table \ref{tab:sum_stats}. The data are leptokurtic, asymmetric and weakly correlated both in levels and in ranks, which are generally typical characteristics for financial return data. 
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c|cccccc}          regime& mean& std&  skewness&  kurtosis&  corr$(Y_t; Y_{t-1})$& rank corr\\ \hline 
+         \multicolumn{5}{c}{Information transfer termination}\\ \hline 
+         before change& 2.541& 2.768& -2.106&  5.812&  -0.062& -0.040\\          after change& 5.126& 5.968& 0.110&  0.241&  -0.076& -0.080\\
+         \hline 
+         \multicolumn{5}{c}{Information transfer inversion}\\ 
+         \hline 
+         before change& 2.541& 2.768&  -1.527&  2.973&  0.040& -0.040\\ 
+         after change& 5.126& 2.99& -0.192& 0.137& 0.007&  -0.064\\         \end{tabular} \caption{Summary statistics of synthetic data}
+\label{tab:sum_stats}
+\end{table}
+
+
+\subsection{Comparison with traditional procedures}
+
+We start by benchmarking the new approach against the conventional applications of the SR procedure, that is, without the use of entropy. The traditional alternatives we consider are as follows: (a) application of the SR statistic to detect a change in the mean of the target variable $Y_t$ directly; (b)
+application of the SR statistic to detect a change in the mean of the residuals ${e}_t$ from the AR model in Eq.~(\ref{eq:resid}); (c) application of the SR statistic to detect a change in the mean of the fitted values $\hat{e}_t$ from Eq.(\ref{eq:granger}). We focus on termination of information transfer. 
+
+The specific DGP we consider in this section is as follows: 
+\begin{equation*} Y_t = 
+    \begin{cases}
+      0.5 \ln X_{t-1} + 0.2 Z_{t-1}^2 + 0.1 \nu_t, \hspace{0.3cm} t \leq 500\\  \xi_t, \hspace{0.3cm} t > 500
+    \end{cases}\,
+\end{equation*}
+where $\nu_1, ... , \nu_{500} \overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0,1)$, $ \xi_{501}, ... \xi_T \overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(2.35,1.5)$, $X_1, ... , X_T  \overset{\mathrm{i.i.d.}}{\sim} Exp(3)$, and $Z_1, ... , Z_T  \overset{\mathrm{i.i.d.}}{\sim} \Gamma(3,1)$. The process is similar to termination of information flow in Section \ref{subsec:sim_design} except now the mean shifts by a smaller magnitude, too small for the traditional procedure to capture. 
+All parameters for computing SR statistics are the same for all implementations of the traditional SR statistics. The window length is $\Delta_t=50$. 
+
+
+\begin{figure}[H]
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/target_SR.png}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/resids_SR.png}
+
+     \end{subfigure}
+     \vfill
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/est_resids_SR.png}
+     \end{subfigure}
+    \hfill
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/CondEnt_SR.png}
+     \end{subfigure}
+        \caption{Shiryaev-Roberts statistics for termination of information transfer}
+        \label{fig:SR_traditional}
+\end{figure}
+
+Figure \ref{fig:SR_traditional} shows the values of respective SR statistics and the location of the change-point (vertical dashed line). It is clear from the figure that the traditional ways of applying the SR procedure fail to detect the change point. The SR statistics for three of the four figures grows with time and flattens out near the change-point but no spikes are large enough to trigger an alarm. On the other hand, the entropy-based procedure shown on the lower right panel produced an immediate and strong alarm. 
+
+This difference in performance is due to the limitation of traditional approaches. When applied to specific variables, as opposed to the entropy, they seem to target shifts of specific nature, e.g., shifts in mean, variance, autocorrelation. In this case, the shift in mean is too small. A key advantage of our approach is that it captures jumps in \emph{information transfer}. In this sense, instead of analyzing various shifts in SR statistics, each verifying the presence of a specific drift, the entropy-based measure directly addresses stability of the dependence structure.  
+
+\subsection{Non-linearity and ranks}
+
+We now turn to detection of termination and inversion of information transfer using the extensions of the entropy-based approach, that is, using local linear forests and ranks. The simulation designs are as described in Section \ref{subsec:sim_design}. Simulation results are summarized in Figures (\ref{fig:SR_termination})-(\ref{fig:SR_inversion}), where $\theta$ denotes the moment of change, $\tau$ denotes the moment of change detection and $A$ is the threshold value used  for the Shiryaev-Roberts statistic. The window length is $\Delta_t=50$.
+
+It follows from Figures (\ref{fig:SR_termination})-(\ref{fig:SR_inversion}) that all extensions to the baseline entropy-based methods work very well in all four setups. There is not clear ordering in performance among the four setups: (a) baseline version (linear model, no ranks); (b) extension with LLF (local linear forest, no ranks); (c) extension with ranks of $\hat{e}_t$ (linear model, ranks); (d) extension with ranks of $\tilde{e}_t$ (local linear forest, ranks). For both termination and inversion, all four are able to trigger an alarm within 7-15 time periods, using the respective thresholds.  Table \ref{tab:detection_delay} summarizes this finding. 
+
+\begin{figure}[H]
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/Termination_Synthetic_datalinear_model_no_ranks.png}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/Termination_Synthetic_datalocal_linear_forest_no_ranks.png}
+     \end{subfigure}
+     \vfill
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/Termination_Synthetic_datalinear_model_ranks.png}
+     \end{subfigure}
+    \hfill
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/Termination_Synthetic_datalocal_linear_forest_ranks.png}     \end{subfigure}
+        \caption{Shiryaev-Roberts statistic for termination of information transfer}
+        \label{fig:SR_termination}
+\end{figure}
+
+
+\begin{figure}[H]
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/Inversion_Synthetic_datalinear_model_no_ranks.png}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/Inversion_Synthetic_datalocal_linear_forest_no_ranks.png}
+
+     \end{subfigure}
+     \vfill
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/Inversion_Synthetic_datalinear_model_ranks.png}
+     \end{subfigure}
+    \hfill
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/Inversion_Synthetic_datalocal_linear_forest_ranks.png}
+     \end{subfigure}
+        \caption{Shiryaev-Roberts statistitc for inversion of information transfer}
+        \label{fig:SR_inversion}
+\end{figure}
+
+
+Interestingly, a comparison between the lower and upper panels of the figures suggests that PFA for ranks is higher than for levels, as can be seen by the non-zero values of SR before the break in the lower panels (and zero SR in the upper panels). However, this does not allow us to clearly identify cases when rank-based measures may or may not be preferred, which is addressed in the next subsection.
+
+
+
+\begin{table}[H]
+    \centering
+     \begin{tabular}{c | c c} 
+     Model & Termination & Inversion  \\ [0.5ex] 
+     \hline     linear & 10 & 5 \\ 
+     LLF & 9 & 10  \\
+     linear + ranks & 9 & 5  \\
+     LLF + ranks & 15 & 7  \\
+     \end{tabular}
+     \caption{Change-point detection delay $(\tau - \theta)$}
+     \label{tab:detection_delay}
+\end{table}
+
+
+
+
+\subsection{Heavy tails and tail-dependence}
+
+To further investigate the benefits of rank-based measures we consider a setting where the heavy tailed property of individual distributions prevents a productive use of such characteristics  as the mean, variance or correlations. This setting is of particular relevance for financial data from emerging markets which are known to be extremely volatile. 
+
+We modify the simulation design of the previous sections by including a component with heavy-tailed data and tail dependence.  For this purpose we add a penalty $\lambda$ to a simplified version of termination of information flow as follows:
+\begin{equation*} Y_t = 
+    \begin{cases}
+      X_{t-1} + (1 -\sqrt{\lambda_{t-1}})\xi_t, \hspace{0.3cm} t \leq 500,\\
+      0.9 + \xi_t, \hspace{0.3cm} t > 500,
+    \end{cases}\
+\end{equation*}
+where $\xi_1, ..., \xi_T \overset{\mathrm{i.i.d.}}{\sim} \mathcal{N}(0, 0.5), X_1, ..., X_{500} \overset{\mathrm{i.i.d.}}{\sim} WeibMin(1.5)$. 
+The role of $\lambda$ is to control the noise level depending on how close the observation is to the sample median. Let $d_t = X_t - \text{med}(X_t)$ denote such a distance. We define $\lambda$ as follows: 
+$$ \lambda_t = \dfrac{d_t - \min_{t}\{d_t\}}{\max_t\{d_t\} - \min_{t}\{d_t\}} \in [0,1].$$
+Clearly, the closer an observation is to the median the more noise  $Y_t$ has over $X_{t-1}$. For the observations closer to the sample extremes, $Y_t$ is closer to being perfectly collinear with $X_{t-1}$. This produces non-zero tail-dependence, that is non-zero correlation between $X_t$ and $Y_t$ closer to the extremes of these variables.  Additionally, we use the Weibull minimum extreme value distribution for $X_t$ to induce the heavy-tailed property.
+
+Figure \ref{fig:entropy_heavy_tailed)} plots the conditional entropy processes $H$ obtained using the four methods we consider: (a) the baseline linear model based on levels, (b) the local linear forest model based on levels, (c) the linear model based on ranks, (d) the local linear forest model based on ranks. The vertical dashed line indicates the change point ($\theta$). 
+
+\begin{figure}[H]
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/HT_LR_R.png}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/HT_LR_NoR.png}
+
+     \end{subfigure}
+     \vfill
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/HT_LLF_R.png}
+     \end{subfigure}
+    \hfill
+     \begin{subfigure}[b]{0.5\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{pictures/HT_LLF_NoR.png}     \end{subfigure}
+        \caption{Estimates of entropy for heavy-tailed data with tail dependence}
+        \label{fig:entropy_heavy_tailed)}
+\end{figure}
+
+
+
+It is evident from Figure \ref{fig:entropy_heavy_tailed)} even without computing the entropy-based SR statistic that this approach fails to detect the regime shift based on the original data (the upper and lower left panels do not show a visibly significant change in $H$), while the rank-based EWS provides consistent results and rapidly detects the regime shift (the upper and lower right panels show a clear jump to a new mean of $H$ after the change point). This suggests that the new rank-based methodology is attractive in cases when the financial data are leptokurtic and tail-dependent. 
+
+\subsection{Comparison with other detection methods}
+
+Finally, we compare the proposed methods with non-SR approaches to  concept drift detection from computer science such as Early Drift Detection Method (EDDM) and Adaptive Windowing Method (ADWIN) of \cite{Bifet}, and Kolmogorov-Smirnov Windowing Method (KSWIN) of \cite{Raab} and from economics such as an online version of the structural breaks detection method of \cite{Bai-Perron}.  We focus on information transfer termination from Section \ref{subsec:sim_design}. 
+
+Since EDDM, ADWIN and KSWIN are designed to operate on univariate time series they needed to be adapted to be comparable with our methods. Similarly, the Bai-Perron test, being an offline test, needed to be turned into an online procedure. A perfectly fair comparison is impossible here. The compromise we use is as follows:
+
+(a) For ADWIN, EDDM, and KSWIN, we split time series $Y_t$ into non-overlapping segments of length 50, i.e., $[0,50], [51,100], \ldots.$ For each segment we obtain residuals $e_t - \hat{e}_t$, where $e_t$ and $\hat{e}_t$ are computed according to Eqs.(\ref{eq:resid}) and (\ref{eq:granger}), respectively. We then concatenate these segments and apply the relevant algorithms to it. We repeat this for 100 replications and compute PFA (probability of false alarm), ADD (average detection delay) and ND (fraction of non-detections).
+
+(b) For the Bai-Perron test, we apply the test at the 1\
+(c) For our methods, we apply them as described in Section \ref{sec:proc} (baseline) and  \ref{subsec:llf} (LLF), with window length 50, $\alpha = 0.5, \beta=0.9, m = 1$. We repeat this over 100 replications and compute compute PFA, ADD and ND.
+
+
+
+
+
+
+
+
+\begin{table}[H]
+    \centering
+     \begin{tabular}{c | c c c c c c} 
+         Metric & ADWIN & EDDM & KSWIN & Bai-Perron & baseline & LLF\\ [0.2ex] 
+     \hline
+     
+     PFA &  - & - & 0.89 & 0.66 & 0.1 & 0.09 \\ 
+     ADD & - & - & 8.5 & 23.6 & 10.1 & 10.4 \\
+     ND &  1 & 1 & 0.09 & 0 & 0.05 & 0.04  \\
+     \hline
+     \end{tabular}
+     \caption{Performance comparison with non-SR methods}
+     \label{tab:comparison}
+\end{table}
+
+The results are summarized in Table \ref{tab:comparison}. Using this simulation design, both ADWIN and EDDM failed to detect the break, while KSWIN detected it in 91\
+
+
+\section{Empirical applications}\label{sec:appl}
+
+We provide two empirical illustrations of how our approach can be used in constructing an early warning system in macroeconomic data. 
+\subsection{Uzbekistan: spillover from commodity markets}
+
+
+
+First, we study the dynamics of the Uzbekistan equity market as measured by the Uzbekistan Composite Index (UCI). UCI is weighted average of stock prices traded on Tashkent Stock Exchange; Appendix \ref{app:sources} provides a list of data sources used in the section, including UCI. All prices are daily open and log-returns.
+
+According to a 2022 World Bank report, commodity market plays a pivotal role for this economy, for example, gold and cotton make up $30.8\is susceptible to shocks from the global commodity markets. Therefore, we investigate information transfer from commodity prices to UCI, where the list of commodities includes gold, wheat, cotton and crude oil. We consider daily data from 1 January 2021 to 30 November 2022; Table \ref{tab:sum_stats_Uzb} reports the summary statistics for the entire period.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c|cccccc}          & mean& std&  skewness&  kurtosis&  $corr(Y_t; Y_{t-1})$& rank $corr(Y_t; Y_{t-1})$\\
+         \hline
+            UCI&	0.000&	0.047&	-0.226&	14.259&	-0.075&	-0.049 \\
+            Crude oil&	0.000&	0.027&	-0.523&	3.636&	-0.013&	0.028 \\
+            Gold&	0.000&	0.009&	-0.238&	1.844&	-0.023&	-0.009 \\
+            Wheat&	0.000&	0.022&	0.309&	3.413&	-0.025&	-0.024 \\
+            Cotton&	0.000&	0.023&	-2.202&	23.497&	0.018&	-0.012 \\
+         \hline
+    \end{tabular}
+    \caption{Summary statistics for Uzbekistan data}\label{tab:sum_stats_Uzb}
+\end{table}
+
+We use a sliding window of 100 days to estimate the conditional entropy process $\hat{H}$ as described in Section \ref{subsec:llf}. The order of the AR process for UCI is picked by BIC and is different for each sliding window; the largest lag of explanatory variables in Eq.~(\ref{eq:granger}) is three but we conducted sensitivity analysis to this parameters varying between 1 and 10 with no significance difference to the results. The number of shifts $m=80$, the exponential smoothing parameters are $\alpha=0.5$ and $\beta=0.9$ as in the simulations.
+
+\begin{figure}[H]
+     \begin{subfigure}[b]{\textwidth}
+         \centering
+     \includegraphics[width=\textwidth]{pictures/UCI_logreturns.png}
+     \end{subfigure}
+     \vfill
+     \begin{subfigure}[b]{\textwidth}
+         \centering
+ \includegraphics[width=\textwidth]{pictures/UzbekFinmarkets_LogReturns.png}    
+     \end{subfigure}
+     \caption{Log-return and conditional entropy for Uzbekistan equity market.}\label{fig:uzb}
+\end{figure}
+
+
+Figure \ref{fig:uzb} plots the resulting conditional entropy, together with the log-return of UCI. The figure reports five distinct regimes detected by this EWS. They are identified by vertical dashed lines and shaded areas on the figure. The dates and summary statistics for each regime are reported in Table \ref{tab:regimes_UZB}. 
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c|cccccc} 
+         regime& mean& std&  skewness&  kurtosis&  $corr(Y_t; Y_{t-1})$& rank $corr(Y_t; Y_{t-1})$\\ \hline 
+         2021.05.28 - 2022.04.25& 0.002& 0.022&  -3.051&  30.794&  0.229& -0.021\\  
+         2022.04.26 - 2022.08.29& -0.008& 0.077&  -0.346&  3.586&  -0.165& -0.107\\ 
+         2022.08.30 - 2023.01.07& 0.001& 0.073&  1.010&  5.782&  -0.273& -0.194\\ 
+         2023.01.08 - 2023.06.02& 0.002& 0.050&  -1.404&  19.710&  -0.036& -0.0620\\ 
+ 2023.06.03 - 2023.11.28& -0.001& 0.020& -1.178& 5.380& -0.147&-0.255\\\hline
+    \end{tabular}
+    \caption{Summary statistics of UCI by regime}\label{tab:regimes_UZB}
+\end{table}
+
+The detected regimes are not visible in the original UCI return series except perhaps for the first change point which coincides with a noticeable increase in UCI volatility. This is not surprising given that conditional entropy captures the aggregate partial effect of the commodity markets. The five regimes are as follows: (a) a low entropy period, (b) a slowly rising entropy period, (c) a stabilization period, (d) an entropy hike period, and (e) a return to normal period. Regime (d) is perhaps surprising and must reflect a disconnect between the equity and commodity markets in that period. 
+\subsection{Russia: conflict in Ukraine and industrial spillover}
+
+Next we ask a similar question about the Russian equity market, using the Russian Trading System Index (RTS) as an indicator of the state of the Russian financial sector. RTS is  a capitalization-weighted composite index computed using prices of the 50 most liquid Russian stocks traded on the Moscow Exchange. 
+
+According to the 2022 data from International Trade Center, which is a joint agency of the United Nations and the World Trade Organization\footnote{See \url{https://www.trademap.org/Index.aspx}}, crude oil and natural gas made up $25.3\
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c|cccccc}          & mean & std&  skewness&  kurtosis&  $corr(Y_t; Y_{t-1})$& rank $corr(Y_t; Y_{t-1})$\\
+         \hline
+            RTS&0.000&		0.084&	0.663&	15.59&	-0.285&	-0.121 \\
+            SnP500 Machinery&0.000& 		0.012&	-0.044&	1.390&	-0.015&	0.024 \\
+            Natural gas&0.000&		0.101&	-1.222&	31.737&	0.0461&	-0.037 \\
+            Crude oil&0.000&		0.027&	-0.523&	3.636&	-0.013&	0.028 \\
+         \hline
+    \end{tabular}
+    \caption{Summary statistics for Russian data}\label{tab:sum_stats_Rus}
+\end{table}
+
+
+
+
+Figure \ref{fig:entropy_RUS} plots the log-returns of RTS and estimated conditional entropy. We can see from the figure that the EWS detects 3 distinct  regimes where the structure of information flows changes significantly. The timing of the first shift likely corresponds to the increased economic uncertainty associated with the start of the Russian-Ukrainian military conflict on 24 February 2022. The shaded period is characterized by increased volatility, exacerbated by swift introduction of capital controls, gradual imposition of sanctions against the Russian economy and increased uncertainty regarding its long term prospects. Interestingly, the period ends by early September 2022 and the conditional entropy level returns to the pre-conflict level and goes even lower as economic outlook of the country proves to be better than anticipated. 
+\begin{figure}[H]
+     \begin{subfigure}[b]{\textwidth}
+         \centering
+     \includegraphics[width=\textwidth]{pictures/RTS_logreturns.png}
+     \end{subfigure}
+     \vfill
+     \begin{subfigure}[b]{\textwidth}
+         \centering
+ \includegraphics[width=\textwidth]{pictures/RussianFinmarkets_LogReturns.png}    
+     \end{subfigure}
+     \caption{Log-return and conditional entropy for RTS.}\label{fig:entropy_RUS}
+\end{figure}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{c|cccccc}        regime& mean& std&  skewness&  kurtosis&  $corr(Y_t; Y_{t-1})$& rank $corr(Y_t; Y_{t-1})$\\ \hline 
+         2021.06.29- 2022.03.10& -0.003& 0.084& 1.280&  14.107&  -0.249& -0.070\\         2022.03.11 - 2022.10.11& -0.001& 0.130&  0.146&  6.868&  -0.373& -0.192\\         2022.10.12 - 2023.11.30& 0.001& 0.061& 0.041&  16.768&  -0.351& -0.233\\\hline
+    \end{tabular}
+    \caption{Key statistic for RTS}\label{tab:regimes_RUS}
+\end{table}
+
+
+\section{Concluding remarks}\label{sec:concl}
+
+We developed a new early warning system for concept drift detection via conditional entropy estimation. This is an original approach that combines benefit of information theory and machine learning to help monitor the level of uncertainty, remaining after accounting for lags of the target and explanatory variables. This approach is particularly relevant for modeling information flows in emerging markets which are characterized by repeated structural breaks and heavy tails in the data distribution. 
+
+We suggested a baseline methods based on a new conditional density estimator using random forest weights, and we worked out two extensions to the baseline that better capture non-linear interactions and accommodate heavy-tailed distributions. The extensions use a local linear forest estimator of the conditional mean and a rank-based estimator of the conditional copula density, respectively. 
+
+We illustrate the use of the new EWS on synthetic and real-life data. The simulation results show when the conventional SR statistic and alternative approached from machine learning and economics fail while the new approach provides robust performance. Fundamentally, the proposed methods are a first step towards leveraging recent advances in machine learning and statistic for automated market monitoring that may be used for many purposes but has particular relevance for markets with pronounced volatility, structural breaks, heavy tails and tail-dependence. 
+
+
+
+\bibliography{literature.bib}
+
+\appendix
+
+\section{Data sources}\label{app:sources}
+
+The following sources were used to obtain the data for Section \ref{sec:appl}:
+\begin{itemize}
+\item[] Uzbekistan:
+\begin{itemize}
+    \item Uzbekistan Composite Index:    
+    \url{https://uzse.uz/price_indices/}
+
+    \item Brent Crude Oil Continuous Contract:    
+    \url{https://www.marketwatch.com/investing/future/brn00}
+
+    \item Wheat (\$/bsh):   
+    \url{https://www.macrotrends.net/2534/wheat-prices-historical-chart-data}
+
+    \item Gold spot: \url{https://www.gold.org/goldhub/data/gold-prices}
+    \item Cotton spot:     
+    \url{https://finance.yahoo.com/quote}
+\end{itemize}
+    \item[] Russia:
+    \begin{itemize}
+        \item Russian Trading System (RTS) Index:
+    \url{https://www.moex.com/en/index/RTSI/archive}
+\item S\&P industrials: \url{https://www.spglobal.com/spdji}
+\item Oil prices: \url{https://www.marketwatch.com}
+\item Natural gas prices: 
+\url{https://www.eia.gov}
+    \end{itemize}
+
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\end{document}

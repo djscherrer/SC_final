@@ -1,342 +1,608 @@
 \begin{document}
 \affiliation{$$_affiliation_$$}
-\title{Construction of Domain-specified\\Japanese Large Language Model for Finance\\through Continual Pre-training}
+\title{Learning parameter dependence for Fourier-based option pricing with tensor networks}
+\begin{abstract}
+A long-standing issue in mathematical finance is the speed-up of option pricing, especially for multi-asset options. 
+A recent study has proposed to use tensor train learning algorithms to speed up Fourier transform (FT)-based option pricing, utilizing the ability of tensor networks to compress high-dimensional tensors. 
+Another usage of the tensor network is to compress functions, including their parameter dependence. 
+Here, we propose a pricing method, where, by a tensor learning algorithm, we build tensor trains that approximate functions appearing in FT-based option pricing with their parameter dependence and efficiently calculate the option price for the varying input parameters.
+As a benchmark test, we run the proposed method to price a multi-asset option for the various values of volatilities and present asset prices.
+We show that, in the tested cases involving up to 11 assets, the proposed method outperforms MC-based option pricing with $10^5$ paths in terms of computational complexity while keeping comparable accuracy.
+
+\end{abstract}
 \maketitle
 
-\begin{abstract}
-    Large language models (LLMs) are now widely used in various fields, including finance.
-    However, Japanese financial-specific LLMs have not been proposed yet.
-    Hence, this study aims to construct a Japanese financial-specific LLM through continual pre-training.
-    Before tuning, we constructed Japanese financial-focused datasets for continual pre-training.
-    As a base model, we employed a Japanese LLM that achieved state-of-the-art performance on Japanese financial benchmarks among the 10-billion-class parameter models.
-    After continual pre-training using the datasets and the base model, the tuned model performed better than the original model on the Japanese financial benchmarks.
-    Moreover, the outputs comparison results reveal that the tuned model's outputs tend to be better than the original model's outputs in terms of the quality and length of the answers.
-    These findings indicate that domain-specific continual pre-training is also effective for LLMs.
-    The tuned model is publicly available on Hugging Face.
-\end{abstract}
-
-\begin{IEEEkeywords}
-    large language model, continual pre-training, domain-specific tuning, Japanese, finance
-\end{IEEEkeywords}
-
 \section{Introduction}
-Recently, large language models (LLMs) have demonstrated excellent performance.
-In particular, the latest models, such as ChatGPT\cite{chatgpt} and GPT-4\cite{GPT4}, exhibit high performance and significant generalization abilities.
-The basis of these models begins with the transformer \cite{Vaswani2017} and BERT\cite{Devlin2018}, and GPT series \cite{GPT-1,GPT-2,GPT-3} were developed using the transformer.
-Other LLMs have also been proposed, such as Bard\cite{bard}, LLaMA\cite{touvron2023llama,Touvron2023}, Dolly\cite{dolly}, BLOOM\cite{scao2022bloom}, Vicuna\cite{vicuna}, PaLM\cite{Chowdhery2022,Anil2023}, and Gemini \cite{gemini}.
+Financial firms are conducting demanding numerical calculations in their business.
+One of the most prominent ones is option pricing.
+An option is a financial contract in which one party, upon specific conditions being met, pays an amount (payoff) determined by the prices of underlying assets such as stocks and bonds to the other party.
+Concerning the time when the payoff occurs, the simplest and most common type of options is the European type, which this paper hereafter focuses on: at the predetermined future time (maturity) $T$, the payoff $v(\vec{S}(T))$ depending on the underlying asset prices $\vec{S}(T)$ at time $T$ occurs.
+For example, in a European call/put option, one party has the right to buy/sell an asset at the predetermined price (strike) $K$ and maturity $T$, and the corresponding payoff function is $v(S(T))=\max\{c(S(T)-K),0\}$, where $c=1$ and $-1$ for a call and put option, respectively.
+In addition to this simple one, various types of options are traded and constitute a large part of the financial industry.
 
-The major difference between the latest LLMs and previous language models (e.g., BERT) is that one model can answer questions in multiple languages and domains and respond by following the instructions.
-Previously, BERT was trained separately in different languages and domains \cite{Suzuku2023-ipm}.
-However, the latest LLMs, such as GPT4, can freely process multiple languages.
-Moreover, whereas BERT can only fill in incomplete sentences, the latest LLMs can answer questions in the same manner as humans.
+Pricing options appropriately is needed for making a profit and managing the risk of loss in option trading.
+According to the theory in mathematical finance \footnote{As typical textbooks in this area, we refer to \cite{hull2003options,shreve2004stochastic}.}, the price of an option is given by the expectation of the discounted payoff in the contract with some stochastic model on the dynamics of underlying asset prices assumed.
+Except for limited cases with simple contract conditions and models, the analytical formula for the option price is not available and thus we need to resort to the numerical calculation.
+In the rapidly changing financial market, quick and accurate pricing is vital in option trading, but it is a challenging task, for which long-lasting research has been made.
+In particular, pricing multi-asset options, whose payoff depends on the prices of multiple underlying assets, is often demanding.
+Many pricing methodologies suffer from the so-called curse of dimensionality, which means the exponential increase of computational complexity with respect to the asset number, and the Monte Carlo method, which may evade the exponential complexity, has a slow convergence rate.
 
-Even if LLM can answer questions in multiple languages and domains, domain-specific models could still be useful.
-For example, Hirano {\it et al.} \cite{Hirano2023-nbis} tuned the English-based model to Japanese and achieved better outputs than the original model.
-Sukeda {\it et al.} \cite{sukeda2023jmedlora} also tuned the English-based model to the Japanese medical domain.
-Back to the era of BERT, SciBERT \cite{beltagy2019scibert}, MedBERT \cite{rasmy2021med}, Japanese BERT\footnote{\url{https://huggingface.co/ ohoku-nlp/bert-base-japanese}}, and Japanese financial BERT \cite{Suzuki2022-sigfin28} are proposed.
-Moreover, Howard {\it et al.} \cite{howard2018ulmfit} proposed universal language model fine-tuning and the methodologies, and effects of domain-specified fine-tuning were discussed in\cite{gururangan2020don,Suzuku2023-ipm}.
+Motivated by these points, recently, applications of quantum computing to option pricing are considered actively\footnote{See \cite{herman2023quantum} as a comprehensive review.}.
+For example, many studies have focused on applications of the quantum algorithm for Monte Carlo integration \cite{montanaro2015}, which provides the quadratic quantum speed-up over the classical counterpart.
+Unfortunately, running such a quantum algorithm requires fault-tolerant quantum computers, which may take decades to be developed. 
 
-In this study, we try to construct a Japanese financial-specific LLM.
-Financial services are now hot topics in the use of LLMs.
-For instance, BloombergGPT\cite{Wu2023} is a private LLM focused on finance.
-In addition, publicly available models, such as FinLLAMA\cite{Fin-LLAMA}, which is a tuned version of LLaMA\cite{touvron2023llama}, FinGPT\cite{yang2023fingpt}, and Instruct-FinGPT\cite{zhang2023instruct}, exist.
-However, Japanese financial-specific LLMs have yet to be proposed.
-Moreover, Japanese-focused LLM benchmarks have already been constructed \cite{Hirano2023-finnlpkdf}.
-Therefore, it is high time that a Japanese financial-specific LLM is constructed.
+In light of this, applications of quantum-inspired algorithms to option pricing have been also studied, as solutions in the present or the near future~\cite{doi:10.1137/19M1244172,kastoryano2022highly,patel2022quantuminspired, doi:10.1137/21M1402170}.
+Among them, this paper focuses on the application of tensor train (TT)~\cite{Oseledets2011} learning to the Fourier transform (FT)-based option pricing method \cite{carr1999option,lewis2001simple}, following the original proposal in \cite{kastoryano2022highly}.
+This option pricing method is based on converting the integration for the expected payoff in the space of the asset prices $\vec{S}(T)$ to that in the Fourier space, namely, the space of $\vec{z}$, the wavenumbers corresponding to the logarithm of $\vec{S}(T)$. 
+After this conversion, the numerical integration is done more efficiently in many cases.
+Unfortunately, as is common in numerical integration of multivariate functions, this approach suffers from the curse of dimensionality: the FT-based method is efficient for single-asset options but for multi-asset options, its computational complexity increases exponentially.
+On the other hand, tensor network is the technique originally developed in quantum many-body physics to express state vectors with exponentially large dimension efficiently\footnote{See \cite{ORUS2014117,Okunishi2022} as reviews.} and recently, it has also been utilized in various fields such as machine learning \cite{Stoudenmire2016,novikov2016exponential}, quantum field theory~\cite{Shinaoka2023-lf, Nunez_Fernandez2022-fo}, and differential equations~\cite{patel2022quantuminspired, PhysRevE.106.035208}.
+Ref.~\cite{kastoryano2022highly} proposed to leverage the ability of tensor network to compress data as a high-dimensional tensor in order to express the functions of $\vec{z}$ involved in FT-based option pricing.
+The authors built TTs, a kind of tensor network, approximating those functions by a TT learning algorithm called tensor cross interpolation (TCI) \cite{Oseledets2010-fg,Dolgov2020-yi, Nunez_Fernandez2022-fo, Ritter2024-pr} and evaluated the integral involving them efficiently, which led to the significant speed-up of FT-based option pricing in their test cases.
 
-This study employs a domain-specific (financial-specific) continual pre-training on an existing Japanese LLM and checks if the model performance on the Japanese financial benchmarks \cite{Hirano2023-finnlpkdf} improves or not.
-The existing Japanese LLM we employed in this study is rinna/nekomata-14b, which is publicly available on Hugging Face\footnote{\url{https://huggingface.co/rinna/nekomata-14b}} and achieved the state-of-the-art performance on Japanese financial benchmarks among the 10-billions-class-parameters models (13b/14b models).
+Here, we would like to point out an issue in this TT-based method.
+That is, we need to rerun TCI to obtain TTs each time the parameters are changed.
+According to our numerical experiments, TCI takes a longer time than the Monte Carlo method, which means that the TT-based method does not have a computational time advantage.
 
-Consequently, the tuned model performed better than the original model on the Japanese financial benchmarks.
-This means that the domain-specific continual pre-training is effective for the Japanese financial-specific LLM.
+To address these issues, we focus on another usage of tensor networks that can embed parameter dependence~\cite{990454, 10.1007/3-540-47969-4_30,10.1063/5.0045521} to make FT-based option pricing more efficient.
+Namely, we learn TTs that approximate the functions including not only the dependence on  $\vec{z}$ but also that on parameters in the asset price model such as the volatilities and the present asset prices, by a single application of TCI for each function.
+We then use these tensor networks to perform fast option pricing in response to various parameter changes.
+To evaluate this approach, we consider two scenarios as benchmarks, varying volatilities and present stock prices.
+In the test cases, it is seen that for up to 11 assets, the computational complexity of our proposed method, which is measured by the number of elementary operations is advantageous to that of the Monte Carlo method with $10^5$ paths, a common setting in practice.
+When the computational complexity is smaller, our numerical results indicate that our method has a further advantage in terms of computation time, since our method involves only elementary arithmetic contrary to the Monte Carlo method involving more complicated operations.
+We also confirm numerically that the accuracy of our method is within the statistical error in the Monte Carlo method with $10^5$ paths.
+In summary, these results suggest that at least in some cases, our proposed method has advantages over Monte Carlo in terms of computational complexity, keeping the accuracy.
 
-The tuned model is publicly available on Hugging Face: \url{https://huggingface.co/pfnet/nekomata-14b-pfn-qfin}.
+The rest of this paper is organized as follows.
+Sec. II is devoted to introducing the tensor train and tensor learning algorithm. 
+In Sec. III, we review the FT-based option pricing and its reformulation aided by TCI.
+We propose a new scheme for fast option pricing by learning tensor networks with parameter dependence in Sec. IV.  We show the results of the numerical demonstration of our method applied to a kind of multi-asset option for the various values of the volatilities and the present asset prices in Sec. V.
+The summary and discussions are given in Sec. VI.
 
-\section{Related Work}
-Studies on specialized language models in finance and Japanese have been conducted for a long time.
-The classic vector embedding technique used in language processing is word2vec \cite{Mikolov2013a}.
-Word2vec has also been used in the financial domain \cite{Hirano2019-information}.
-After word2vec, ELMo \cite{peters2018elmo}, which uses a bidirectional long short-term memory (LSTM) \cite{schuster1997bilstm} to pre-train a distributed representation, appeared, along with transformer \cite{Vaswani2017}, which is a good alternative to LSTM in time-series processing, and transformer-based BERT \cite{Devlin2018}.
+\section{Tensor train}
+A $d$-way tensor $F_{x_1, \dots, x_d}$, where each local index $x_l$, $l=1, \dots, d$, has a local dimension $N$, can be decomposed into a TT format with a low-rank structure. 
+The TT decomposition of $F_{x_1, \ldots, x_d}$ can be expressed as follows. 
+\begin{align}
+    F_{x_1, \ldots, x_d} &\approx \sum_{l_1}^{\chi_1} \cdots \sum_{l_{d-1}}^{\chi_d} F_{l_1, x_1}^{(1)} F_{l_1 l_2, x_2}^{(2)} \cdots F_{l_{d-1}, x_d}^{(d)} \notag \\
+    &\equiv 
+    F_{x_1}^{(1)} \cdot F_{x_2}^{(2)} \cdot (\cdots) \cdot F_{x_d}^{(d)}
+\end{align}
+where $F_{x_i}^{(i)}$ denotes each 3-way tensor, $l_i$ represents the virtual bond index, and $\chi_i$ is the dimension of the virtual bond. 
+One of the main advantages of TT is that it significantly reduces computational complexity and memory requirements by reducing bond dimensions $\chi_i$. 
 
-In contrast, methodologies to fit language models to specific languages or domains are also pursued.
-For instance, Howard {\it et al.} \cite{howard2018ulmfit} proposed universal language model fine-tuning.
-Following this study, some domain- or language-specific language models were developed, such as SciBERT \cite{beltagy2019scibert}, MedBERT \cite{rasmy2021med}, Japanese BERT\footnote{\url{https://huggingface.co/tohoku-nlp/bert-base-japanese}}, and Japanese financial BERT \cite{Suzuki2022-sigfin28}.
-Moreover, the methodologies and effects of domain-specified fine-tuning were discussed in\cite{gururangan2020don,Suzuku2023-ipm}.
+This is an equivalent expression to the wave function $F_{x_1, \ldots, x_d}$ of a quantum system with $d$ $N$-level qudits as follows:
+\begin{align}
+    &\ket{F_{x_1, x_2,\ldots, x_d}} \nonumber \\
+    &= \sum_{l_1}^{\chi_1} \cdots \sum_{l_{d-1}}^{\chi_d} F_{l_1, x_1}^{(1)} F_{l_1 l_2, x_2}^{(2)} \cdots F_{l_{d-1}, x_d}^{(d)} 
+    \ket{\vec{x}},
+\end{align}
+where $\ket{\vec{x}}=\ket{x_1}\cdots\ket{x_d}$ is the tensor product of $\ket{x_1},\cdots,\ket{x_d}$, the basis states from $\ket{1}$ to $\ket{N}$.
 
-In the era of LLMs, although several transformer-based language models have been proposed, as described in the Introduction section, several unknown mechanisms of LLMs exist, and numerous trials have been performed.
+\subsection{Compression tenchniques}\label{subsec:comp}
+We introduce the two compression techniques used in this study.
 
-Several proposed LLMs that focus specifically on finance exist.
-For instance, BloombergGPT\cite{Wu2023} is a private LLM focused on finance.
-In addition, publicly available models, such as FinLLAMA\cite{Fin-LLAMA}, which is a tuned version of LLaMA\cite{touvron2023llama}, FinGPT\cite{yang2023fingpt}, and Instruct-FinGPT\cite{zhang2023instruct}, exist.
+\subsubsection{Tensor cross interpolation}
+Tensor cross interpolation (TCI) is a technique to compress tensors corresponding to
+discretized multivariate functions with a low-rank TT representation.
+Here, we consider a tensor that, with grid points set in $\mathbb{R}^d$, has entries $F_{x_1,\ldots,x_d}$ equal to $F(x_1,\ldots,x_d)$, the values of a function $F$ on the grid points\footnote{Although we here denote the indexed of the tensor and the variables of the function by the same symbols $x_1,\ldots,x_d$ for illustrative presentation, we assume that, in reality, the grid points in $\mathbb{R}^d$ is labeled by integers and the indexes of the tensor denotes the integers.}.
+Leaving the detailed explanation to Refs. \cite{Oseledets2010-fg,Dolgov2020-yi, Nunez_Fernandez2022-fo, Ritter2024-pr}, we describe its outline.
+It learns a TT using the values of the target function $F_{x_1, x_2\ldots, x_d}$ at indexes $(x_1,x_2,\cdots,x_d)$ adaptively sampled according to the specific rules. 
+TCI actively inserts adaptively chosen interpolation points (pivots) from the sample points to learn the TT, which can be seen as a type of active learning.
+It gives the estimated values of the function at points across the entire domain although we use only the function values at a small number of sample points in learning.
+This is the very advantage of TCI and is particularly useful for compressing target tensors with a vast number of elements, contrary to singular value decomposition (SVD) requiring access to the full tensor.
+Note that TCI is a heuristic method, which means its effectiveness heavily depends on the internal algorithm to choose the pivots and the initial set of points selected randomly.
 
-Japanese-focused LLMs and benchmarks have also been developed.
-Various models such as CyberAgent's CALM series, Rinna's model, stabilityai's stablelm series, Elyza's model, Preferred Networks' Plamo\texttrademark, and LLM-jp-13B have been proposed.
-However, few models have been published in academic research papers.
-Other studies have tuned existing English-based models to specialize in Japanese-language use\cite{Hirano2023-nbis,sukeda2023jmedlora,suzuki2023base}.
-As for the Japanese task evaluation for LLMs, several benchmarks are available, including the jlm\_eval\cite{jlm_eval}, llm-jp-eval\cite{llm-jp-eval}, and Rakuda benchmarks\footnote{\url{https://yuzuai.jp/benchmark}}.
-Moreover, the Japanese financial benchmarks have been constructed \cite{Hirano2023-finnlpkdf}.
 
-Some possible tuning methods for LLMs are available.
-For instance, Low-Rank adaptation \cite{hu2021lora} could be one possible method for domain-specific tuning.
-Moreover, other tuning methods, such as instruction tuning \cite{wei2021finetuned}, reinforcement learning from human preferences \cite{christiano2017deep}, and direct preference optimization \cite{rafailov2024direct} are also proposed.
-However, according to superficial alignment hypothesis \cite{zhou2024lima}, those tuning methods might not be effective for domain-specific tuning because the tuning focusing on the alignment cannot learn new knowledge.
-Therefore, we employed the continual pre-training method for domain-specific tuning in this study.
+In this study, when we learn TT from functions with TCI, we add the pivots so that the error in the maximum norm $(\epsilon_{\mathrm{TCI}})$ is to be minimized.
+\begin{align}
+    \epsilon_{\mathrm{max}} = \frac{\|F_{\mathrm{TT}}-\tilde{F}_{\mathrm{TT}}\|_{\mathrm{max}}}{\|F_{\mathrm{TT}}\|_{\mathrm{max}}}
+    \label{eq:errTCI}
+\end{align}
+where $F_\mathrm{TT}$ is a target tensor, $\tilde F_\mathrm{TT}$ is a low-rank approximation, and the maximum norm is evaluated as the maximum of the absolute values of the entries at the pivots selected already.
+The computational complexity of TCI is roughly proportional to the number of elements in the TT, which is $O(d \chi^2 N)$ with $\chi_1,\cdots,\chi_d$ fixed to $\chi$. 
+In addition, considering the case that zero is included in the reference function value, the error should be normalized by $\|F_{\mathrm{TT}}\|_{\mathrm{max}}$.
 
-\section{Tuning Method and Experiments}
-In this study, we employed the continual pre-training method for domain-specific tuning.
-To run an experiment, we need an existing Japanese LLM, Japanese financial datasets, and a Japanese financial benchmark.
-We describe their details in the following subsections.
 
-\subsection{Continual Pre-training for Domain-specific Tuning}
-As a tuning method, we employed the continual pre-training method.
-This is because the continual pre-training method is effective for domain-specific tuning, as described in the Related Work section.
+\subsubsection{Singular value decomposition}
+In this study, we use singular value decomposition (SVD) to compress further the TTs obtained by TCI with its error threshold $\epsilon_{\mathrm{TCI}}$ set to a sufficiently low.
+The original TT, denoted as $F_{\mathrm{TT}}$, can be approximated by another TT, $\tilde{F}_{\mathrm{TT}}$, with reduced (optimized) bond dimensions such that
+\begin{equation}
+    \frac{\|F_{\mathrm{TT}} - \tilde{F}_{\mathrm{TT}}\|_{\mathrm{F}}^2}{\|F_{\mathrm{TT}}\|_{\mathrm{F}}^2} < \epsilon_{\mathrm{SVD}},
+\end{equation}
+where $\| \cdots \|_{\mathrm{F}}$ denotes the Frobenius norm. Note that the approximation error is conventionally expressed as the squared deviation. Given a tolerance $\epsilon_{\mathrm{SVD}}$, truncation via SVD results in an optimally low-rank TT approximation characterized by the smallest possible rank. 
+For more technical details, readers are referred to Ref.~\cite{Schollwock2011-eq}.
 
-As a base model, we employed rinna/nekomata-14b, publicly available on Hugging Face\footnote{\url{https://huggingface.co/rinna/nekomata-14b}}.
-The rinna/nekomata-14b model is a Japanese LLM that achieved state-of-the-art performance on Japanese financial benchmarks among the 10-billions-class-parameters models (13b/14b models).
-If we want to reveal the effectiveness of the domain-specific tuning, we need to employ the state-of-the-art model as a base model.
 
-For the tuning, we employed the accelerate library\cite{accelerate} with deepspeed \cite{rasley2020deepspeed} to enable data-parallelized distributed training.
-The other hyperparameters were set as the following:
-\begin{itemize}
-    \item Devices: A100 80GB x4
-    \item Learning rate: starting from 5e-7, and decayed linearly to 0
-    \item Number of epochs: 5
-    \item Batch size: 24 (6 per device)
-    \item Max sequence length: 2048
-    \item Dtype: bf16
-    \item Gradient accumulation steps: 1
-    \item Gradient checkpointing: True
-\end{itemize}
+\section{Fourier transform-based option pricing aided by tensor cross interpolation}
 
-\subsection{Japanese Financial Focused Datasets}
-To tune the model, we constructed Japanese financial-focused datasets for pre-training.
-Different from instruction tuning \cite{wei2021finetuned}, we employed the continual pre-training method.
-Therefore, different from the instruction dataset, the datasets should contain various raw financial documents.
 
-For the datasets, we crawled some articles from the Internet and cleaned them.
-The datasets are currently clear to use for commercial purposes under Japanese law as of April 2024.
-The crawled articles mainly include the following types of documents:
-\begin{itemize}
-    \item Speeches, Press Conferences, and Talks of Officers of the Bank of Japan
-    \item Minutes of the Monetary Policy Meetings of the Bank of Japan
-    \item Reports, glossaries, and company profiles from multiple financial institutions
-    \item Financial-related documents extracted from Wikipedia (using Wikipedia dumps)
-\end{itemize}
+\subsection{Fourier transform-based option pricing}
 
-Moreover, the following official published documents were also included via their API services:
-\begin{itemize}
-    \item Reports on EDInet\footnote{\url{https://disclosure2.edinet-fsa.go.jp/}}
-\end{itemize}
+In this paper, we consider the underlying asset prices $\vec{S}(t)=(S_1(t),\cdots,S_d(t))$ in the Black-Scholes (BS) model described by the following stochastic differential equation
+\begin{align}
+    dS_{j}(t) = rS_{j}(t)dt + \sigma_j S_{j}(t) dW_{j}(t).
+\label{black and scholes multi assets}
+\end{align}
+Here, $W_1(t),\cdots,W_d(t)$ are the Brownian motions with constant correlation matrix $\rho_{ij}$, namely
+\begin{align}
+    dW_{i}(t) dW_{j}(t) = \rho_{ij}dt, \tag{10}
+\label{gauss correlation}
+\end{align}
+where $r\in\mathbb{R}$ and $\sigma_1,\cdots,\sigma_d>0$ are constant parameters called the risk-free interest rate and the volatilities, respectively.
+The present time is set to $t=0$ and the present asset prices are denoted by $\vec{S}_0=(S_{1,0},\cdots,S_{d,0})$.
 
-Those documents were cleansed and formatted mainly in the following formats:
-\begin{itemize}
-    \item Plain markdown format (converted from HTML/PDF)
-    \item Section-wise consolidated format
-    \item Category-wise consolidated format (including category/keyword name, description, and corresponding stocks)
-    \item List format (Company name, its stock code, and its industry in each line)
-    \item Question-and-answer format (One question and its answer)
-    \item Multiple choice question format (one question, its multiple choices, and the correct answer)
-\end{itemize}
-For the formatting, stabilityai's japanese-stablelm-base-gamma-7b\footnote{\url{https://huggingface.co/stabilityai/japanese-stablelm-base-gamma-7b}} is partly used.
-Especially the question-and-answer format and the multiple choice questions are generated with almost the same approach as WRAP \cite{maini2024rephrasing}.
-The final datasets contain about 8.1 million documents and 370 million tokens.
+We consider European-type options, in which the payoff $v(\vec{S}(T))$ depending on the asset prices $\vec{S}(T)$ at the maturity $T$ occurs at $T$.
+According to the theory of option pricing, the price $V$ of such an option is given by the expectation of the discounted payoff:
+\begin{align}
+    V(\vec{p})&=\mathbb{E}\left[e^{-rT}v(\vec{S}(T))\middle|\vec{S}_0\right] \nonumber \\
+    &=e^{-rT} \int_{-\infty}^{\infty} v(\exp(\vec{x}))q(\vec{x}|\vec{x}_0)dx,
+    \label{expec val}
+\end{align}
+where we define $\exp(\vec{x}):=(e^{x_1},\cdots,e^{x_d})$.
+$q(\vec{x}|\vec{x}_0)$ is the probability density function of $\vec{x}:=(\log S_1(T),\cdots,\log S_d(T))$, the log asset prices at $T$, conditioned on the present value $\vec{x}_0=(\log S_{1,0},\cdots,\log S_{d,0})$.
+In the BS model defined by \eqref{black and scholes multi assets}, $q(\vec{x}|\vec{x}_0)$ is given by the $d$-variate normal distribution:
+\begin{equation}
+    q(\vec{x}|\vec{x}_0) = \frac{1}{\sqrt{(2 \pi)^d \det \Sigma}} \exp\left(-\frac{1}{2}\left(\vec{x}-\vec{\mu}\right)^T \Sigma^{-1} \left(\vec{x}-\vec{\mu}\right)\right),
+\end{equation}
+where $\Sigma:=(\sigma_i\sigma_j \rho_{ij}T)_{ij}$ is the covariance matrix of $\vec{x}$ and $\vec{\mu}:=\vec{x}_0+\left(rT-\frac{1}{2}\sigma_1^2T,\cdots,rT-\frac{1}{2}\sigma_d^2T\right)$.
+Note that, in Eq. \eqref{expec val}, we denote the option price by $V(\vec{p})$, indicating its dependence on the parameter $\vec{p}$ such as the volatilities $\vec{\sigma}=(\sigma_1,\cdots,\sigma_d)$ and the present asset prices $\vec{S}_0$.
 
-\subsection{Financial Focused Evaluation}
-We employed two types of evaluation methods to evaluate the tuned model.
-\begin{itemize}
-    \item Benchmark evaluation: We employed the Japanese financial benchmarks \cite{Hirano2023-finnlpkdf} for evaluating the model. This is a quantitative evaluation.
-    \item Outputs comparison: We compared the outputs of the tuned model with the original model. This is a qualitative evaluation.
-\end{itemize}
 
-The Japanese financial benchmarks \cite{Hirano2023-finnlpkdf} is currently the most popular benchmark for evaluating the Japanese LLMs in financial services.
-The benchmark contains the following tasks:
-\begin{itemize}
-    \item chabsa: Aspect-based sentiment analysis
-    \item cma\_basics: Fundamental knowledge questions in securities analysis
-    \item cpa\_audit: Japanese Certified Public Accountant (CPA) exam, which comes from \cite{Masuda2023}
-    \item fp2: 2nd grade Japanese financial planner exam
-    \item security\_sales\_1: 1st-grade Japanese securities broker representative test
-\end{itemize}
-Almost all tasks are multiple-choice questions, and the answers are evaluated by the F1 score (for Chabsa) or accuracy (for others).
-In benchmark evaluation, we employed the following settings:
-\begin{itemize}
-    \item Prompts: Default prompts of the benchmarks (chabsa, cma\_basics, cpa\_audit, fp2, security\_sales\_1)
-    \item \# of fewshots: 0
-\end{itemize}
-Those settings are employed for simplification and fair comparison with the original model.
+In FT-based option pricing, we rewrite the formula \eqref{expec val} as the integral in the Fourier space:
+\begin{equation}
+V(\vec{p}) = \frac{e^{-rT}}{2\pi} \int_{\mathbb{R}^d+i\vec{\alpha}}\phi(-\vec{z})\hat{v}(\vec{z})d\vec{z}. 
+\label{eq:VFTBased}
+\end{equation}
+Here, $\vec{z}=(z_1,\cdots,z_d)$ is the wavenumber vector corresponding to $\vec{x}$.
+\begin{equation}
+\phi(\vec{z}):=\mathbb{E}[e^{i\vec{z}\cdot\vec{x}}|\vec{x}_0]=\int_{\mathbb{R}^d} e^{i\vec{z}\cdot\vec{x}}q(\vec{x}|\vec{x}_0)d\vec{x}    
+\end{equation}
+is the characteristic function, and in the BS model, it is given by
+\begin{align}
+    \phi(\vec{z}) = \exp \left(i \sum_{j=1}^d z_j \mu_j-
+    \frac{T}{2} \sum_{j=1}^d \sum_{k=1}^d \sigma_j \sigma_k z_j z_k \rho_{j k}\right). 
+\label{eq:phi_tt}
+\end{align}
+$\hat{v}(\vec{z}):=\int_{\mathbb{R}^d} e^{i\vec{z}\cdot\vec{x}}v(\exp(\vec{x}))d\vec{x}$ is the Fourier transform of the payoff function $v$, and its explicit formula is known for some types of options.
+For example, for a European min-call option with strike $K$, which we will consider in our numerical demonstration, the payoff function is
+\begin{align}
+    v_{\text{min}}(\vec{S}_T) = \max\{\min\{S_{1}(T), \ldots, S_{d}(T)\} - K, 0\}
+\label{min option}
+\end{align}
+and its Fourier transform is \cite{Eberlein2010}
+\begin{align}
+    \hat{v}_{\min }(\vec{z})=-\frac{K^{1+i \sum_{j=1}^d z_j}}{(-1)^d\left(1+i \sum_{j=1}^d z_j\right) \prod_{j=1}^d (i z_j)}.
+\label{eq:vmin_tt}
+\end{align}
+Note that for $\hat{v}_{\min }(\vec{z})$ to be well defined, $\vec{z}\in\mathbb{C}^d$ must be taken so that $\Im z_j>0$ and $\sum_{j=1}^d \Im z_j > 1$.
+$\vec{\alpha}\in\mathbb{R}^d$ in Eq. \eqref{eq:VFTBased} is the parameter that characterizes the integration contour respecting the above conditions on $\Im z_j$ and taken so that $\alpha_j>0$ and $\sum_{j=1}^d \alpha_j > 1$.
 
-In the outputs comparison, we generated the outputs of the tuned model and the original model for the same prompts.
-Subsequently, we compared the outputs and checked whether the tuned model's outputs were better than the original model's outputs in terms of the quality of the answers.
+In the numerical calculation of Eq. \eqref{eq:VFTBased}, we approximate it by discretization:
+\begin{align}
+    &V(\vec{p}) \nonumber \\ 
+    &= \frac{e^{-rT}}{2\pi} \sum_{j_1, \cdots, j_d=-N/2}^{N/2} \phi(-\vec{z}_{\mathrm{gr},\vec{j}} - i \vec{\alpha}) \hat{v} (\vec{z}_{\mathrm{gr},\vec{j}} + i\vec{\alpha}) \Delta_{\rm vol}.
+\label{eq:V_discretized}
+\end{align}
+Here, the even natural number $N$ is the number of the grid points in one dimension.
+$\vec{z}_{\mathrm{gr},\vec{j}}$ is the grid point specified by the integer vector $\vec{j}$ as
+\begin{equation}
+    \vec{z}_{\mathrm{gr},\vec{j}}:=(\eta_1(\vec{p}) j_1,\ldots,\eta_d(\vec{p}) j_d),
+    \label{eq:zgr}
+\end{equation}
+where $\eta_j$ is the integration step size in the $j$-th direction. 
+$\eta_j$ is a hyperparameter that must be appropriately determined according to the parameter $\vec{p}$ and thus written as $\eta_j(\vec{p})$ in \eqref{eq:zgr}. In fact, in our demonstration, it has been numerically observed that the optimal value of $\eta$ changes abruptly in response to variations in $\sigma$ within a small range; see Sec. \ref{sec:demo} for the detail.
+$\Delta_{\rm vol}:=\Pi_{j=1}^d \eta_j$ is the volume element.
 
-In the outputs comparison, we employed the following settings:
-\begin{itemize}
-    \item Max new tokens: 512
-    \item Sampling: False
-    \item Top-k: 50
-    \item Repetition penalty: 1.1
-\end{itemize}
 
-However, the output comparison is a subjective evaluation.
-Therefore, we employed the benchmark evaluation for the quantitative evaluation, and the outputs comparison is mainly aimed at making it easier to understand the effectiveness of the tuning for the readers.
+\subsection{Fourier transform-based option pricing with tensor trains}
 
-\section{Results}
+Note that to compute the sum in Eq. \eqref{eq:V_discretized}, we need to evaluate $\phi$ and $\hat{v}$ exponentially many times with respect to the asset number $d$.
+This is not feasible for large $d$.
+Then, to reduce the computational complexity, following Ref. \cite{kastoryano2022highly}, we consider approximating $\phi$ and $\hat{v}$ by TTs.
+For the tensor $\phi_{j_1,\ldots,j_d}$ (resp. $\hat{v}_{j_1,\ldots,j_d}$), whose entry with index $\vec{j}$ is $\phi(-\vec{z}_{\mathrm{gr},\vec{j}} - i \vec{\alpha})$ (resp. $\hat{v} (\vec{z}_{\mathrm{gr},\vec{j}} + i\vec{\alpha})$), we construct a TT approximation $\tilde{\phi}_{j_1,\ldots,j_d}$ (resp. $\tilde{v}_{j_1,\ldots,j_d}$) by TCI.
+Then, we approximately calculate Eq. \eqref{eq:V_discretized} by
+\begin{equation}
+    V(\vec{\sigma},\vec{S}_0) \simeq \frac{e^{-rT}}{2\pi} \sum_{j_1, \cdots, j_d=-N/2}^{N/2} \tilde{\phi}_{j_1,\ldots,j_d}\tilde{v}_{j_1,\ldots,j_d}.
+\label{eq:V_TT}
+\end{equation}
+Thanks to TCI, we can obtain the approximate TTs avoiding the evaluations of $\phi$ and $\hat{v}$ at all the grid points.
+Besides, given the TTs, we can compute the sum in \eqref{eq:V_TT} as the contraction of two TTs without exponentially many iterations: with the bond dimensions at most $\chi$, the number of multiplications and additions is of order $O(d\chi^3)$.
 
-\begin{figure}[htb]
+Hereafter, we simply call this approach for FT-based option pricing aided by TTs TT-based option pricing.
+
+\subsection{Monte Carlo-based option pricing}
+
+Here, we also make a brief description of the Monte Carlo (MC)-based option pricing.
+It is a widely used approach in practice, and we take it as a comparison target in our numerical demonstration of TT-based option pricing.
+
+In the MC-based approach, we estimate the expectation in Eq. \eqref{expec val} by the average of the payoffs in the sample paths:
+\begin{equation}
+    V(\vec{p})\approx e^{-rT} \times \frac{1}{N_{\rm path}} \sum_{i=1}^{N_{\rm path}} v\left(\exp(\vec{x}_i)\right),
+\end{equation}
+where $\vec{x}_1,\ldots,\vec{x}_{N_{\rm path}}$ are i.i.d. samples from $q(\vec{x}|\vec{x}_0)$.
+On how to sample multivariate normal variables, we leave the detail to textbooks (e.g., \cite{glasserman2004monte}) and just mention that it requires more complicated operations than simple multiplications and additions such as evaluations of some elementary functions.
+Besides, calculating the payoff $v$ with the normal variable $\vec{x}_i$ involves exponentiation.
+In the MC simulation for $d$ assets with $N_{\rm path}$, the number of such operations is $O(d N_{\rm path})$, and we hereafter estimate the computational complexity of MC-based option pricing by this.
+
+
+\section{Learning parameter dependence with tensor trains}
+
+
+\subsection{Outline}
+Option prices depend on input parameters such as the volatilities $\vec{\sigma}$ and the present asset prices $\vec{S}_0$. 
+In the rapidly changing financial market, these input parameters vary from time to time, which causes the change of the option price.
+Therefore, if we have a function that efficiently outputs an accurate approximation of the option price for various values of the input parameters, it provides a large benefit to practical business.
+
+Then, extending the aforementioned FT-based option pricing method with TTs, we propose a new scheme to quickly compute the option price in response to the change in the input parameter set.
+Using TCI, we obtain the TTs to approximate $\phi$ and $\hat{v}$, incorporating the parameter dependence of these functions.
+The outline is illustrated in Fig.~\ref{fig:new_scheme}.
+Considering $\phi$ and $\hat{v}$ as the functions of not only $\vec{z}$ but also $\vec{p}$, we set in the space of $\vec{z}$ and $\vec{p}$ the grid points $(\vec{z}_{\mathrm{gr},\vec{j}},\vec{p}_{\mathrm{gr},\vec{k}})$ labeled by the index vectors $\vec{j}$ and $\vec{k}$.
+Then, as illustrated in Fig.~\ref{fig:new_scheme} (a), we run TCI to get the TTs $\tilde{\phi}_{j_1,k_1,\ldots,j_d,k_d}$ and $\tilde{v}_{j_1,k_1,\ldots,j_d,k_d}$ that respectively approximate the tensors $\phi_{j_1,k_1,\ldots,j_d,k_d}$ and $\hat{v}_{j_1,k_1,\ldots,j_d,k_d}$, whose entries are the values of $\phi$ and $\hat{v}$ at grid points $(\vec{z}_{\mathrm{gr},\vec{j}},\vec{p}_{\mathrm{gr},\vec{k}})$.
+We reduce the bond dimensions of these TTs using SVD. 
+Subsequently, we contract adjacent core tensors pairwise and obtain matrix product operators (MPOs).
+Here, focusing not all the parameters but a part of them, we take $\vec{p}$ as a $d$-dimensional vector, e.g., either of $\vec{\sigma}$ or $\vec{S}_0$.
+Having these MPOs, we get the option price for the specified value of $\vec{p}$ as illustrated in Fig.~\ref{fig:new_scheme} (b).
+By fixing the index $\vec{k}$ of $\tilde{\phi}_{j_1,k_1,\ldots,j_d,k_d}$ and $\tilde{v}_{j_1,k_1,\ldots,j_d,k_d}$ to the value corresponding to the specified $\vec{p}$, we get the $d$-dimensional TTs $\tilde{\phi}_{j_1,\ldots,j_d}$ and $\tilde{v}_{j_1,\ldots,j_d}$.
+Contracting these TTs as Eq. \eqref{eq:V_TT}, we get the option price for the specified $\vec{p}$.
+
+Here, we note that the tensor $\hat{v}_{j_1,k_1,\ldots,j_d,k_d}$ for $\hat{v}$ and its TT approximation $\tilde{v}_{j_1,k_1,\ldots,j_d,k_d}$ have indexes $k_i$ corresponding to $\vec{p}$, which is now $\vec{\sigma}$ or $\vec{S}_0$, the parameter not affecting $\hat{v}$.
+This is due to $\eta_j$ depending on $\vec{p}$: because of the change of the grid points in the $\vec{z}$ space with respect to $\vec{p}$, the tensor $\hat{v}_{j_1,k_1,\ldots,j_d,k_d}$ depends on the indexes $k_i$.
+
+We also mention the ordering of the local indices of the TT. 
+Two core tensors in the TT that correspond to $z_j$ and $p_j$ of the same asset are arranged next to each other, i.e., the order is ($z_1 p_1 z_2 p_2 \cdots z_d p_d$). 
+In the demonstration in Sec. \ref{sec:demo}, we have numerically found that this arrangement allows us to compress the TTs with parameter dependence while maintaining the accuracy of the option pricing. 
+On the other hand, if the core tensors on $\vec{z}$ and those on $\vec{p}$ are completely separated, i.e.,($z_1 z_2 \cdots z_d p_1 p_2 \cdots p_d$), we have found that the accuracy of the option pricing get worse since TCI fails to learn this tensor trains. 
+However, the optimal arrangement of the local indices may vary, for example, depending on the correlation matrix: intuitively, the core tensors corresponding to highly correlated assets should be placed nearby.
+Although we do not discuss it in detail, this is an important topic for future research.
+
+
+
+In the two test cases for our proposed method in Sec. \ref{sec:demo}, we will identify $\vec{p}$ as the volatility $\vec{\sigma}$ or the present asset price $\vec{S}_0$, the varying market parameters that particularly affect the option prices. 
+Note that it is possible to include dependencies on other parameters in the TTs.
+For example, taking into account the dependence on the parameters concerning the option contract, such as the maturity $T$ and the strike $K$, enables us to price different option contracts with a single set of TTs.
+Although this is a promising approach, there might be some issues. For example, it is non-trivial whether TTs incorporating many parameter dependencies have a low-rank structure. Thus, we will leave such a study for future work.
+
+\begin{figure*}[ht]
     \centering
-    \includegraphics[width=\linewidth]{figs/loss.pdf}
-    \caption{Loss Curve}
-    \label{fig:loss}
-\end{figure}
-In figure \ref{fig:loss}, the loss curve of the continual pre-training is shown.
-In our tuning, no loss spikes were observed.
-The loss curve was also saturated as the learning rate decayed linearly to 0.
+        \includegraphics[width=0.8\linewidth]{newscheme.pdf}
+        \caption{Fast option pricing based on TTs proposed in this study.
+    In (a), we learn TTs with the parameter dependence of the functions using TCI and reduce the bond dimension of these TTs using SVD.
+    Then, we contract the tensors associated with \(p_i\) and \(z_i\), resulting in MPOs.
+    In (b), we use these MPOs to perform fast option pricing for a specified parameter $\vec{p}$.}
+\label{fig:new_scheme}
+\end{figure*}
 
-In the following, we show the benchmark evaluation results and the output comparison results.
 
-\subsection{Benchmark Evaluation}
+\subsection{Computational complexity}
+The computational complexity of TT-based option pricing, involving computation of the inner product between two TTs, is $O(d \chi^{3} N)$.
+In fact, the bond dimension depends on the bond index, and it is necessary to account for this for an accurate evaluation of the number of operations. 
+Indeed, we consider this point in evaluating the computational complexity of TT-based option pricing demonstrated in Sec.~V.
 
-\begin{table*}[tb]
-    \centering\small
-    \caption{Benchmark Evaluation Results}
-    \label{tab:benchmark}
-    \begin{tabular}{|c|c|c|c|c|c||c|}
-        \hline
-        Model        & chabsa (f1) & cma\_basics (acc) & cpa\_audit (acc)  & fp2 (acc)         & security\_sales\_1 (acc) & Overall   \\
-        \hline
-        Original     & $0.7381$    & $0.4737\pm0.0821$ & $0.1608\pm0.0184$ & $0.3389\pm0.0217$ & $0.4561\pm0.0666$        & $0.4335$  \\
-        Ours (Tuned) & $0.7428$    & $0.5263\pm0.0821$ & $0.1633\pm0.0186$ & $0.3642\pm0.0221$ & $0.5614\pm0.0663$        & $0.4716$  \\
-        \hline
-        Diff         & $+0.0047$   & $+0.0526$         & $+0.0025$         & $+0.0253$         & $+0.1053$                & $+0.0381$ \\\hline
-    \end{tabular}
+Here, we ignore the computational complexity of learning the TTs by TCI, SVD, and contraction of tensors associated with $p_i$ and $z_{i}$ and consider that after we get the MPOs only. 
+This is reasonable if we can use plenty of time to perform these tasks
+before we need fast option pricing.
+As discussed in Sec.~\ref{sec:summary}, we can reasonably find such a situation in practice.
+
+
+\section{Numerical demonstration}\label{sec:demo}
+\subsection{Details}
+Now, as a demonstration, we apply the proposed method to pricing a $d$-asset European min-call option in the BS model.
+In the following, we describe the parameter values used in this study, the software used, and how the errors were evaluated.
+
+\subsubsection*{Ranges of ${\sigma_i}$ and ${S^i_0}$}
+With respect to $\vec{p}$, on which the TTs learn the dependence of the functions $\phi$ and $\hat{v}$, we take the two test cases: $\vec{p}$ is the volatilities $\vec{\sigma}$ or the present asset prices $\vec{S}_0$. 
+In the proposed method, we need to set the range in the space of $\vec{p}$ and the grid points in it.
+For each volatility $\sigma_i$, we set the range to $\sigma_i \in [0.15, 0.25]$, where the center $\sigma_i=0.2$ is a typical value of Nikkei Stock Average Volatility Index \cite{nikkei_vi} and the range width $\pm 0.05$ covers the changes in this index on most days.
+For each $S_{i,0}$, we set the range to $S_{i,0} \in [90, 120]$, which corresponds to the 20\The lower bound is set to not 80 but 90 because the price of the option we take as an example is negligibly small for $S_0 < 90$.
+For both $\sigma_i$ and $S_{i,0}$, we set 100 equally spaced grid points in the range, and so the total number of the grid points in the space of $\vec{p}$ is $100^d$.
+
+\subsubsection*{Other parameters}
+The other parameters for option pricing are fixed to the values summarized in the table below.
+\begin{table}[hbtp]
+\centering
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|}
+    \hline
+    $T$ & $r$ & $K$ &$S_0$ & $\alpha$ & $\rho_{ii}$ & $\rho_{ij(i\ne j)}$ & $N$ \\
+    \hline
+    $1$ & $0.01$ & $100$ &$100$ & $5/d$ & $1$ & $1/3$ & $50$  \\
+    \hline
+\end{tabular}
+\caption{The parameters except $\vec{\sigma}$ and $\vec{S}_0$.}
+\label{tab:tt_1d_table}
+\end{table}
+
+\subsubsection*{Integral step size}
+The spread of the characteristic function changes depending on the values of the parameters $\vec{p}$ and the number of assets. 
+Accordingly, it is necessary to adjust the grid interval $\eta_j$ for integration in the wavenumber space.
+
+For example, consider the case where $\vec{p}=\vec{\sigma}$. 
+From Eq.~\eqref{eq:phi_tt}, we see that for the current parameter values in TABLE \ref{tab:tt_1d_table}, $\phi$ takes non-negligible value only when $\sigma_j z_j \lesssim 1$ for each $j$.
+It is necessary to ensure that the grid points cover the whole of such a region with a sufficiently fine interval. Currently, as $z_j$ ranges from $-N\eta$ to $+N\eta$ with step size $\eta_j$, $\eta_j$ and $\sigma_j$ must satisfy $\sigma_j \eta_j \ll 1$ and $\sigma_j \times N \eta_j \gg 1$.
+Therefore, in general, we need the adjustment that $\eta_j$ increases when $\sigma$ decreases and vice versa.
+Nevertheless, in almost all the cases we tested, we observed that we get the accurate option price with $\eta_j$ set to some constant, and thus we did so.
+In the cases with $d=10, 11$, $\eta_j$ is adjusted as
+\begin{align}
+    \eta_j = \frac{a}{\sigma_j} + b
+    \label{eq:fitting_sigma}
+\end{align}
+To set the constants $a$ and $b$, we ran TT-based option pricing for several values of $\sigma_j$ adjusting $\eta_j$, found the pairs $(\sigma_j,\eta_j)$ that yields the accurate price, and adjust $a$ and $b$ so that Eq. \eqref{eq:fitting_sigma} approximately reproduces such $\eta_j$ from $\sigma_j$.
+
+
+
+
+\begin{comment}
+For example, in our numerical calculations, for $d=5$ to $9$, it was possible to accurately compute the option prices with a constant value of $\eta$ regardless of the asset. 
+When $d=10$, it became necessary to adjust $\eta$ for each asset individually. 
+Figure~\ref{fig:sigma_tts} represents the tensor trains when \(\eta\) is not adjusted for each asset and when it is adjusted for each asset.
+In Fig.~\ref{fig:sigma_tts}(a) for $d=5$, the equation $\eqref{eq:vmin_tt}$ does not depend on $\vec{\sigma}$, while in Fig. ~\ref{fig:sigma_tts}(b) for $d=10$, the equation $\eqref{eq:vmin_tt}$ depends on the parameter $\vec{\sigma}$, which should have no dependence. 
+This is because from eq.~\eqref{eq:V_continuous}, the equation $\eqref{eq:vmin_tt}$ becomes a function of $\eta$, and in this case, $\eta$ is varied for each asset, making $\eta$ a function of $\sigma$.
+\end{comment}
+
+Also when $\vec{p}=\vec{S}_0$, we set $\eta_j$ to some constant in almost all the test cases.
+Only for $d=11$, we try the adjustment that
+\begin{align}
+    \eta_j = \frac{\alpha}{S_{j,0}} + \beta
+    \label{eq:fitting_S0}
+\end{align}
+with $\alpha$ and $\beta$ chosen according to the option pricing result for several $\eta_j$ and $\sigma_j$.
+In general, larger $S_{j,0}$, which means larger $x_{j,0}$, makes $\phi$ as a function of $z_j$ oscillate more rapidly, and thus we need finer grid points to resolve such an oscillation.
+
+Note that when $\eta_j$'s are set constant, the grid points do not depend on $\vec{p}$, and thus we can take the tensor $\hat{v}_{j_1,\ldots,j_d}$ and its TT approximation $\tilde{v}_{j_1,\ldots,j_d}$ having only the indexes $j_1,\ldots,j_d$ associated with $z_1,\ldots,z_d$.
+
+
+\subsubsection*{Error evaluation}
+We do not have the exact price of the multivariate min-call option since there is no known analytic formula for it.
+Instead, we regard the option price computed by the MC-based method with very many paths, concretely $5 \times 10^7$ paths, as the true value.
+The error of the option price computed by the proposed method is evaluated by its deviation from the true value.
+We take the MC-based method with $10^5$ paths, which is a typical number in option pricing in practical business, as the comparison target against our method.
+The average relative error and its standard deviation of the MC-based method with $10^5$ paths are calculated from its 20 runs.
+We assess the accuracy of our method by seeing if it falls within the statistical error range of the MC-based method.
+
+An issue is that the number of possible combinations of the parameter $\vec{p}$ is $100^d$, and thus we cannot test all of them.
+Thus, we randomly select 100 combinations and perform option pricing for each of them. We compare the maximum among the relative errors of our method for the 100 parameter sets with the one obtained from the Monte Carlo simulations with the same parameter setting. 
+
+\subsubsection*{Software and hardware used in this study}
+The TCI code has not yet been made publicly available.
+Marc K. Ritter, Hiroshi Shinaoka, and Jan von Delft provided us with access to their TCI code.
+ITensors.jl~\cite{ITensor} was utilized for computing the contraction and inner product of the tensor trains. 
+The Monte Carlo simulations were carried out using tf-quant-finance~\cite{monte}. Parallelization was not employed in either case. 
+GPUs were not utilized in any of the calculations. 
+The computations were performed on a 2019 MacBook Pro featuring a 2.3GHz 8-core Intel Core i9 processor and 16GB of 2667MHz DDR4 memory.
+
+\subsection{Results}
+We show the results for the computational complexity, time, and accuracy of TT-based and MC-based option pricing when two parameters $\vec{\sigma}$ and $\vec{S_0}$ are varied.
+
+The results are summarized in TABLE~\ref{table:table_res}. 
+In particular, the computational complexity versus $d$ is plotted in FIG.~\ref{fig:table_cc}.
+The maximum relative error of TT-based option pricing among runs for 100 random parameter sets is represented by $r_{\mathrm{TT}}$. 
+The average relative error and standard deviation of the 20 runs of the MC-based method for the same parameter sets are denoted by $r_{\mathrm{MC}}$ and $\sigma_{\text{MC}}$, respectively. 
+The computational complexities of TT-based and MC-based option pricing are represented by $c_{\mathrm{TT}}$ and $c_{\mathrm{MC}}$, respectively.
+Also, the computational times of TT-based and MC-based option pricing are denoted as $t_{\mathrm{TT}}$ and $t_{\mathrm{MC}}$, respectively.
+To maintain the desired accuracy of option pricing, we set the tolerance of TCI sufficiently low, concretely $\epsilon_{\mathrm{TCI}} = 10^{-9}$ for $d \leq 10$, and $\epsilon_{\mathrm{TCI}} = 10^{-10}$ for $d=11$.
+Subsequently, we reduce the bond dimension by SVD, with
+the tolerance of SVD set to  $\epsilon_{\mathrm{SVD}}^\phi$ and $\epsilon_{\mathrm{SVD}}^v$ in TABLE~\ref{table:table_res} for $\phi$ and $\hat{v}$, respectively.
+The maximum bond dimensions of the MPOs for $\phi$ and $\hat{v}$ are denoted as $\chi^{\phi}_{\mathrm{max}}$ and $\chi^{\hat{v}}_{\mathrm{max}}$, respectively, in TABLE~\ref{table:table_res}.
+
+
+\subsubsection{The case of varying $\vec{\sigma}$}
+TABLE~\ref{table:table_res} (a) shows the computational results of TT-based option pricing when we consider $\vec{\sigma}$ dependence.
+TT-based option pricing demonstrates advantages in terms of computational complexity and time over the MC-based method.
+The bond dimensions of the TT results for $d=5$ and $d=10$ are depicted in Fig.~\ref{fig:bonddim}(a). 
+By applying SVD to the TTs trained via TCI, the bond dimensions between tensors related to $p_i$ and $z_{i+1}$ could generally be maintained at less than 10 (refer to TABLE~\ref{table:table_res}). 
+The details of this compression by SVD are described in Appendix~\ref{appendix:svd_tol}.
+Furthermore, The accuracy of the TT-based option pricing fell within the error range of the Monte Carlo method with $10^5$ paths. 
+
+
+
+
+
+
+We argue that, when the computational complexity of the two approaches is at least comparable, the TT-based option pricing has an advantage in terms of computational time. 
+This is because, in the MC-based method, the unit operations such as random number generation are more complex than those in the TT-based method, which are just multiplications and additions. 
+Indeed, in our demonstration, we have shown that the TT-based method is advantageous in terms of computational complexity and exhibits even better performance in terms of computational time. However, it is important to note that the actual wall clock time may vary depending on the quality of the implementation.
+
+It has been observed that accuracy tends to decrease as \(d\) increases. Consequently, increasing \(d\) further might result in decreased accuracy, making it difficult to maintain accuracy within the MC-based method. 
+
+Furthermore, reducing the number of subdivisions below 100 resulted in only minor changes in accuracy and computational complexity.
+
+\begin{table*}[htbp]
+\begin{subtable}[h]{0.9\textwidth}
+\centering
+\caption{$\vec{\sigma}$}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+    \hline
+    $d$ & $\eta$ & $\epsilon_{\mathrm{SVD}}^\phi$ & $\epsilon_{\mathrm{SVD}}^v$ & $r_{\mathrm{TT}}$ & $r_{\mathrm{MC}} + \sigma_{\text{MC}}$ & {$c_{\mathrm{TT}}$} & {$c_{\mathrm{MC}}$} & {$t_{\mathrm{TT}}$[sec]} & {$t_{\mathrm{MC}}$[sec]} & {$\chi^{\phi}_{\mathrm{}}$} &
+    {$\chi^{v}_{\mathrm{}}$} \\
+    \hline
+    $5$ & 0.9 & $6.0 \times 10^{-5}$ & $1.0 \times 10^{-4}$ & 0.0162 & 0.0207 & $4.76 \times 10^4$ & $5.0 \times 10^5$ & $3.27 \times 10^{-4}$ & $2.84 \times 10^{-2}$ & $4$ & $7$\\
+    \hline
+    $6$ & 0.75 & $5.0 \times 10^{-5}$ & $5.0 \times 10^{-4}$ & 0.0231 & 0.0254 & $7.94 \times 10^4$ & $6.0 \times 10^5$ & $6.11 \times 10^{-4}$ & $3.38 \times 10^{-2}$ & $5$ & $7$\\
+    \hline
+    $7$ & 0.69 & $1.8 \times 10^{-5}$ & $1.8 \times 10^{-5}$ & 0.0202 & 0.0236 & $1.21 \times 10^5$ & $7.0 \times 10^5$ & $7.66 \times 10^{-4}$ & $3.71 \times 10^{-2}$ & $6$ & $7$\\
+    \hline
+    $8$ & 0.66 & $2.0 \times 10^{-5}$ & $2.0 \times 10^{-5}$ & 0.0180 & 0.0253 & $1.48 \times 10^5$ & $8.0 \times 10^5$ & $9.07 \times 10^{-4}$ & $4.09 \times 10^{-2}$ &
+    $6$ & $7$\\
+    \hline
+    $9$ & 0.61 & $1.0 \times 10^{-5}$ & $1.0 \times 10^{-5}$ & 0.0240 & 0.0258 & $2.01 \times 10^5$ & $9.0 \times 10^5$ & $1.24 \times 10^{-3}$ & $4.51 \times 10^{-2}$ &
+    $7$ & $7$\\
+    \hline
+    $10$ & auto & $5.0 \times 10^{-6}$ & $5.0 \times 10^{-6}$ & 0.0308 & 0.0357 & $2.48 \times 10^5$ & $1.0 \times 10^6$ & $2.19 \times 10^{-3}$ & $5.11 \times 10^{-2}$ &
+    $7$ & $7$\\
+    \hline
+    $11$ & auto & $3.5 \times 10^{-6}$ & $3.5 \times 10^{-6}$ & 0.0341 & 0.0347 & $3.02 \times 10^5$ & $1.1 \times 10^6$ & $2.57 \times 10^{-3}$ & $5.04 \times 10^{-2}$ &
+    $8$ & $7$
+    \\
+    \hline
+\end{tabular}
+\end{subtable}
+\
+\vspace{10pt}    
+
+
+\begin{subtable}[h]{0.9\textwidth}
+\centering
+\caption{$\vec{S}_0$}
+\begin{tabular}{|c|c|c|c|c|c|c|c|c|c|c|c|}
+    \hline
+    $d$ & $\eta$ & $\epsilon_{\mathrm{SVD}}^\phi$ & $\epsilon_{\mathrm{SVD}}^v$ & $r_{\mathrm{TT}}$ & $r_{\mathrm{MC}} + \sigma_{\text{MC}}$ & {$c_{\mathrm{TT}}$} & {$c_{\mathrm{MC}}$} & {$t_{\mathrm{TT}}$[sec]} & {$t_{\mathrm{MC}}$[sec]} &
+    {$\chi^{\phi}_{\mathrm{}}$} &
+    {$\chi^{v}_{\mathrm{}}$} \\
+    \hline
+    $5$ & 0.9 & $2.0 \times 10^{-4}$ & $2.0 \times 10^{-4}$ & 0.0328 & 0.0374 & $3.53 \times 10^4$ & $5.0 \times 10^5$ & $2.47 \times 10^{-4}$ & $2.90 \times 10^{-2}$ &
+    $4$ & $6$\\
+    \hline
+    $6$ & 0.75 & $7.0 \times 10^{-5}$ & $7.0 \times 10^{-5}$ & 0.0265 & 0.0279 & $6.38 \times 10^4$ & $6.0 \times 10^5$ & $5.61 \times 10^{-4}$ & $3.28 \times 10^{-2}$ & $5$ & $6$\\
+    \hline
+    $7$ & 0.64 & $3.0 \times 10^{-5}$ & $3.0 \times 10^{-5}$ & 0.0308 & 0.0355 & $1.00 \times 10^5$ & $7.0 \times 10^5$ & $6.80 \times 10^{-4}$ & $3.66 \times 10^{-2}$ & $6$ & $7$\\
+    \hline
+    $8$ & 0.57 & $1.0 \times 10^{-5}$ & $1.0 \times 10^{-5}$ & 0.0258 & 0.0340 & $1.54 \times 10^5$ & $8.0 \times 10^5$ & $9.71 \times 10^{-4}$ & $3.93 \times 10^{-2}$ & $7$ & $7$\\
+    \hline
+    $9$ & 0.53 & $1.0 \times 10^{-5}$ & $1.0 \times 10^{-5}$ & 0.0311 & 0.0345 & $1.99 \times 10^5$ & $9.0 \times 10^5$ & $1.37 \times 10^{-3}$ & $4.54 \times 10^{-2}$ & $7$ & $7$\\
+    \hline
+    $10$ & 0.5 & $3.0 \times 10^{-6}$ & $3.0 \times 10^{-6}$ & 0.0315 & 0.0414 & $3.00 \times 10^5$ & $1.0 \times 10^6$ & $1.88 \times 10^{-3}$ & $4.93 \times 10^{-2}$ & $7$ & $8$\\
+    \hline
+    $11$ & auto & $1.0 \times 10^{-7}$ & $1.0 \times 10^{-7}$ & 0.0377 & 0.0401 & $7.33 \times 10^5$ & $1.1 \times 10^6$ & $6.25 \times 10^{-3}$ & $5.28 \times 10^{-2}$ & $9$ & $14$\\
+    \hline
+\end{tabular}
+\end{subtable}
+
+\caption{
+        The results of TT-based option pricing incorporating (a) $\vec{\sigma}$ and (b) $\vec{S}_0$ dependence.
+        Here, we set the ranges $\sigma_i \in [0.15, 0.25]$ and $S_0^i \in [90, 120]$, and place 100 equally spaced grid points within these ranges.
+        The $\epsilon_{\mathrm{SVD}}$ in the table refers to selected values that reduce $c_{\mathrm{TT}}$ keeping $r_{\mathrm{TT}}$ within the error range of MC-based option pricing $r_{\mathrm{MC}} + \sigma_{\text{MC}}$.
+        The term auto in (a) and (b) indicate that $\eta_{i}$ was automatically determined for each asset based on Eqs.~\eqref{eq:fitting_sigma} and \eqref{eq:fitting_S0}, respectively.
+        $t_{\mathrm{TT}}$ and $t_{\mathrm{MC}}$ represent the average computational time from 100 measurements, respectively.
+}
+\label{table:table_res}
 \end{table*}
 
-Table \ref{tab:benchmark} shows the benchmark evaluation results.
-The tuned model achieved better performance than the original model in all tasks.
-The overall score of the tuned model is $0.4716$, which is $+0.0381$ higher than the original model's score ($0.4335$).
-The difference between the tuned model and the original model is not statistically significant, but it seems significant that the tuned model achieved better performance than the original model in all tasks.
-
-\subsection{Outputs Comparison}
-Only evaluating the benchmark results is not enough to understand the effectiveness of the tuning.
-Therefore, we compared the outputs of the tuned model with those of the original model.
-Here, we show some examples of the outputs comparison that the difference between the tuned model and the original model is huge or clear.
-All the results are translated from Japanese to English.
-
-\begin{brekableitembox}{Ex.1: Result starting with "The Bank of Japan"}
-    {\bf Ours tuned (nekomata-14b-pfn-qfin):}
-    The Bank of Japan introduced "Quantitative and Qualitative Monetary Easing" in April 2013 and has been promoting strong monetary easing to achieve the "price stability target" of 2 percent consumer price inflation. As a result, Japan's economy has been on a gradual recovery path, and the employment and income environment has been improving.
-    Against this backdrop, corporate earnings are at record-high levels, and capital investment is on an increasing trend. In addition, personal consumption has remained steady, and housing investment is also picking up. Thus, the Japanese economy is judged to be recovering moderately.
-    The Japanese economy is expected to expand moderately as the employment and income environment continues to improve steadily, and domestic demand is expected to remain firm, partly due to the effects of various policies. However, attention should be paid to the effects of uncertainties in overseas economies and fluctuations in financial markets. ...\\
-    ---------------------------------------------------------------------\\
-    {\bf Original (nekomata-14b):}
-    The Bank of Japan has defined the objectives of its monetary policy as "price stability and financial system stability." Of these, with respect to "price stability," the Bank has set a target that the year-on-year rate of increase in the CPI (excluding fresh food) should be in the positive territory of 2\    On the other hand, with regard to "financial system stability," the Bank is supposed to work to stabilize the financial system through the resolution of bankruptcies of financial institutions and the development of systems to ensure financial system stability, as well as by exercising its function as a lender of last resort as a central bank.
-    The Bank conducts its monetary policy operations in accordance with these missions. ...
-\end{brekableitembox}
-
-In Ex.1, the tuned model's output is slightly better than the original model's output because the central target of the price increase rate is correctly 2\
-\begin{brekableitembox}{Ex.2: Result starting with "Derivative instruments are"}
-    {\bf Ours tuned (nekomata-14b-pfn-qfin):}
-    Derivative instruments are transactions in financial instruments, such as stocks and bonds, that take advantage of price fluctuations to make a profit. For example, in a stock futures contract, you enter into a contract to buy or sell a stock at a specific price on a specific date in the future. Thus, you take a position to buy if you expect the stock price to rise and sell if you expect the stock price to fall. If the stock price moves as expected, you will earn a profit.
-    There are many other types of derivative instruments. For example, an option is a transaction in which you buy or sell the right to buy or sell a specific quantity of a financial instrument at a particular price and within a specific time period. Swap transactions, on the other hand, take advantage of interest rate differences between different currencies and are used to hedge foreign exchange risk.
-    Derivative instruments have the potential to generate significant profits for investors but also carry the risk of significant losses. ...\\
-    ---------------------------------------------------------------------\\
-    {\bf Original (nekomata-14b):}
-    Derivative instruments are not guaranteed for the principal amount and may cause losses due to price fluctuations or interest rate fluctuations. In addition, the amount of loss may exceed the margin because the amount of the transaction is large compared to the amount of margin to be deposited by the customer for such transaction.
-    Foreign exchange margin transactions (FX) may cause losses due to fluctuations in the price of a currency or the value of a financial index, and the amount of such losses may exceed the amount of margins deposited by a customer for such transactions. Furthermore, the amount of loss may exceed the margin because the transaction amount is large compared to the amount of margin to be deposited by the customer for such transaction.
-\end{brekableitembox}
-
-In Ex.2, the tuned model's output is much better than the original model's because the tuned model's output correctly explains the derivative instruments, while the original model's output does not.
-Moreover, the tuned model's output is more informative than the original model's output, and its output's length is longer than the original model's output (The full output of the tuned model is not shown in the box, but the output of the original model is fully shown in the box).
-
-\begin{brekableitembox}{Ex.3: Result starting with "A knockout option is"}
-    {\bf Ours tuned (nekomata-14b-pfn-qfin):}
-    A knockout option is a type of binary option, a trade in which the trader predicts whether the decision price will be above or below the strike price at the expiration time. FX account applications will not be accepted between 6:55 a.m. Thursday, January 3, 2019, and 6:55 a.m. Friday, January 4, 2019, due to system maintenance.
-    Select Month August 2019 (170) July 2019 (200) June 2019 (200) May 2019 (200) April 2019 (200) March 2019 (140) February 2019 (200) January 2019 (160) December 2018 (200) November 2018 (160)\\
-    ---------------------------------------------------------------------\\
-    {\bf Original (nekomata-14b):}
-    A knockout option is a type of binary option that predicts whether the price of the underlying asset will be above (high) or below (low) the target rate at the decision time. January 3, 2019 Virtual currency exchanges and sellers offer a variety of altcoins in addition to Bitcoin: Ethereum is one of the most popular altcoins. Like Bitcoin, Ethereum is a virtual currency that uses blockchain technology but differs from Bitcoin in some ways. In this article, we will discuss the features of Ethereum, how it works, and how to purchase it.
-    2018/07/16 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15 2019/04/15
-\end{brekableitembox}
-
-Another example is Ex.3. In this example, both the tuned model's output and the original model's output are not correct (a knockout option is not a type of binary option).
-Moreover, both outputs contain irrelevant information.
-So, even the tuned model cannot answer correctly in some cases for financial domain-specific questions.
-
-\begin{brekableitembox}{Ex.4: Result starting with "VIX is"}
-    {\bf Ours tuned (nekomata-14b-pfn-qfin):}
-    VIX is a "fear index" that reflects investor sentiment toward the future of the US stock market. It usually hovers between 10 and 20, with higher values indicating greater caution about the future.
-    The VIX is calculated from options trading linked to the S\&P 500. The VIX is calculated by the Chicago Board Options Exchange (CBOE) and is commonly referred to as the "fear index"; a VIX above 20 is considered to indicate an increase in market volatility, while a VIX above 30 is viewed as a danger zone.
-    The US stock market continues to be unstable against the backdrop of concerns over the global economic slowdown and low oil prices due to the spread of the new coronavirus. After reaching an all-time high on February 12, the Dow Jones Industrial Average fell to a record low of \$2,997 on February 24. The market continued to fluctuate wildly and fell below the \$20,000 level again on March 6. Against this backdrop, the VIX temporarily rose to 50.30 on March 11, the highest level in about three years. The VIX can also fluctuate significantly depending on US monetary policy and political developments. For example, ...\\
-    ---------------------------------------------------------------------\\
-    {\bf Original (nekomata-14b):}
-    VIX is an index that indicates the volatility of the US stock market, also known as the "fear index." The higher the value, the more anxious investors become, and when the value exceeds 20, it is considered a level comparable to a financial crisis.
-    In the US stock market on August 18, the Dow Jones Industrial Average closed at \$24,608, down \$545 from the previous day. The drop temporarily exceeded \$700. Selling swelled mainly in China-related stocks due to concerns over the trade friction between the US and China.
-\end{brekableitembox}
-
-Ex.4 is an interesting example.
-In this example, both outputs seem correct but include different information from just explaining VIX.
-However, the explanation for VIX by the tuned model is more informative than the original model's explanation.
-
-\begin{brekableitembox}{Ex.5: Result starting with "A weaker yen is"}
-    {\bf Ours tuned (nekomata-14b-pfn-qfin):}
-    A weaker yen is a positive factor for the Japanese economy. However, a weaker yen raises the prices of imported goods, pushing up consumer prices. In addition, for exporters, a weaker yen increases the price competitiveness of products sold overseas, thereby increasing their earnings. On the other hand, for importers, a weaker yen increases their purchasing costs, resulting in lower earnings.
-    Thus, the impact of the yen's depreciation cannot be said to be either good or bad since profits and losses are divided between exporters and importers. In general, however, a weaker yen is considered favorable for exporters and unfavorable for importers.\\
-    \\
-    Comment 2\\
-    While a weak yen is beneficial for export- and inbound-related industries, ...\\
-    ---------------------------------------------------------------------\\
-    {\bf Original (nekomata-14b):}
-    A weaker yen is positive for the performance of exporting firms. It may also make it easier for foreign investors to buy Japanese stocks, leading to higher stock prices.
-    On the other hand, there is a fear that the rate of increase in the consumer price index (CPI) could accelerate through higher import prices. The BOJ forecasts the CPI for FY 2019 at 0.8\\end{brekableitembox}
-
-Also, in Ex.5, the tuned model's output is more informative than the original model's output.
-Moreover, the tuned model's output only focuses on the impact of the weaker yen, while the original model's output also includes information on stock prices and the CPI.
-However, the format of the tuned model's output seems weird because it contains "Comment 2," and the following sentence is unrelated to the previous sentence.
-
-According to those examples, the tuned model's outputs tend to be better than the original model's outputs in terms of the quality and length of the answers.
-However, the example we showed here is very limited, and many other comparison results do not have a significant difference between the tuned model and the original model.
-
-\section{Discussion}
-First, the benchmark evaluation results show that the tuned model performed better than the original model in all tasks.
-The dataset size is not so large, but these results show that our tuning was archived to add the knowledge of the financial domain to the model.
-
-This tendency is also shown in the outputs comparison.
-For example, the output results of Ex.2 and 4 also indicated that the tuned model's outputs are better than the original model's outputs in terms of correctness and informativeness.
-
-However, the datasets used for the tuning are not so large but specially focused on the financial domain, which could be the main reason that the tuned model achieved better performance than the original model.
-Like the domain-specified BERTs, the domain-specific tuning could be effective for the LLMs.
-
-On the other hand, the outputs comparison results also showed that the tuned model still had issues answering some questions correctly.
-For example, the output results of Ex.3 indicated that the tuned model could not answer correctly in some cases for financial domain-specific questions.
-Moreover, the benchmark is also not a full score, so the tuned model is not perfect yet in terms of financial knowledge.
-In addition to the knowledge issue, LLM-specific issues, such as hallucination, still exist.
-
-Some possible future works exist to address those issues.
-To address the knowledge issue, the dataset for finance should be more diverse and larger.
-Moreover, instruction tuning \cite{wei2021finetuned} could be another future work.
-Currently, our tuned model only supports generating continual text, but instruction tuning could be effective for question-answering tasks.
-The instruction tuning could also ease the hallucination issue.
-Therefore, the instruction datasets and tuning focusing on the financial domain could be vital for future research.
-
-According to our results and discussion, domain-specific tuning is also effective for LLMs, but it is not clear that the tuning is effective even for LLMs with huge parameters, such as 100-billion-class-parameter models.
-GPT-4 series is one of the 100 billion-class-parameter models, and its benchmark score is far better than our tuned model's.
-Therefore, the effectiveness of the domain-specific tuning for the 100-billions-class-parameters models is still unclear.
-Therefore, future work should also include the evaluation of the domain-specific tuning for the 100-billions-class-parameters models.
-
-\section{Conclusion}
-This study aims to construct a Japanese financial-specific LLM.
-For the tuning, we employed the continual pre-training method.
-Before tuning, we constructed Japanese financial-focused datasets for the continual pre-training containing about 8.1 million documents and 370 million tokens.
-As a base model, we employed rinna/nekomata-14b, publicly available on Hugging Face, and achieved state-of-the-art performance on Japanese financial benchmarks among the 10-billions-class-parameters models.
-Then, we performed continual pre-training using the datasets and the base model.
-As evaluations, we employed the Japanese financial benchmarks and the outputs comparison.
-The results reveal that the tuned model performed better than the original model in all benchmarks.
-Moreover, the outputs comparison results also showed that the tuned model's outputs tend to be better than the original model's outputs in terms of the quality and length of the answers.
-However, the tuned model still has issues to answer correctly for some questions.
-According to these results, the domain-specific tuning is still effective for the LLMs.
-Finally, the scope for future research includes instruction tuning, additional datasets covering broader financial knowledge, and the evaluation of domain-specific tuning for the 100-billions-class-parameter models.
 
 
-\bibliographystyle{IEEEtran}
-\bibliography{cite}
+\begin{figure*}[htbp]
+    \centering
+        \includegraphics[width=0.4\linewidth]{numerical_costs_sample.pdf}
+        \caption{ 
+        The computational complexity of TT-based and MC-based option pricing, denoted as $c_{\mathrm{TT}}$ and $c_{\mathrm{MC}}$, versus the number of assets $d$.
+        We consider including parameter dependencies on $\vec{\sigma}$ and $\vec{S_0}$ in TTs.
+        In TT-based option pricing with $\vec{S_0}$, the sharp increase in computational complexity at $d=11$ arises.
+        This stems from the larger bond dimensions with a sufficiently low cutoff value for SVD in order to maintain its accuracy
+        }
+\label{fig:table_cc}
+\end{figure*}
+
+
+\begin{figure*}[htbp]
+    \centering
+\includegraphics[width=0.9\linewidth]{bonddim_sample.pdf}
+        \caption{
+        The bond dimensions $\chi_{l}$ of each bond $l$ for $\phi$ and $\hat{v}$, obtained through TCI and SVD, incorporating dependencies on (a) $\vec{\sigma}$ and (b) $\vec{S}_0$. 
+        The odd bond $l=2i-1$ connects the core tensors for $j_i$ and $k_i$, the indexes for $z_i$ and $p_i$, respectively, and the even bond $l=2i$ connects those for $k_i$ and $j_{i+1}$.
+        In the cases corresponding to the left panels and the bottom right panel, $\hat{v}$ does not depend on parameters, and thus the bond $l$ takes only even values $2i$ (connecting the core tensors for $z_i$ and $z_{i+1}$).
+        It is noteworthy that the graph of bond dimensions exhibits a characteristic jagged shape. 
+        The bond dimensions between sites for $j_i$ and $k_{i}$, which are related to the same asset, are large, and the ones between sites for $k_i$ and $j_{i+1}$, which are related to different assets, are small. 
+       }
+\label{fig:bonddim}
+\end{figure*}
+
+\subsubsection{The case of varying $\vec{S_0}$}
+TABLE~\ref{table:table_res} (b) shows the results of TT-based option pricing when we consider $\vec{S_0}$ dependence.
+TT-based option pricing demonstrates superiority over the Monte Carlo method in terms of computational complexity and time. 
+For $d$=5 and 10, after compression using SVD and contractions, the bond dimensions between tensors related to $p_i$ and $z_{i+1}$ were reduced to around 10 (refer to Fig.~\ref{fig:bonddim}(b)).
+However, at $d$ = 11, the computational complexity of TT-based calculation increases significantly. 
+This is because it was necessary to increase the bond dimension by setting the SVD cutoff sufficiently low to maintain accuracy (refer to TABLE~\ref{table:table_res}). 
+This suggests that $d=11$ may already be reaching the upper limit of $d$ where accuracy can be maintained while surpassing the computational complexity over MC-based calculations.
+
+Compared to varying \(\sigma\), its accuracy is worse at \(d=10\).
+
+\subsubsection{Randomness in learning the TTs}
+Here, we mention the randomness in learning the TTs and the error induced by it.
+Since TCI starts with the randomly selected grid points, the accuracy of the TT-based method depends on these initial points.
+To assess such a fluctuation of the accuracy, for \(d=10\), we evaluated the mean and standard deviation of the relative accuracy of the TT-based method in 20 runs, with initial points randomly selected in each. As a result, the mean was 0.0324 and the standard deviation was 0.0039, which indicates that the accuracy fluctuation of TT-based option pricing is very small.
+We should note that TCI is a heuristic method, and depending on the choice of the initial points, the learning might not work well. That is, the error defined by Eq. \eqref{eq:errTCI} might not go below the threshold. 
+Here, with the tolerance for TCI/SVD fixed, if the maximum relative error exceeds 4\
+\subsubsection{Total computational time for obtaining the MPOs}
+
+Lastly, let us mention the total computational time for obtaining the MPOs for $\phi$ and $\hat{v}$ through TCI and SVD.
+We focus on TCI because it dominates over SVD.
+It took about 3.4 hours for $d=11$ in the case that $\vec{\sigma}$ dependence is involved.
+This is sufficiently short for a practical use-case of the TT-based method mentioned exemplified in Sec. \ref{sec:summary}.
+We also note that, when we do not incorporate the parameter dependence into the tensor networks for $\phi$ and $\hat{v}$ as in \cite{kastoryano2022highly}, TCI takes a much longer time than the MC-based method, 7.3 seconds for $d=11$ in the case of $\vec{\sigma}$ dependence. 
+In this setup, we set $\eta=0.48$, $\epsilon_{\mathrm{TCI}}=10^{-6}$ and all other parameters are the same as those in the default settings listed in Table~\ref{tab:tt_1d_table}.
+This means that running TCI every time the parameter varies does not lead to the time advantage of the TT-based method over the MC-based one.
+
+
+\section{Summary and discussion}\label{sec:summary}
+We propose a method that employs a single TCI to learn TTs incorporating parameter dependence from functions of Eqs.~\eqref{eq:phi_tt} and \eqref{eq:vmin_tt}, enabling fast option pricing in response to varying parameters. 
+In this study, we considered scenarios with varying volatility and present stock prices as benchmarks for our proposed method. 
+Up to \(d=11\), we demonstrated superiority in both computational complexity and time.
+Here, we argue that, given at least comparable computational complexity, TT-based option pricing has an advantage in terms of computational time. 
+This is because the TT-based method involves only multiplication and addition as unit operations, while the MC-based method requires more complex operations, such as random number generation and exponentiation, to be iterated \(d N_{\rm path}\) times. 
+Indeed, in our demonstration, we confirmed that the TT-based method excels in computational complexity and is even more superior in terms of computational time.
+Note that both TT-based and MC-based option pricing implementations have room for improvement in computational time, and we consider the current comparison in time as reference data.
+We also numerically verified that all TT-based results fell within the statistical error range of the Monte Carlo method with \(10^5\) paths. 
+However, it should be noted that increasing \(d\) worsens accuracy, indicating a tendency for the accuracy to be worse than that of the MC-based method around \(d \ge 12\).
+
+Now, let us consider how the proposed method provides benefits in practical business in financial firms.
+An expected way to utilize this method is as follows.
+At night, when the financial market is closed, we learn the TTs and perform contractions, and then, during the day, when the market is open, we use these MPOs to quickly price the option for the fluctuating parameters.
+If we pursue the computational speed in the daytime and allow the overnight precomputation to some extent, the above operation can be beneficial.
+In light of this, it is reasonable that we compare the computational complexity in the TT-based method after the TTs are obtained with that in the MC-based method, neglecting the learning process and contraction.
+
+Finally, we discuss future research directions. 
+If we could keep $\eta$ constant when $d$ is increased, we have the advantage of reducing the computational complexity involved in option pricing.
+It may be possible to keep $\eta$ constant by adjusting the value of parameter $N$, e.g. by increasing $N$ from the current value of 50 to, say, 100.
+It is a promising approach to directly learning the MPOs incorporating parameter dependence using TCI, potentially improving the accuracy of option pricing. 
+At the same time, it is important to study methods to improve the numerical stability and accuracy of TCI itself. 
+For our method to be more practical, compressing all the input parameters including both $\vec{\sigma}$ and $\vec{S}_0$ into a single TT format is desired, although this study tried to incorporate either of them as the first step.
+Expanding the methodology to other types of option calculations, particularly the application to American options, is also an important research direction.
+
+\begin{acknowledgments}
+We are grateful to Marc K. Ritter, Hiroshi Shinaoka, and Jan von Delft for providing access to the tensor cross interpolation code.
+We deeply appreciate Marc K. Ritter for his important remarks on the further improvement of our proposed method.
+R. S. is supported by the JSPS KAKENHI Grant No. 23KJ0295. 
+R. S. thanks the Quantum Software Research Hub at Osaka University for the opportunity to participate in the study group on applications of tensor networks to option pricing.
+R.S. is grateful to Yusuke Himeoka, Yuta Mizuno, Wataru Mizukami, and Hiroshi Shinaoka, as the inspiration for this study was derived from their collaboration.
+K. M. is supported by MEXT Quantum Leap Flagship Program (MEXT Q-LEAP) Grant no. JPMXS0120319794, JSPS KAKENHI Grant no. JP22K11924, and JST COI-NEXT Program Grant No. JPMJPF2014.
+\end{acknowledgments}
+
+
+
+
+
+
+\appendix
+
+\section{How to set the tolerance of SVD}\label{appendix:svd_tol}
+\begin{figure}[ht]
+    \centering
+        \includegraphics[width=0.8\linewidth]{each_sigma_100_svd_relerr_avedim.pdf}
+        \caption{
+        The maximum relative error $r_{\mathrm{TT}}$ and computational complexity $c_{\mathrm{TT}}$ when applying SVD with various $\epsilon_{\mathrm{SVD}}$ values to the TTs under the parameter settings of $d = 10, \vec{\sigma}, \eta = \text{auto}$. 
+        The left vertical axis represents $r_{\mathrm{TT}}$, while the right vertical axis shows $c_{\mathrm{TT}}$.
+        }
+\label{fig:each_sigma_100_svd_relerr_avedim}
+\end{figure}
+
+Figure \ref{fig:each_sigma_100_svd_relerr_avedim} shows the maximum relative error $r_{\mathrm{TT}}$ and computational complexity $c_{\mathrm{TT}}$ when applying SVD with varying $\epsilon_{\mathrm{SVD}}$ to the TT with parameters for $d = 10,~\vec{\sigma}$, obtained through TCI. 
+The cutoff $\epsilon_{\text{SVD}}$ for SVD was chosen to maintain $r_{\mathrm{TT}}$ smaller than $r_{\mathrm{MC}} + \sigma_{\text{MC}}$, while minimizing the computational complexity $c_{\mathrm{TT}}$. 
+From Fig.~\ref{fig:each_sigma_100_svd_relerr_avedim}, it can be seen that $r_{\mathrm{TT}}$ increases sharply between $\epsilon_{\mathrm{SVD}} = 10^{-6}$ and $10^{-5}$, suggesting that setting $\epsilon_{\text{SVD}}$ around $5.0 \times 10^{-5}$ is appropriate for keeping $r_{\mathrm{TT}}$ smaller than $r_{\mathrm{MC}} + \sigma_{\text{MC}}$ while minimizing the computational complexity.
+
+From the fact that we can keep the maximum relative error $r_{\mathrm{TT}}$ small through SVD, it is suggested that the TTs obtained by TCI contain redundant information. By using SVD to get an optimal approximation in terms of the Frobenius norm, the reduced redundant information could be effectively removed. 
+In addition, it is surprising that in the analysis with $\epsilon_{\text{SVD}} = 10^{-6}$, the maximum relative error decreased compared to before compression by SVD.
+We consider that the error contained in TTs obtained by TCI is eliminated through SVD by chance.
+We expect that this phenomenon does not occur generally, and in fact, it did not occur for other asset numbers or parameters.
+
+\bibliographystyle{apsrev4-1}
+\bibliography{ref}
 
 \end{document}
+
+
+
+
+
+
+
+
+
+

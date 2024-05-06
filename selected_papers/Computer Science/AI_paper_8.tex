@@ -1,819 +1,435 @@
 \begin{document}
 \affiliation{$$_affiliation_$$}
-\title{V-FLUTE: Visual Figurative Language Understanding with Textual Explanations}
+\title{\our: Open Vocabulary EEG-to-Text Decoding with EEG Pre-Training and Multi-View Transformer}
 \maketitle
 
 \begin{abstract}
-  Large Vision-Language models (VLMs) have demonstrated strong reasoning capabilities in tasks requiring a fine-grained understanding of literal images and text, such as visual question-answering or visual entailment. However, there has been little exploration of these models' capabilities when presented with images and captions containing \textit{figurative phenomena} such as metaphors or humor, the meaning of which is often implicit. To close this gap, we propose a new task and a high-quality dataset: \textit{Visual Figurative Language Understanding with Textual Explanations} (\underline{V-FLUTE}). We frame the visual figurative language understanding problem as an \textit{explainable visual entailment} task, where the model has to predict whether the image (premise) entails a claim (hypothesis) and justify the predicted label with a textual explanation. Using a human-AI collaboration framework, we build a high-quality dataset, V-FLUTE, that contains 6,027 $<$image, claim, label, explanation$>$ instances spanning five diverse multimodal figurative phenomena: metaphors, similes, idioms, sarcasm, and humor.  The figurative phenomena can be present either in the image, the caption, or both. We further conduct both automatic and human evaluations to assess current VLMs' capabilities in understanding figurative phenomena.\footnote{Code and data will be available at \href{https://github.com/asaakyan/V-FLUTE}{github.com/asaakyan/V-FLUTE}}
-
-\end{abstract}
+Deciphering the intricacies of the human brain has captivated curiosity for centuries. Recent strides in Brain-Computer Interface (BCI) technology, particularly using motor imagery, have restored motor functions such as reaching, grasping, and walking in paralyzed individuals. However, unraveling natural language from brain signals remains a formidable challenge. Electroencephalography (EEG) is a non-invasive technique used to record electrical activity in the brain by placing electrodes on the scalp. Previous studies of EEG-to-text decoding have achieved high accuracy on small closed vocabularies, but still fall short of high accuracy when dealing with large open vocabularies.  
+We propose a novel method, \our, to improve the accuracy of open vocabulary EEG-to-text decoding. 
+Specifically, \our leverages EEG pre-training to enhance the learning of semantics from EEG signals and proposes a multi-view transformer to model the EEG signal processing by different spatial regions of the brain. Experiments show that \our has superior performance, outperforming the state-of-the-art baseline methods by a large margin of up to 5\\end{abstract}
 
 \section{Introduction}
 
-\begin{figure}[!ht]
+Recent advances in brain-computer interface (BCI) technology have demonstrated exciting progress in restoring the capabilities of patients with paralysis, particularly restoring such motor functions as reaching \cite{hochberg2012reach}, grasping \cite{aflalo2015decoding,bouton2016restoring}, and walking \cite{lorach2023walking}. The heart of BCI is its ability to accurately decode complex brain signals. Despite the advances in decoding brain signals related to motion, decoding brain signals related to speech remains a formidable challenge. Previous research translating speech-related brain signals to text (brain-to-text) primarily relies on electrocorticography (ECoG), an invasive electrophysiological monitoring method that uses electrodes placed directly on the exposed brain surface to record activity from the cerebral cortex. ECoG offers higher temporal and spatial resolution than traditional noninvasive scalp electroencephalography (EEG), with a significantly better signal-to-noise ratio. However, the invasive nature of ECoG is undesirable for BCI applications, and it is highly desirable to develop brain-to-text decoding methods using noninvasive EEG signals, although EEG signals are significantly more challenging to work with than ECoG.  
+
+Previous studies of EEG-to-text decoding \cite{herff2015brain,sun2019towards,anumanchipalli2019speech,makin2020machine,panachakel2021decoding,moses2021neuroprosthesis,nieto2022thinking} have achieved high accuracy on small closed vocabularies, but still fall short of high accuracy when dealing with large open vocabularies. These approaches primarily target high accuracy ($>90\
+\begin{figure*}[t]
 \centering
-    \includegraphics[width=0.9\columnwidth]{figs/introfig.pdf}
-    \caption{    Explainable figurative visual entailment task: given an image (premise) and a claim (hypothesis), output whether the image entails or contradicts the claim along with a textual explanation.
-    }
-    \label{fig:introFig}
-\end{figure}
-
-Figurative language is integral to human communication, enabling a variety of communicative goals \cite{doi:10.1111/j.1467-9280.1994.tb00653.x}, including affective communication \cite{fussell2014figurative}. Figurative language 
-presents a significant challenge to computational approaches as it requires understanding of implicit meaning behind an expression \cite{stowe-etal-2022-impli, shutova2011computational, veale2016metaphor, zhou-etal-2021-pie}. 
-Recently, \citet{chakrabarty-etal-2022-flute} proposed a task and dataset for Figurative Language Understanding through Textual Explanations (FLUTE) that frames the problem as an explainable textual entailment covering a variety of figurative language phenomena in text: metaphors, similies, idioms, and sarcasm. This dataset has been used successfully to advance and benchmark the capabilities of LLMs for understanding figurative language in text \cite{saakyan2022report,ziems2024can,sravanthi2024pub, dey2024socialite}. 
-
-However, figurative meaning is also prevalent in visual phenomena, such as visual metaphors \cite{akula2023metaclue, chakrabarty-etal-2023-spy}, multimodal sarcasm \cite{desai2022nice}, and humor \cite{hessel-etal-2023-androids, hwang-shwartz-2023-memecap}. Yet so far most of the work on vision and language models (VLMs) has focused on understanding literal meaning in images and captions (e.g., ScienceQA \cite{lu2022learn}, MMMU \cite{yue2023mmmu}) including work on explainable visual entailment \cite{kayser2021vil}. Building on the idea of FLUTE \cite{chakrabarty-etal-2022-flute} for text, we present a new dataset for visual figurative language understanding with textual explanations (V-FLUTE). Our dataset contains 6,027 $<$image, claim, label, explanation$>$ instances spanning diverse figurative phenomena.
-Each instance contains an image (premise) and a textual claim (hypothesis) that is either entailed or contradicted by the image. Deciding the entailment relation requires the vision-language model to understand the implicit meaning in both the visual and textual modalities. Our dataset contains figurative phenomena present in the image, in the caption, or in both. In addition, to mitigate the dependence on spurious correlations, to more rigorously investigate reasoning capabilities, and to promote explainability, our task requires the model to generate a plausible explanation for the output label. See Figure \ref{fig:introFig} for two examples from our dataset. 
-
-We make the following contribution towards assessing VLMs ability to understand multimodal figurative phenomena:
-\begin{itemize}[leftmargin=*]
-    \itemsep0em
-    \item V-FLUTE, a high-quality dataset of 6,027 $<$image, claim, label, explanation$>$ instances 
-    built using a human-LLMs collaboration framework covering several phenomena: metaphors, similies, idioms, sarcasm, and humor (Section \ref{taskdata}). We will make the dataset available.
-    \item A suite of evaluations to assess current VLMs' capabilities on this new task of explainable visual figurative entailment (Section \ref{subsec:autoMetrics} and \ref{subsec:autoMetricsres}).
-    \item A detailed human evaluation with error analysis yielding insights into types of errors for different classes of models (Section \ref{sec:humanEval}).
-\end{itemize}
-
-\section{Related Work}
-\begin{table*}[!ht]
-\small
-\centering
-\begin{tabular}{@{}llllr@{}}
-\toprule
-\textbf{Phenomenon} &
-  \textbf{Data Source} &
-  \textbf{Figurative Part} &
-  \textbf{Our Contribution} &
-  \multicolumn{1}{c}{\textbf{\# instances}} \\ \midrule
-\multirow{2}{*}{\textbf{Metaphor/Simile}} &
-  \begin{tabular}[c]{@{}l@{}}HAIVMet\\ \cite{chakrabarty-etal-2023-spy}\end{tabular} &
-  Image &
-  \begin{tabular}[c]{@{}l@{}}Image Selection \\
- Textual Explanations \\ Expert Verification \end{tabular} &
-  \makecell{
-  857  \\
-  (450 E, 407 C)} \\ \cmidrule(l){2-5} 
- &
-  \begin{tabular}[c]{@{}l@{}}IRFL\\ \cite{yosef-etal-2023-irfl}\end{tabular} &
-  Caption &
-  \begin{tabular}[c]{@{}l@{}}Image Selection\\ Textual Explanations \\ Expert Verification \end{tabular} &
-  \makecell{
-  1,149  \\
-  (574 E, 575 C)} \\ \midrule
-\textbf{Idiom} &
-  \begin{tabular}[c]{@{}l@{}}IRFL\\ \cite{yosef-etal-2023-irfl}\end{tabular} &
-  Caption &
-  \begin{tabular}[c]{@{}l@{}}Image Selection\\ Textual Explanations \\  Expert Verification \end{tabular} &
-  \makecell{
-  370  \\
-  (186 E, 184 C)} \\ \midrule
-\textbf{Sarcasm} &
-  \begin{tabular}[c]{@{}l@{}}MuSE\\ \cite{desai2022nice}\end{tabular} &
-  Caption &
-  \begin{tabular}[c]{@{}l@{}}Claim Generation\\ Textual Explanations \\ Expert Verification \end{tabular} &
-  \makecell{
-  1,042  \\
-  (521 E, 521 C)} \\ \midrule
-\multirow{2}{*}{\textbf{Humor}} &
-  \begin{tabular}[c]{@{}l@{}}MemeCap\\ \cite{hwang-shwartz-2023-memecap}\end{tabular} &
-  Image &
-  \begin{tabular}[c]{@{}l@{}}Claim Generation\\ Textual Explanations \\ Expert Verification \end{tabular} &
-  \makecell{
-  1,958  \\
-  (979 E, 979 C)} \\ \cmidrule(l){2-5} 
- &
-  \begin{tabular}[c]{@{}l@{}}NYCartoons\\ \cite{hessel-etal-2023-androids}\end{tabular} &
-  Image+Caption &
-  Taken As Is &
-  \makecell{
-  651  \\
-  (651 E)} \\ \bottomrule
-\end{tabular}
-\caption{V-FLUTE dataset composition: 5 figurative phenomena, source datasets, and our contributions. E denotes number of entailment instances, C - contradiction.}
-\label{tab:datasets}
-\end{table*}
-
-
-Textual entailment \cite{maccartney-manning-2008-modeling, bowman-etal-2015-large} and visual entailment \cite{Xie2019VisualEA} tasks have been proposed to measure language and multimodal understanding.
-However, models trained to simply improve label accuracy on these data can be brittle and suffer from spurious correlations \cite{poliak-etal-2018-hypothesis, gururangan-etal-2018-annotation, mccoy-etal-2019-right, gardner-etal-2021-competency}.
-Datasets such as e-SNLI \cite{eSNLI} and e-SNLI-VE \cite{kayser2021vil} augment existing entailment datasets with natural language explanations and train models to not only predict the label, but also generate a textual explanation for the reason behind the prediction. 
-Such approach has been further adopted for a variety of tasks, such as commonsense reasoning \cite{rajani-etal-2019-explain, aggarwal-etal-2021-explanations} and social norm understanding \cite{ch-wang-etal-2023-sociocultural} among others \cite{exNLPsurvey}.
-This approach has been extended to assess LLMs' capabilities on understanding figurative language through the FLUTE dataset \cite{chakrabarty-etal-2022-flute}. FLUTE frames figurative language understanding as an explainable textual entailment task.
-Recent progress in multimodal models \cite{ li2022blip, alayrac2022flamingo, gpt4v, team2023gemini, visInstrTune, claude3} prompts us to asses similar capabilities when extended to multimodal setting, testing the understanding of non-literal meaning contained in both images and text. 
-We present an equivalent of the FLUTE dataset for the visual modality: V-FLUTE.
-
-A number of previous works has focused on modeling figurative phenomena beyond text. \citet{chakrabarty-etal-2023-spy} use a human-AI collaboration framework to generate visual metaphors from linguistic metaphors (HAIVMet dataset) and propose
-a visual entailment task as an extrinsic evaluation of dataset quality. The dataset contains images, claims, and labels, but no textual explanations. \citet{yosef-etal-2023-irfl} proposed a benchmark (IRFL) where given an idiom, metaphor, or simile the model has to distinguish which of the four associated images implies the figurative meaning of the expression. This dataset focuses on the figurative meaning in the textual modality and does not contain textual explanations. There has also been work on understanding multimodal sarcasm with explanations \cite{desai2022nice}, mostly containing  noisy user-generated text and crowdworker-written explanations. Other line of work has focused on understanding humor with multimodal models. MemeCap \cite{hwang-shwartz-2023-memecap} is a dataset for understanding memes.
-\citet{hessel-etal-2023-androids} release a corpus of annotated New Yorker Caption Contest entries, where the goal is to come up with a humorous captions for an image, with high-quality explanations for why the caption is humorous. The dataset is relatively limited in size containing only 520 unique instances in its training set. We leverage all these benchmarks to build V-FLUTE. 
-
-\begin{table*}[ht]
-\small
-\centering
-\setlength{\tabcolsep}{1pt}
-\begin{tabular}{ccccc}
-\hline
-HAIVMet & IRFL & MuSE & MemeCap & NYCartoons \\ \hline
-\raisebox{-\totalheight}{\includegraphics[scale=0.08]{figs/dataset_exs/vismet_Ex2.png}}   & \raisebox{-\totalheight}{\includegraphics[scale=0.30]{figs/dataset_exs/irfl_example_resized.jpeg}}   & \raisebox{-\totalheight}{\includegraphics[scale=0.25]{figs/dataset_exs/muse_ex_resized.jpeg}}   & \raisebox{-\totalheight}{\includegraphics[scale=0.30]{figs/dataset_exs/memecap_ex_resized.jpeg}}   & \raisebox{-\totalheight}{\includegraphics[scale=0.28]{figs/dataset_exs/ny_ex_resized.jpeg}}   \\\\ \hline
-\begin{tabular}[c]{@{}l@{}}The faculty meeting \\was peaceful.\end{tabular} & \begin{tabular}[c]{@{}l@{}}Their relationship is\\ a house on fire.\end{tabular} & \begin{tabular}[c]{@{}l@{}}Oh I just \#love \\having to stare at\\ this while I \#work.\end{tabular} & \begin{tabular}[c]{@{}l@{}}Even death won't \\exempt you from \\going to work.\end{tabular} & \begin{tabular}[c]{@{}l@{}}Easy for you to\\ say, you're cured!\end{tabular} \\ \hline
-Contradiction & Entailment & Contradiction & Entailment & Entailment \\ \hline
-\begin{tabular}[c]{@{}l@{}}The image shows \\a faculty meeting \\ transformed into a \\dramatic battlefield \\scene with members \\dressed as knights\\ ...\\ The visual metaphor \\suggests the faculty \\meeting was like a \\war, \& not peaceful.\end{tabular} & \begin{tabular}[c]{@{}l@{}}The photo suggests \\a conflict or an \\intense emotional \\situation ... \\     which\\ aligns with the\\symbolism of a\\house on fire \\representing a \\relationship filled \\with turmoil or \\heated arguments\end{tabular} & \begin{tabular}[c]{@{}l@{}}
-The image shows\\ Disneyland\\ Resort sign,\\ \& although it's \\within view, the \\person would like\\ to experience it \\in person rather\\ than just looking\\ at the sign during\\ work hours.
-\end{tabular} & \begin{tabular}[c]{@{}l@{}}
-The image shows \\RoboCop    ...\\ This entails the \\claim that even \\death won't exempt \\you from going \\to work because \\it humorously\\ illustrates a \\character who has\\ been reanimated\\ as a cyborg to\\ continue working \\despite having died.
-\end{tabular}
- & \begin{tabular}[c]{@{}l@{}}
-A play on the word \\ "cured". People seek \\ therapy to have their \\ mental problems \\remedied or cured. \\But "cured" can also\\refer to a meat prep\\ technique; here the\\ therapist is cured \\ bacon, \& the patient\\is an egg (that's not \\cured).The egg is\\ saying the therapist\\ doesn't understand\\ his problems because\\ he's "cured" in \\both senses.
-\end{tabular}
- \\ \hline
-\end{tabular}
-\caption{Sample dataset instances form V-FLUTE corresponding to the source datasets displaying images (premise), claims (hypothesis), labels, and explanations [Row 1-5]. }
-\label{table:sample_data}
-\end{table*}
-
-\section{V-FLUTE Task and Dataset}\label{taskdata} 
-
-Following prior work on figurative language understanding in text defined as explainable textual entailment \cite{chakrabarty-etal-2022-flute}, we define the \emph{visual figurative understanding} as an \emph{explainable visual entailment task}: given an image (premise) $p$ and a claim (hypothesis) $h$, output a textual explanation $\hat{e}$ justifying whether the premise entails or contradicts the hypothesis and assign a label $\hat{y} \in \{ \texttt{Entailment}, \texttt{Contradiction} \}$. We focus on the binary classification task since, for neutral labels, the explanations would be trivial (simply describing the image).
-
-To build V-FLUTE, we start with existing multimodal figurative datasets and use human-AI collaboration frameworks with expert annotators \cite{chakrabarty-etal-2022-flute, wiegreffe-etal-2022-reframing, liu-etal-2022-wanli} to transform them into a high-quality, explainable visual entailment benchmark. These datasets cover particular phenomena such as metaphors, similes, idioms, sarcasm or humor. Each instance
-includes an image and a caption and the figurative phenomenon can be either in the image, the caption or in both. 
-We transform each data into a unified  $<$image, claim, label, explanation$>$ format for explainable visual entailment.
-An overview of the dataset and our contributions can be found in Table \ref{tab:datasets}. See examples from each dataset in Table \ref{table:sample_data}. Below, we describe the construction of V-FLUTE for each figurative language type (metaphors \& similes, idioms, sarcasm and humor).
-
-\subsection{Metaphors and Similes}
-Metaphors and similes are powerful rhetorical devices that can be expressed either in text or visually in an image. Visual metaphors are used as persuasive devices
-in various fields such as advertising \cite{forceville2002pictorial, scott1994images}.
-To create visual entailment instances containing metaphors and similes in V-FLUTE, we rely on two existing resources: HAIVMet \cite{chakrabarty-etal-2023-spy} and IRFL \cite{yosef-etal-2023-irfl}. Instances taken from HAIVMet contain the metaphor/simile as a part of the premise (image), while those taken from IRFL have the metaphor/simile as a part of the hypothesis (text). 
-
-\subsubsection{HAIVMet as Data Source}
-
-\begin{figure}[!ht]
-\centering
-    \includegraphics[width=0.8\columnwidth]{figs/process_figs/vflute_process_fig_vismet.pdf}
-    \caption{Creation of V-FLUTE instances for methaphors and similies from HAIVMet.}
-    \label{fig:haivmet}
-\end{figure}
-
-The HAIVMet \cite{chakrabarty-etal-2023-spy} data consists of 1,193 images of visual metaphors spanning over 958 distinct linguistic metaphors. Each image is associated with a claim that can be contradicting or entailing the image.  In addition, each image is associate with a \textit{visual elaboration} that presents a textual description of the image (See Figure \ref{fig:haivmet}). This visual elaboration was used in the original paper to generate the visual metaphors (images). 
-{\bf Generating Textual Explanations.} We augment the dataset with candidate textual explanations. We prompt ChatGPT (\texttt{gpt-3.5-0914}) to generate an explanation for every tuple $<$visual elaboration, claim, label$>$
-(See Figure \ref{fig:haivmet}; and prompt in Appendix \ref{subsubsec:vismet-gen-explain}). 
-
-{\bf Expert Verification.} Each claim is paired with up to $5$ images. However, since these images were automatically generated with DALLE-2 using the visual elaborations, not all are completely faithful. Moreover, some claims and labels were inconsistent. Finally, automatically generated LLM candidate explanations are not always correct and require refining. To tackle these issues, we employ an \textit{expert verification} process involving three expert annotators with significant experience in figurative language and visual metaphor understanding. Since each claim can be paired with more than one visual metaphor, we ask annotators to select the visual metaphor most faithful to the linguistic metaphor and visual elaboration (see \underline{Image Selection} in Figure \ref{fig:haivmet}) or select none in the rare case when none of the visual metaphors are of good quality. As a part of the same annotation round, we also ask them to verify and edit the explanation if necessary to ensure correctness and high quality. Post strict quality control, we have 857 $<$image, claim, label, explanation$>$ instances. 
-
-
-\subsubsection{IRFL as Data Source} \label{sec:irfl}
-
-\begin{figure}[!ht]
-\centering
-    \includegraphics[width=0.9\columnwidth]{figs/process_figs/vflute_prorcess_fig_irfl.pdf}
-    \caption{Creation of V-FLUTE instances for metaphors, similes, idioms from IRFL.}
-    \label{fig:irfl}
-\end{figure}
-
-The IRFL dataset \cite{yosef-etal-2023-irfl} contains 1,440 figurative expressions, each associated with $4$ distinct images. One of those images represents the figurative expression (see Figure \ref{fig:irfl}), and the other 3 act as distractors. 
-
-{\bf Image Selection.} We automatically select images using CLIP \cite{radford2021learning}. We select one of the distractor images that have the highest CLIPScore (\texttt{clip-vit-base-patch16}) with the corresponding entailing image to create a challenging, contradictory instance (see where an unrelated image of a house is discarded when selecting the contradiction instance in Figure \ref{fig:irfl}). 
-
-{\bf Generating Textual Explanations.} We prompt GPT-4 (\texttt{gpt-4-vision-preview}) with the ground truth label, claim, and the image to explain the relationship between the image and the claim.
-
-{\bf Expert Verification.} We recruit the same three expert annotators from HAIVMET annotations and ask them to verify the explanation is adequate and edit it when necessary. We also ask the annotator to discard rare noisy instances where the claim, image, and label do not fit. Post strict quality control, we are left with 1149 $<$image, claim, label, explanation$>$ instances. 
-
-\subsection{Idioms}
-The IRFL dataset contains idioms in addition to metaphors and similies. An identical procedure to the one described in Section \ref{sec:irfl} was used for generating V-FLUTE instances for idioms (370 $<$image, claim, label, explanation$>$ examples). 
-
-\subsection{Sarcasm}
-
-To create visual entailment instances containing sarcasm, we rely on the MuSE data \cite{desai2022nice}. Similarly to IRFL, instances from MuSE data contain sarcasm in the hypothesis (text). 
-
-\subsubsection{MuSE as Data Source} 
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=0.9\columnwidth]{figs/process_figs/vflute_process_fig_muse.pdf}
-    \caption{Creation of V-FLUTE instances for sarcasm from MuSE.}
-    \label{fig:museFig}
-\end{figure}
-
-The MuSE dataset \cite{desai2022nice} consists of 3510 distinct images, the respective sarcastic claims that act as contradiction instances (see example in Figure \ref{fig:museFig}), and crowd worker written explanations justifying the contradiction. 
-
-{\bf Generating Entailment Claims.}
-Since the dataset only contains sarcastic instances, there are no claims with an entailment relationship. We generate the entailing claims by prompting GPT-4 to generate a non-sarcastic version of the claim while maintaining the user-generated informal style of the text (see the generated entailment claim in Figure \ref{fig:museFig}). 
-
-{\bf Generating Textual Explanations.} While the dataset already contains crowdworker-written explanations, upon inspection, they were often deemed poor quality, lacking enough details, and formulaic (e.g., see the crowdworker explanation in Figure \ref{fig:museFig}). To improve their quality, we use the dataset's existing crowdworker explanations and prompt GPT-4 to rewrite and generate high-quality candidate textual explanations given the claim and the label (see the re-written explanation in Figure \ref{fig:museFig}). See the prompt in Appendix \ref{sub:muse-prompts}.
-
-{\bf Expert Verification.} Each image is now paired with a GPT-4-generated entailing claim, an original contradicting claim, and their respective labels and explanations. The same three expert annotators checked if the generated explanations are adequate (i.e., complete, correct, and concise) and if not, edit them. Experts were also instructed to discard noisy examples, e.g. when the image does not contradict the sarcastic claim. Through strict quality control, we obtain 1,042 $<$image, claim, label, explanation$>$ instances.   
-
-\subsection{Humor}
- For multimodal humor, we rely on two datasets: MemeCap \cite{hwang-shwartz-2023-memecap} and New Yorker cartoons \cite{hessel-etal-2023-androids}.
-
-\subsubsection{MemeCap as Data Source} 
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=\columnwidth]{figs/process_figs/vflute_process_fig_memecap.pdf}
-    \caption{Creation of V-FLUTE instances for humor from MemeCap.}
-    \label{fig:memecapFig}
-\end{figure}
-
-This dataset consists of memes along with their captions that describe the meme poster's intent (see example in Figure \ref{fig:memecapFig}). Memes frequently contain implicit, non-literal meaning \cite{pioneer} and rely on visual metaphors \cite{PIATA201639}, posing a challenge to VLMs.
-
-{\bf Claim Generation.} Since meme captions are not suited for an entailment task, we perform prompt GPT-4 with the caption to generate a claim from it (see example in Figure \ref{fig:memecapFig}). We filter these set of samples further with GPT-4 by asking whether the image entails the claim and only selecting positive instances. In addition to generating claims that entail the meme, we generate counterclaims using GPT-4.
-
-{\bf Generating Textual Explanations.} We prompted GPT-4 with the ground truth label in the prompt to explain the relationship between the image and the claim. See prompts in Appendix \ref{subsec:memecap-prompts}.
-
-{\bf Expert Verification.} We hire the same three expert annotators to ensure the correctness of the data. Each annotator is tasked with verifying that 1) the generated claim fits the image and 2) the explanation is correct and complete, and if not, make the necessary changes. We also ask to discard samples with inappropriate content.  
-After careful quality control, we have 1958 $<$image, claim, label, explanation$>$ instances.
-
-\subsubsection{NYCartoons as Data Source} The NYCartoons dataset \cite{hessel-etal-2023-androids} contains 651 high-quality instances from the New Yorker Cartoon Caption Contest. Each instance consists of a humorous image paired with a caption and a natural language explanation justifying the implicit humor between the caption and the image. We simply use the existing data where the caption is treated as a claim entailing the humorous image paired with an explanation.
-
-\subsection{Dataset Statistics}
-We split our data into 4,578 training, 726 validation, and 723 testing instances. Detailed counts per phenomenon and dataset, as well as other statistics, are in Appendix \ref{app:dataStats}. 
-
-
-\section{Experiments}
-
-We empirically study how several baseline models perform on the task of explainable visual entailment. We investigate both off-the-shelf and fine-tuned model performance.
-
-\subsection{Models}
-
-We select a variety of models for our study (see taxonomy in Appendix, Figure \ref{fig:modelTaxonomy}). For \textbf{off-the-shelf models}, we explore both \textit{open} and \textit{API-based} models. For \textit{open} models, we select the (current) state-of-the-art LLaVA-1.6 models \cite{liu2024llavanext}. LLaVA is one of the simplest, yet one of the most high-performing VLM architectures currently available. It utilizes a pretrained large language model (e.g., Mistral-7B \cite{jiang2023mistral}) and a vision-language cross-modal connector (e.g., an MLP layer) to align the vision encoder (e.g., CLIP \cite{radford2021learning}) outputs to the language models. We select LLaVA-1.6 models in their 7B and 34B configurations (LLaVA-v1.6-7B and LLaVA-v1.6-34B respectively) and refer to them as \textit{LLaVA-ZS-7B} and \textit{LLaVA-ZS-34B}. Both models have been instruction-tuned on less than 1M visual instruction tuning samples to act as general language and vision assistants. It should, however, be noted that these models do not currently support few-shot multimodal prompting.
-
-In addition to zero-shot testing, we also test these models using \textit{Compositional Chain-of-Thought Prompting} proposed by \citet{mitra2023compositional}. The method first prompts the model to generate a scene graph and then utilizes that scene graph in another prompt to answer the relevant question. The method works \textit{zero-shot} without requiring fine-tuning. We refer to these models as LLaVA-ZS-7B-SG and LLaVA-ZS-34B-SG for the 7B and 34B LLaVA configurations described above. 
-
-For \textit{API-based} models, we select three widely available state-of-the-art VLMs: Claude-3 Opus (\texttt{claude-3-opus-20240229})\cite{claude3}, GPT-4 (\texttt{gpt-4-1106-vision-preview}) \cite{gpt4v} and GeminiPro (\texttt{gemini-pro-vision})\cite{team2023gemini}. We refer to GPT-4 as the ``teacher'' model as most candidate explanations were generated with it. 
-
-For \textbf{fine-tuned} models, we focus on fine-tuning LLaVA-1.5-7B model \cite{liu2023improvedllava} (the fine-tuning code for 1.6 model is not available during the time the paper was written). To minimize bias for a single instruction, we fine-tune and evaluate the models on a set of 21 instruction paraphrases (see Appendix Table \ref{tab:instructs}). Three model configurations are tested:
-\begin{itemize}[leftmargin=*]
-    \itemsep0em
-    \item \textit{LLaVA-eViL} is a checkpoint of LLaVA-v1.5-7B further fine-tuned on the eViL (e-SNLI-VE) dataset for explainable visual entailment \cite{kayser2021vil} converted to the instruction format. We removed neutral label instances, which resulted in 275,815 training instances and 10,897 validation instances.
-    \item \textit{LLaVA-VF} is the same checkpoint fine-tuned on the training set of V-FLUTE. We also fine-tune the model with a white square instead of the V-FLUTE image (denoted by $-$Image).
-    \item \textit{LLaVA-eViL+VF} is the same checkpoint fine-tuned on both eViL and V-FLUTE.
-\end{itemize}
-
-All hyperparameters are in Appendix \ref{app:hyper}.  
-
-\subsection{Automatic Metrics} \label{subsec:autoMetrics}
-Similarly to prior work \cite{chakrabarty-etal-2022-flute} we utilize both classic F1 score and an adjusted score that accounts for explanation quality: F1@ExplanationScore.
-The ExplanationScore computes the average between BERTScore \cite{bertscore} based on the \texttt{microsoft-deberta-xlarge-mnli} model \cite{he2021deberta, williams-etal-2018-broad} and BLEURT \cite{sellam-etal-2020-bleurt} based on the BLEURT-20 \cite{pu2021learning}.
-Since our goal is to ensure models provide an answer for the right reasons, ideally, we would only count predictions as correct when the explanation is also correct. Hence, we report F1@0 (simply F1 score), F1@53 (only predictions with explanation score $>$ 53 are considered correct), and F1@60. Thresholds are selected based on human evaluation of explanation quality in Section \ref{subsec:explScoreCorr}.
-
-\subsection{Automatic Evaluation Results} \label{subsec:autoMetricsres}
-Table \ref{tab:mainRes} shows the results based on the automatic evaluation. We also include results per phenomenon in Appendix \ref{app:byPhen} and the drop in performance when accounting for explanations score in Figure \ref{fig:f1Drop}. Our results inform the following insights: 
-
-
-\begin{table}[!t]
-\small
-    \centering
-        \begin{tabular}{lccc}
-        \toprule
-        Model Name & F1@0 & F1@53 & F1@60 \\
-        \midrule
-        \textit{Random Baseline} & 49.82 & - & - \\
-        \midrule
-        \midrule
-        \multicolumn{4}{l}{\textit{Fine-tuned}} \\
-        LLaVA-7B & & & \\
-        $\dashrightarrow$ VF & 72.78 & 60.66 & 47.12 \\
-        \myquad $\dashrightarrow$ $-$ Image & 64.77 & 53.28 & 39.37 \\
-        $\dashrightarrow$ eViL & 54.34 & 4.11 & 0.55 \\
-        \myquad $\dashrightarrow$ $+$ VF & \underline{\textbf{74.91}} & \underline{\textbf{62.34}} & \underline{48.80} \\
-        \midrule
-        \midrule
-        \multicolumn{4}{l}{\textit{Off-the-shelf}} \\
-        \multicolumn{4}{l}{\underline{\textit{Open}}} \\
-        LLaVA-ZS & & & \\
-        $\dashrightarrow$ 7B & 45.44 & 35.57 & 18.38 \\
-        \myquad $\dashrightarrow$ $+$ SG & 52.94 & 39.27 & 14.86 \\
-        $\dashrightarrow$ 34B & 55.60 & \underline{48.32} & \underline{31.83} \\
-        \myquad $\dashrightarrow$ $+$ SG & \underline{58.08} & 45.74 & 26.77 \\
-        \midrule
-        \multicolumn{4}{l}{\underline{\textit{API-based}}} \\
-        $\dashrightarrow$ Gemini & 53.70 & 39.72 & 19.01 \\
-        \myquad $\dashrightarrow$ 5-shot & 67.25 & 56.04 & 37.14  \\
-        $\dashrightarrow$ Claude & 56.07 & 45.37 & 22.31 \\
-        \myquad $\dashrightarrow$ 5-shot & 67.79 & 58.70 & 35.32 \\
-        $\dashrightarrow$ GPT-4 & 64.00 & 56.22 & 38.56 \\
-        \myquad $\dashrightarrow$ 5-shot & \underline{69.36} & \underline{61.95} & \underline{\textbf{49.81}} \\
-        \bottomrule
-        \end{tabular}
-    
-    \caption{F1 Score results for different models across thresholds 0.0, 0.53, and 0.6 for explanation score. Best result overall is in bold, best result in each category is underlined.}
-    \label{tab:mainRes}
-\end{table}
-
-\paragraph{Fine-tuning on V-FLUTE leads to best classification performance on average across datasets.} Our strongest fine-tuned model (LLaVA-7B-eViL+VF) outperforms the best off-the-shelf model (GPT-4-5shot) in terms of the F1@0 score ($p<0.03$; all $p$ values reported via paired bootstrap test \cite{koehn-2004-statistical}), and performs competitively when incorporating the explanations quality with GPT-4 leading slightly (F1@60 of 49.81 vs. 48.80 for the best fine-tuned model), which is expected as GPT-4 is the teacher model with which the majority of the explanation candidates were generated. Adding the e-ViL dataset improves the performance slightly compared to only fine-tuning on V-FLUTE. Fine-tuning merely on e-ViL improves over a random baseline; however, the explanations are of poor quality. 
-
-We also utilize a hypothesis-only baseline \cite{poliak-etal-2018-hypothesis} by including a model fine-tuned on the V-FLUTE dataset, but without the relevant image (with a white square as an input instead, denoted as $-$Image). Fine-tuning on the full V-FLUTE dataset shows an improvement of over 8 points in F1@0 (better with $p<0.002$), suggesting VLMs benefit from visual information when dealing with figurative phenomena and do not just rely on the input text to make their prediction. 
-
-\paragraph{Open zero-shot instruction-tuned models are lagging behind API-based models, but scene graph prompting improves performance.} LLaVA-7B and 34B lag behind Claude 3 and GPT-4 in zero-shot settings. However, scene graph prompting improves the zero-shot performance of the LLaVA-based models, allowing them catch up to zero-shot API model performance (Gemini and Claude 3). The explanations generated by these models tend to overly focus on the contents of the scene graph rather than the underlying figurative phenomena, possibly causing a decrease in explanation score (and consequently in F1@60). The few-shot API models outperform zero-shot API models, and are better than all configurations of open models in F1@0, 53, 60, indicating the effectiveness of few-shot prompting (not available for LLaVA-based models as of now). 
-
-\paragraph{Performance for models decreases when taking into account explanation quality.} We plot the relative percentage decrease between F1@0 and F1@60 for LLaVA-eViL-VF, LLaVA-34B-SG, and GPT-4-5shot in Figure \ref{fig:f1Drop}. Higher relative drop indicates higher difficulty of generating the correct explanation. For all models, we see a substantial decrease in performance, especially on challenging phenomena such as Humor (NYCartoons). For Metaphor (IRFL), Humor (MemeCap) and Idiom (IRFL) subsets GPT-4 exhibits the lowest relative performance drop, while for Metaphor (HAIVMet), Humor (NYCartoons) and Sarcasm (MuSE) the fine-tuned model has the lowest drop. 
-
-We can see that the percentage drop is substantially higher for all models for the HAIVMet subset rather than the IRFL dataset, which contains metaphors in the image rather than in the text. \textit{This suggests it is harder for models to generate correct explanations when the figurative meaning is contained in the image rather than in the text, indicating the need to expand current datasets to include images with figurative meaning.}
-
-
-\begin{figure}[!ht]
-\centering
-    \includegraphics[width=1.0\columnwidth]{figs/f1_drop.pdf}
-    \caption{\    \label{fig:f1Drop}
-\end{figure}
-
-\subsection{Human Baseline} \label{subsec:humanBaseline}
-
-To find out how humans perform on the task, we hire two expert annotators with formal education in linguistics. We present them with 10 example instances and then ask them to complete 99 randomly sampled test set instances. We also evaluate our best model (see Table \ref{tab:mainRes}) on the same set. Results are shown in Table \ref{tab:humanBaseline}. Human performance is quite strong, almost reaching 90 F1@0 score overall. Human performance is better than our strongest fine-tuned model (LLaVA-7B-eVil+VF) performance with $p < 0.05$ for Annotator 1 and $p<0.07$ for Annotator 2. Humans excel at interpreting memes, with both annotators reaching a 100\
-\begin{table}[htbp]
-\small
-    \centering
-\begin{tabular}{@{}llll@{}}
-\toprule
-\textbf{Phenomenon} & \textbf{Dataset} & \textbf{\begin{tabular}[c]{@{}l@{}}Human \\ Avg\end{tabular}} & \textbf{\begin{tabular}[c]{@{}l@{}}LLaVA- \\ eViL+VF\end{tabular}} \\ \midrule
-\multirow{2}{*}{\textbf{\begin{tabular}[c]{@{}l@{}}Metaphor\\ /Similes\end{tabular}}} & HAIVMET & 78.84 & \textbf{81.25} \\ \cmidrule(l){2-4} 
- & \begin{tabular}[c]{@{}l@{}}IRFL \\ (metaphor\\ /simile)\end{tabular} & \textbf{94.36} & 77.78 \\ \midrule
-\textbf{Idioms} & \begin{tabular}[c]{@{}l@{}}IRFL \\ (idiom)\end{tabular} & \textbf{89.26} & 49.74 \\ \midrule
-\textbf{Sarcasm} & MuSE & 68.89 & \textbf{85.42} \\ \midrule
-\multirow{2}{*}{\textbf{Humor}} & MemeCap & \textbf{100.0} & 78.03 \\ \cmidrule(l){2-4} 
- & NYCartoons & \textbf{71.43} & 47.83 \\ \midrule
-\multicolumn{2}{c}{\textbf{Overall}} & \textbf{89.09} & 77.26 \\ \bottomrule
-\end{tabular}
-    \caption{Human baseline results (F1@0) by phenomenon and source dataset.}
-    \label{tab:humanBaseline}
-\end{table}
-
-\section{Human Evaluation and Error Analysis} \label{sec:humanEval}
-
-We conduct human evaluation of generated explanation to more reliably assess their quality and identify key errors in multimodal figurative language understanding. We recruit two expert annotators with background in linguistics for the task and sample 95 random instances from the test set. For each instance, we first provide the annotators with the image, claim and reference explanation and ask the annotators to choose the right label. If the annotator succeeds, they can view the rest of the task, which consists of 3 explanations from our top models by F1@0 in each category: LLaVA-eViL-VF, LLaVA-34B-SG, GPT-4-5shot. The explanations are taken for both correct and incorrect model predictions. For each explanation, we ask whether the explanation is adequate (accurate, correct, complete and concise). 
-If not, we ask them to identify one of the three main types of errors based on the following taxonomy:
-
-\begin{itemize}[leftmargin=*]
-    \itemsep0em 
-    \item \textbf{Hallucination:} explanation is not faithful to the image, indicating difficulties with basic visual comprehension (see prediction of a blunt tip when the pencil tip is actually sharp in row 1 of Table \ref{tab:errTypes}).
-    \item \textbf{Unsound reasoning:} sentences do not adhere to natural logic or violate common sense (e.g., concluding than an upwards arrow and lots of money imply an economic crisis, see row 3).
-    \item \textbf{Incomplete reasoning:} while overall the explanation makes sense, it does not address the key property reasons why the image entails or contradicts the claim (for example, does not address the figurative part in the image, see row 2).
-    \item \textbf{Too Verbose:} the explanation is too verbose to the point it would interfere rather than help one decide the correct label.
-\end{itemize}
-
-\def\custScale2{0.1}
-\begin{table*}[htbp]
-\small
-\centering
-\begin{adjustbox}{width=\textwidth,totalheight=\textheight,keepaspectratio}
-\begin{tabularx}{\textwidth}{p{2.5cm}>{\centering\arraybackslash}p{3.5cm}p{2.5cm}X}
-\toprule
-\textbf{Error Type} & \textbf{Image} & \textbf{Claim} & \textbf{Label and Explanation} \\
-\midrule
-\textbf{Hallucination} \textit{(describes sharp pencil as having a blunt tip)} & 
-\raisebox{-\totalheight}{\includegraphics[scale=0.07]{figs/err_exs/339.png}} & 
-The tip is as sharp as a knife. & 
-\textbf{Predicted Label:} \textcolor{red}{Contradiction} \newline 
-\textit{Predicted Explanation:} The image depicts a pencil with a \textcolor{red}{blunt tip}. [...] \\
-\midrule
-\textbf{Incomplete} \textit{(does not address metaphorical meaning of iceberg imagery)} & 
-\raisebox{-\totalheight}{\includegraphics[scale=0.06]{figs/err_exs/198.png}} & 
-They looked at each other in an almost hostile way. & 
-\textbf{Predicted Label:} Entailment \newline 
-\textit{Predicted Explanation:}  \textcolor{red}{The image depicts two characters looking at each other with a tense and confrontational expression}, which is consistent with the claim [...]\\
-\midrule
-\textbf{Unsound} \newline (\textit{concludes that large amount of money + upward trending chart implies rough waters}) & 
-\raisebox{-\totalheight}{\includegraphics[scale=0.08]{figs/err_exs/374.png}} & 
-The world recession of 2001 was one of the worst in history. & 
-\textbf{Predicted Label:} \textcolor{red}{Entailment} \newline 
-\textit{Predicted Explanation:} The image depicts a man in a boat, holding a large amount of money and a chart with an arrow pointing upwards. \textcolor{red}{This suggests that the man is navigating through rough waters} [...] \\
-\bottomrule
-\end{tabularx}
-\end{adjustbox}
-\caption{Examples of error types generated explanations.}
-\label{tab:errTypes}
-\end{table*}
-
-\subsection{How Do Models Perform According to Humans?}
-
-\begin{table}[htbp]
-\small
-    \centering
-    \begin{tabular}{@{}llll@{}}
-\toprule
- & \textbf{\begin{tabular}[c]{@{}l@{}}LLaVA-7B\\ eViL+VF\end{tabular}} & \textbf{\begin{tabular}[c]{@{}l@{}}LLaVA-34B\\ SG\end{tabular}} & \textbf{\begin{tabular}[c]{@{}l@{}}GPT-4\\ (5 shot)\end{tabular}} \\ \midrule
-\textbf{Adequate \\textbf{Preference \\end{tabular}
-    \caption{Adequacy and Preference rates      for generated explanations.}     \label{tab:humanEvalAdeq}
-\end{table}
-
-In Table \ref{tab:humanEvalAdeq}, we show adequacy and preference rates for explanations from the 3 systems, where an explanation is deemed adequate if both annotators agreed it is, and inadequate if both agreed it is not. The preference percentage is also taken among instances where the annotators agreed that the model's explanation is preferred among all the adequate explanations. The average IAA using Cohen's $\kappa$ is 0.47, indicating moderate agreement \cite{cohen1960coefficient}. We observe that the teacher model is leading in terms of the adequacy of the explanations and preference rate, as expected from a larger system equipped for higher quality reasoning and generation capabilities. Yet still only half of its explanations are considered adequate. This further confirms that despite impressive performance on the F1@0 scores, the models are not yet capable of producing adequate textual explanations in many instances.
-
-
-
-\subsection{What Errors Do Models Make?}
-
-We also analyze to understand what type of errors do each model make when they are considered not adequate in the above evaluation. In Figure \ref{fig:errorTypesAnnot}, we illustrate the normalized frequency of error types when both annotators agree that the explanation is not adequate (i.e., out of all errors for this model, what percentage is each type of error?). In general, annotators did not consider verbosity to be a major issue of the systems. For GPT-4, the leading error type is hallucination, indicating the need to improve faithful image recognition even in the most advanced models.
-For the fine-tuned model and LLaVA-34B-SG, the main error type is unsound reasoning, indicating that it is challenging for the models to reason about multimodal figurative inputs consistently.
-\begin{figure}
-    \centering
-    \includegraphics[width=1.0\columnwidth]{figs/error_types_v2.pdf}
-    \caption{Normalized frequency of main error types in the explanation by model.}
-    \label{fig:errorTypesAnnot}
-\end{figure}
-
-\subsection{How Well Does the Explanation Score Predict Human Judgment on Adequacy?} \label{subsec:explScoreCorr}
-
-We explore whether the proposed explanation score can capture human judgement of explanation adequacy. We collect all instances where both annotators agreed on the adequacy judgement for the explanation.
-We evaluate if the explanation score described in Section \ref{subsec:autoMetrics} can act as a good predictor for the human adequacy judgment. We find that the area under the Precision-Recall curve is 0.79, and the maximum F1 score is 0.77, obtainable at the explanation score threshold of 0.53. Hence, we use this threshold to report the results in Table \ref{tab:mainRes}. We also use the threshold of 0.6 since it maximizes F1 such that both precision and recall are above 0.75. 
-
-
-\section{Conclusions}
-We introduce a high-quality dataset for understanding figurative phenomena in multimodal input, V-FLUTE, framed as an explainable visual entailment.
-Our dataset consists of 6,027 $<$image, claim, label, explanation$>$ instances spanning a variety of figurative phenomena such as metaphor, idiom, simile, sarcasm, and humor. We use this dataset to benchmark the performance of state-of-the-art vision-language models  using both automatic and human evaluation and to identify critical areas of improvement for VLMs for this task.
-
-\bibliography{tacl2021}
-\bibliographystyle{acl_natbib}
-\clearpage
-\appendix
-\section{Dataset Statistics} \label{app:dataStats}
-
-Table \ref{tab:dataCounts} shows the number of samples from each source dataset that are included in the randomly selected training, validation, and held-out test splits. 
-
-\begin{table}[htbp]
-\centering
-\small
-\begin{tabular}{@{}lllll@{}}
-\toprule
-\textbf{Type} & \textbf{Dataset} & \textbf{Train} & \textbf{Valid} & \textbf{Test} \\ \midrule
-\multirow{2}{*}{\textbf{\begin{tabular}[c]{@{}l@{}}Metaphor\\ /Similes\end{tabular}}} & HAIVMET & 649 & 107 & 101 \\ \cmidrule(l){2-5} 
- & \begin{tabular}[c]{@{}l@{}}IRFL \\ (metaphor\\ /simile)\end{tabular} & 912 & 117 & 120 \\ \midrule
-\textbf{Idioms} & IRFL (idiom) & 170 & 100 & 100 \\ \midrule
-\textbf{Sarcasm} & MuSE & 830 & 106 & 106 \\ \midrule
-\multirow{2}{*}{\textbf{Humor}} & MemeCap & 1566 & 196 & 196 \\ \cmidrule(l){2-5} 
- & NYCartoons & 451 & 100 & 100 \\ \midrule \midrule
-\multicolumn{2}{c}{\textbf{Total}} & 4,578 & 726 & 723 \\ \bottomrule
-\end{tabular}
-\caption{Data counts per phenomenon and dataset.}
-\label{tab:dataCounts}
-\end{table}
-
-\paragraph{Length distribution}
-Average length of a claim in V-FLUTE is $\approx$ 61 characters. Average length of an explanation is $\approx$ 367 characters. Figure \ref{fig:claimLen} shows the distribution of claim lengths, and Figure \ref{fig:explLen} shows the distribution of explanation lengths by source dataset. We manually verified that the outlier instances are correct.
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=\columnwidth]{figs/claim_len.pdf}
-    \caption{Distribution of lengths of claims by source dataset.}
-    \label{fig:claimLen}
-\end{figure}
-
-\begin{figure}[htbp]
-    \centering
-    \includegraphics[width=\columnwidth]{figs/expl_len.pdf}
-    \caption{Distribution of lengths of explanations by source dataset.}
-    \label{fig:explLen}
-\end{figure}
-\section{API models Hyperparameters} \label{app:api-hyper}
-\subsection{Claude}
-\begin{itemize}
-    \item Model Name: \texttt{claude-3-opus-20240229}
-    \item Max Tokens: 256
-    \item Images greater than 5MB were resized maintaining aspect ratio
-\end{itemize}
-
-\subsection{GPT-4}
-\begin{itemize}
-    \item Model Name: \texttt{gpt-4-1106-vision-preview}
-    \item Max Tokens: 256
-    \item Seed: 42
-    \item Image URL detail: 'high'
-\end{itemize}
-
-\subsection{Gemini}
-\begin{itemize}
-    \item Model Name: \texttt{gemini-pro-vision}
-    \item Max Tokens: 256
-    \item Safety Settings: 'BLOCK NONE'
-    \item Images greater than 5MB were resized maintaining aspect ratio
-\end{itemize}
-
-
-\section{Fine-tuning Hyperparameters} \label{app:hyper}
-
-We utilize LoRA \cite{hu2022lora} to fine-tune the models. We utilize the same hyperparameters for all fine-tunes outlined in Appendix \ref{app:hyper} and use early stopping based on a V-FLUTE validation set to prevent overfitting. Due to size of the data, we only train for 3 epochs in both eViL and eVIL+VFLUTE variations, but we saved intermediate steps and chose the checkpoint where the validation loss is lowest. 
-
-\subsection*{Fine-tuning}
-\begin{itemize}
-    \item Seed: 42
-    \item Vision Tower: openai-clip-vit-large-patch14-336
-    \item Number of Training Epochs: 3
-    \item Train Batch Size (per device): 16
-    \item Eval Batch Size (per device): 4
-    \item Learning Rate: 2e-5
-    \item Weight Decay: 0
-    \item Warmup Ratio: 0.03
-    \item Scheduler Type: cosine
-    \item Number of epochs: 4 for eViL and eViL + vFLUTE, 10 for VFLUTE
-    \item mm-projector-type: mlp2x gelu 
-    \item mm-vision-select-layer: -2 
-    \item mm-use-im-start-end: False 
-    \item mm-use-im-patch-token: False 
-    \item image-aspect-ratio: pad 
-    \item group-by-modality-length: False
-\end{itemize}
-
-\subsection*{LoRA}
-\begin{itemize}
-    \item lora r: 128 
-    \item lora alpha: 256
-    \item mm-projector-lr: 2e-5
-\end{itemize}
-
-\subsection*{Deepspeed Configuration}
-\begin{itemize}
-    \item FP16 enabled: auto
-    \item BF16 enabled: auto
-    \item Micro Batch Size Per GPU: auto
-    \item Train Batch Size: auto
-    \item Gradient Accumulation Steps: auto
-    \item Zero Optimization Stage: 3
-\end{itemize}
-
-\subsection*{Training and Inference Instructions}
-All models are evaluated using beam search with $n=3$, temperature $0$, max length $256$. In the case of generating scene graphs for the compositional chain-of-thought method, we set the max length to 256 for the graph generation step as recommended by \citet{mitra2023compositional}. API models are evaluated with default hyperparameters.
-We format all fine-tuning data in the instruction format following LLaVA \cite{liu2023improvedllava}. To avoid overfitting on a particular instruction for this task, we generate 20 similar instructions using an LLM (ChatGPT-4) and randomly assign one of them to every instance in the training, validation, and testing set. Same instructions were sampled for the e-ViL dataset. Table \ref{tab:instructs} shows the 20 instructions used.
-
-\begin{table*}[htbp]
-\centering
-\begin{adjustbox}{width=1.8\columnwidth, center}
-\begin{tabular}{@{}lp{2\columnwidth}@{}}
-\toprule
-\textbf{No.} & \textbf{Instruction} \\
-\midrule
-1 & Does the image's narrative confirm or disprove the claim REPLACE\_CLAIM? Discuss your reasoning and identify it as either entailment or contradiction. \\\addlinespace
-2 & Does this image confirm or deny the claim REPLACE\_CLAIM? Discuss your reasoning and determine a label: entailment or contradiction. \\\addlinespace
-3 & Is the image's message supporting or opposing the claim REPLACE\_CLAIM? Discuss your rationale and determine the appropriate label: entailment or contradiction. \\\addlinespace
-4 & Is there agreement or disagreement between the image and the claim REPLACE\_CLAIM? Provide your analysis and choose between entailment or contradiction. \\\addlinespace
-5 & Does the visual evidence support or counter the claim REPLACE\_CLAIM? Provide your explanation and assign it a label of entailment or contradiction. \\\addlinespace
-6 & Does the image agree with or dispute the claim REPLACE\_CLAIM? Explain your analysis and mark it as entailment or contradiction. \\\addlinespace
-7 & Does the illustration affirm or contest the claim REPLACE\_CLAIM? Provide your argument and choose a label: entailment or contradiction. \\\addlinespace
-8 & Is the visual content in agreement or disagreement with the claim REPLACE\_CLAIM? Offer your explanation and categorize it under entailment or contradiction. \\\addlinespace
-9 & Is the image in harmony with or in conflict with the statement REPLACE\_CLAIM? Explain your justification and label it as entailment or contradiction. \\\addlinespace
-10 & Is the portrayal in the image consistent with or contradictory to the claim REPLACE\_CLAIM? Offer your insights and select between entailment or contradiction. \\\addlinespace
-11 & Does the image's depiction validate or refute the claim REPLACE\_CLAIM? Explain your point of view and select a label: entailment or contradiction. \\\addlinespace
-12 & Is the content of the image endorsing or challenging the claim REPLACE\_CLAIM? Justify your position and label it as entailment or contradiction. \\\addlinespace
-13 & Is the image consistent with the statement REPLACE\_CLAIM? Justify your answer and classify it as either entailment or contradiction. \\\addlinespace
-14 & Does the illustration affirm or negate the claim REPLACE\_CLAIM? Articulate your reasoning and apply a label: entailment or contradiction. \\\addlinespace
-15 & Does the picture support or refute the assertion REPLACE\_CLAIM? Offer your rationale and select a label: entailment or contradiction. \\\addlinespace
-16 & Is the visual portrayal compatible with or adverse to the claim REPLACE\_CLAIM? Justify your viewpoint and label it as entailment or contradiction. \\\addlinespace
-17 & Does the image corroborate or dispute the claim REPLACE\_CLAIM? Outline your reasoning and categorize it under entailment or contradiction. \\\addlinespace
-18 & Is the depiction aligned with or against the claim REPLACE\_CLAIM? Share your evaluation and identify it as either entailment or contradiction. \\\addlinespace
-19 & Does the image entail or contradict the claim REPLACE\_CLAIM? Explain your reasoning and provide a label between entailment or contradiction. \\\addlinespace
-20 & Can the image be seen as validating or opposing the claim REPLACE\_CLAIM? Explain your thought process and assign a label of entailment or contradiction \\\addlinespace
-21 & Is the image’s representation supportive of or contradictory to the claim REPLACE\_CLAIM? Articulate your analysis and assign the label: entailment or contradiction. \\\addlinespace
-\bottomrule
-\end{tabular}
-\end{adjustbox}
-\caption{Instruction variations for the figurative visual entailment task.}
-\label{tab:instructs}
-\end{table*}
-
-
-
-\section{Prompts for LLMs} \label{app:prompts}
-
-\subsection{HAIVMET}
-\subsubsection{One-shot Prompt for generating explanations}
-\label{subsubsec:vismet-gen-explain}
-We describe our one-shot prompts given to an LLM (\texttt{gpt-3.5-turbo-instruct-0914}) for generating explanations of entailment-contradiction relationship. Refer to Table \ref{tab:haivmet-prompt} for the detailed prompt.
-  
-\begin{table}[htbp]
-\small
-\centering
-\def\arraystretch{1.05}
-\begin{tabular}{|l|}
-\hline
-\begin{tabular}[c]{@{}l@{}}You will be provided a Caption describing what\\ is in the image in detail. You will also be\\ provided with a Claim that contradicts or\\ is entailed by the image (as indicated by\\ the Label). Your task is to explain why\\ the claim contradicts or is entailed by\\ the image. Be very brief in your explanation.\\ Start your explanation by describing what the\\ image depicts, displays or shows.\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Caption: An illustration of a group of soldiers\\ with red skin, horns, and pitchforks in hand\\ with a fierce expression on their faces. \\
-Claim: The soldiers were angels.\\
-Label: Contradiction \\
-Explanation: {\color{blue}The image depicts soldiers } \\ {\color{blue}with red skin, horns, and pitchforks, which} \\ {\color{blue}are traditional characteristics associated } \\ {\color{blue}with demons, not angels. Therefore, the} \\ {\color{blue}claim that the soldiers were angels contradicts } \\ {\color{blue}the image.}\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Caption:......\end{tabular} \\ \hline
-\end{tabular}
-\caption{ One shot prompt given to an LLM (\texttt{gpt-3.5-turbo-instruct-0914}) for generating explanations of entailment-contradiction relationship of the HAIVMET dataset.}
-\label{tab:haivmet-prompt}
-\end{table}
-
-
-\subsection{IRFL}
-
-\subsubsection{Zero-shot Prompt for generating explanations}
-
-We provide our zero-shot prompt given to an LLM (\texttt{gpt-4-vision-preview}) for generating the entailment explanations given the claim and the image. Refer Table \ref{tab:irfl-prompt-gen-explain} for the detailed prompt.
-
-\begin{table}[htbp]
-\small
-\centering
-\def\arraystretch{1.05}
-\begin{tabular}{|l|}
-\hline
-\begin{tabular}[c]{@{}l@{}}You will be provided an image. You will also be \\provided with a {\color{blue}simile} that contradicts or is \\ entailed by the image (as indicated by the Label).\\Your task is to explain why the {\color{blue}simile} contradicts \\or is entailed by the image. Be very brief in your \\explanation and remain consistent to the Label in \\your explanation. Start your explanation by \\describing what the image depicts, displays or \\
-shows. \\
-{\color{blue}Simile}: .... \\
-Label: .... \\
-Explanation: \end{tabular} \\ \hline
-\end{tabular}
-\caption{ Zero shot prompt given to an LLM (\texttt{gpt-4-vision-preview}) for generating explanations of entailment-contradiction relationship of the IRFL Dataset. The dataset contains similes, metaphors and idioms. For metaphors and idioms, the word simile in the prompt is replaced with the corresponding type.}
-\label{tab:irfl-prompt-gen-explain}
-\end{table}
-
-
-\subsection{MuSE}
-\label{sub:muse-prompts}
-\subsubsection{Few-shot Prompt for generating opposite claims}
-We provide our few-shot prompt given to an LLM (\texttt{(\texttt{gpt-4-0613})}) for generating the opposite claims. Refer Table \ref{tab:muse-gen-opp} for the detailed prompt.
-
-\begin{table}[htbp]
-\small
-\centering
-\def\arraystretch{1.05}
-\begin{tabular}{|l|}
-\hline
-\begin{tabular}[c]{@{}l@{}}u are an online redditor or flickr user and u\\ always type in informal style. Convert the \\following sarcastic claim into a non-sarcastic\\ claim. Preserve the informal style, including\\ capitalization. Be super laid back and informal!!!
-\end{tabular} \\ \hline
-
-\begin{tabular}[c]{@{}l@{}}1. Sarcastic claim: stairs vs . escalator in 
- \\airport . i wonder why we have an \# obesity \\ problem ? \# publichealth \# ncds \# globalhealth \\ \# isometimesdothistoo\\ 
- Explanation: no wonder we have an obesity \\ problem since everyones using escalator \\ instead of stairs in airport.\\
-Non-sarcastic claim: {\color{blue}it s clear why we have an  } \\ {\color{blue} \# obesity problem look at stairs vs. escalator   } \\ {\color{blue}in airport }\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Claim:......\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Explanation:......\end{tabular} \\ \hline
-\end{tabular}
-\caption{ Few shot prompt given to an LLM (\texttt{gpt-4-0613}) for generating opposite claims utilizing the sarcastic claim and crowd worker explanation.}
-\label{tab:muse-gen-opp}
-\end{table}
-
-\subsubsection{Zero-shot Prompt for Rephrasing}
-
-We provide our zero-shot prompt given to an LLM (\texttt{gpt-4-vision-preview}) for rephrasing the explanations given the claim and the crowd worker explanation. Refer Table \ref{tab:muse-gen-explain} for the detailed prompt.
-
-\begin{table}[htbp]
-\small
-\centering
-\def\arraystretch{1.05}
-\begin{tabular}{|l|}
-\hline
-\begin{tabular}[c]{@{}l@{}}Paraphrase the draft explanation of why the image\\ contradicts the literal interpretation of the claim.\\ Be sure to first describe the image in one sentence.\\ Keep your answer short. Do not refer to the claim\\ or the draft explanation in your paraphrase. Stay \\ close to the draft explanation. \\
-Claim: .... \\
-Draft Explanation: \end{tabular} \\ \hline
-\end{tabular}
-\caption{ Zero shot prompt given to an LLM (\texttt{gpt-4-vision-preview}) for rephrasing the explanations given the claim and the.}
-\label{tab:muse-gen-explain}
-\end{table}
-
-
-\subsection{MemeCap} \label{subsec:memecap-prompts}
-
-\subsubsection{Few-shot Prompt for generating entailing claims} \label{subsubsec:gen-prompt-ent}
-
-We describe our few-shot prompts given to an LLM (\texttt{gpt-4-0613}) for generating entailing claims as part of the pipeline. Refer to Table \ref{tab:memecap-gen-claims} for the detailed prompt.
-  
-\begin{table}[htbp]
-\small
-\centering
-\def\arraystretch{1.05}
-\begin{tabular}{|l|}
-\hline
-\begin{tabular}[c]{@{}l@{}}You will be provided with a meme caption. Your\\ task is to write the meme caption as a claim such\\that the meme poster is not mentioned in the\\ claim.\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Caption: Meme poster is saying that searching \\Google plus the term you want to search on \\reddit is better than searching reddit itself.\\ Claim: {\color{blue}Searching on Google with the term } \\ {\color{blue} you want to search plus 'reddit' is more effective } \\ {\color{blue} than searching directly on Reddit. }\end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Caption: The person who wrote the post is saying\\ people on Instagram are soft and reddit are funny.\\ Claim: {\color{blue}People on Instagram are soft, whereas  } \\ {\color{blue}those on Reddit are funny.} \end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Caption:......\end{tabular} \\ \hline
-\end{tabular}
-\caption{ Two shot prompt given to an LLM (\texttt{gpt-4-0613}) for generating entailing claims utilizing the meme captions part of the MemeCap dataset.}
-\label{tab:memecap-gen-claims}
-\end{table}
-
-
-\subsubsection{Zero-shot Prompt for validating the entailing claims}
-
-We describe our zero-shot prompt given to an LLM (\texttt{gpt-4-vision-preview}) for validating the claims generated in the previous step.  Refer Table \ref{tab:memecap-validate-claims} for the detailed prompt.
-
-\begin{table}[htbp]
-\small
-\centering
-\def\arraystretch{1.05}
-\begin{tabular}{|l|}
-\hline
-\begin{tabular}[c]{@{}l@{}}You will be provided a meme image and a claim. \\Your task is to check whether the claim entails the \\image. Answer with a Yes or No. \\
-Claim: .....\end{tabular} \\ \hline
-\end{tabular}
-\caption{ Zero shot prompt given to an LLM (\texttt{gpt-4-vision-preview}) for validating the claims generated in \ref{subsubsec:gen-prompt-ent}. The corresponding meme image is also attached with the prompt.}
-\label{tab:memecap-validate-claims}
-\end{table}
-
-\subsubsection{Few-shot Prompt for generating opposite claims}
-We provide our few-shot prompt given to an LLM (\texttt{(\texttt{gpt-4-0613})}) for generating the opposite claims. Refer Table \ref{tab:memecap-gen-opp} for the detailed prompt.
-
-\begin{table}[htbp]
-\small
-\centering
-\def\arraystretch{1.05}
-\begin{tabular}{|l|}
-\hline
-\begin{tabular}[c]{@{}l@{}}Claim: A useful feature has been removed \\ on YouTube, causing disappointment. \\Explanation: The image shows a painting\\ of a character with a distraught face and\\ a speech bubble that reads "y tho," placed\\ over text saying "When YouTube removed\\ sort by oldest option." This implies that the\\ removal of the sort by oldest option is a\\ decision that users are questioning, hence\\ indicating disappointment over the loss of\\ a useful feature.\\ Opposite claim:  {\color{blue}An unhelpful feature has} \\ {\color{blue}  been removed on YouTube, causing happiness.   } \end{tabular} \\ \hline
-\begin{tabular}[c]{@{}l@{}}Claim:......\end{tabular} \\ 
-\begin{tabular}[c]{@{}l@{}}Explanation:......\end{tabular} \\ \hline
-\end{tabular}
-\caption{ Few shot prompt given to an LLM (\texttt{gpt-4-0613}) for generating opposite claims utilizing the generated claim and explanation.}
-\label{tab:memecap-gen-opp}
-\end{table}
-
-\subsubsection{Zero-shot Prompt for generating explanations}
-
-We provide our zero-shot prompt given to an LLM (\texttt{gpt-4-vision-preview}) for generating the entailment explanations given the claim and the image. Refer Table \ref{tab:memecap-gen-explain} for the detailed prompt.
-
-\begin{table}[htbp]
-\small
-\centering
-\def\arraystretch{1.05}
-\begin{tabular}{|l|}
-\hline
-\begin{tabular}[c]{@{}l@{}}You will be provided a meme. You will also be \\ provided with a claim that entails the image. \\Your task is to explain why the claim is entailed \\by the image. Be very brief in your explanation \\ and start your explanation by describing what \\ the image depicts, displays or shows. \\
-Claim: .... \\
-Explanation: \end{tabular} \\ \hline
-\end{tabular}
-\caption{ Zero shot prompt given to an LLM (\texttt{gpt-4-vision-preview}) for generating the entailment explanations. The corresponding meme image is also attached with the prompt.}
-\label{tab:memecap-gen-explain}
-\end{table}
-
-\section{Model Taxonomy}
-
-The taxonomy of all models used for automatic evaluation is shown in Figure \ref{fig:modelTaxonomy}.
-\begin{figure*}
-\small
-    \centering
-    \begin{forest}
-for tree={
-  grow=east,
-  draw,
-  rectangle,
-  align=center,
-  parent anchor=east,
-  child anchor=west,
-  edge={thick},
-  l sep+=10pt,
-  tier/.pgfmath=level(),
-  edge path={
-    \noexpand\path [draw, \forestoption{edge}] (!u.parent anchor) -- +(5pt,0) |- (.child anchor)\forestoption{edge label};
-  }
-}
-[Models
-    [Off-the-shelf
-        [API-based
-            [Claude Opus]
-            [GPT-4]
-            [Gemini]
-        ]
-        [Open (LLaVA-ZS)
-            [7B]
-            [7B-SG]
-            [34B]
-            [34B-SG]
-        ]
-    ]
-    [Fine-tuned (LLaVA-7B)
-        [eViL]
-        [VFLUTE]
-        [eViL+VFLUTE]
-    ]
-]
-\end{forest}
-    \caption{Taxonomy of models used for the study.}
-    \label{fig:modelTaxonomy}
+\includegraphics[width=\linewidth]{figure/finaleye.png}
+\caption {The overall framework of open-vocabulary EEG-to-text translation. The first sub-figure comes from \protect\cite{nagel2018modelling}.}
+\label{fig:eeg_task}
 \end{figure*}
 
-\section{By-Phenomenon Performance} \label{app:byPhen}
 
-In Figure \ref{fig:byPhen}, we show the performance of the models by phenomenon and dataset across various thresholds.
+To improve the accuracy of EEG-to-text decoding with open vocabularies, we propose a novel EEG-to-text decoding method based on transformers. First, we introduce a Convolutional Neural Network (CNN) module before the base transformer model to enhance the model's ability to handle long EEG signals. Second, we conduct pre-training of the transformer model by reconstructing randomly masked EEG signals from the input data. This pre-training step helps our transformer model better learn the semantics of EEG signals. Last, we propose a multi-view transformer architecture, where each single-view transformer is the pre-trained model from the previous step, to model the EEG signal processing by different spatial regions of the brain.
+Experiments show that \our has superior performance, outperforming the state-of-the-art baseline methods by a large margin of up to 5\
+\section{Task Definition}
 
-\begin{figure}[htbp]
+Our task involves decoding corresponding natural language text from raw EEG signals (Figure \ref{fig:eeg_task}). The data acquisition process involves 1) attaching an EEG cap to each subject's head, 2) displaying the text (reading materials) on a screen, and 3) recording the EEG and eye-tracking (for verification and calibration of the EEG signals) data while the subject is reading the text. The EEG signals are further extracted from the recorded data and fed as input to a decoding model to predict the original text the subject was reading on the screen.
+
+Formally, this task can be formulated as a sequence-to-sequence machine translation task as follows:
+\begin{equation}
+P(Y | X) = \arg\max_Y \prod_{t=1}^{T'} P(y_t | y_{<t}, X)
+\label{con:EEG to Text Translation}
+\end{equation}
+where $T'$ represents the length of the target sentence $Y$; $y_t$ represents the word or token at position $t$ in the target sentence $Y$; $y_{<t}$ represents the words or tokens preceding position $t$ in the target sentence $Y$; $X$ represents the input EEG data; and $P(y_t | y_{<t}, X)$ is the conditional probability of generating word $y_t$ given the previous words $y_{<t}$ and the input EEG data $X$. Our goal is to maximize the probability $P(Y | X)$ of generating the target sentence given the input EEG data.
+
+\section{Methodology}
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\linewidth]{figure/main3.png}
+\vspace{-4mm}
+\caption {The overall framework of \our. It takes the sentence EEG signals as input and decodes the original text as output. \our includes major steps of 1) a base convolutional transformer model, 2) pre-training for EEG encoding, and 3) a multi-view transformer for different spatial regions of the brain.}  
+\label{fig:main figure}
+\end{figure*}
+
+\subsection{Baseline Model}
+Our baseline model \cite{DBLP:journals/corr/abs-2112-02690} takes the word-level EEG features as the input to a transformer model followed by a pre-trained BART model for text decoding. The raw EEG signals are typically stored as a two-dimensional array with one dimension for time and the other for channels (the number of electrodes used to collect EEG signals). Each value in this two-dimensional array corresponds to the signal strength collected at the corresponding time for the corresponding channel. 
+In the baseline model, the word-level EEG features are extracted from eight independent frequency bands from the raw EEG signals. The above eight word-level EEG features are simply concated across all the channels as input to the decoder framework. 
+
+The baseline model faces the following challenges: 1) the reliance on eye-tracking calibration for word-level EEG feature extraction introduces error propagation and lacks generalizability to scenarios such as inner speech decoding \cite{martin2018decoding,nalborczyk2020can}, 2) there is room for improvement in EEG representation learning through self-supervised pre-training, and 3) the lack of spatial resolution modeling ignores the varying importance of different brain regions in language processing. To overcome these challenges, we propose a novel framework, \our, that achieves superior performance for open-vocabulary EEG-to-text translation.
+
+\subsection{Convolutional Transformer for Sentence-Level EEG Encoding}
+Instead of using the word-level EEG features crafted based on the eye-tracking data, we directly use the sentence-level EEG signals as input to our model. Using sentence-level EEG signals offers several advantages over word-level EEG features. It provides richer information without error propagation from the eye-tracking data and exhibits better generalizability to other tasks, such as inner speech decoding, where acquiring eye-tracking data is infeasible.
+
+However, the sentence-level EEG signals pose a challenge due to their excessive length, potentially overloading laboratory-level GPUs if directly input into the transformer layer. To tackle this issue, we introduce a convolutional transformer model that incorporates a CNN module for compressing raw EEG signals. This CNN module comprises two convolutional layers, adept at both temporal and spatial (or channel) compression. We also compared two input formats of the sentence-level EEG signals: 1) the raw signals, and 2) the spectrogram of the signals. The spectrogram of a signal (Appendix Figure \ref{fig:spec}) is a two-dimensional image, where the x-axis represents time, the y-axis represents frequency, and the image pixel value represents the magnitude of the signal at each time-frequency pair. The sentence-level EEG signals are then input into the CNN module to obtain compressed EEG signals, which are then fed into the transformer model for subsequent feature extraction and text translation.
+
+\subsection{Transformer Pre-Training for an Enhanced EEG Encoding}
+
+To enhance the semantic understanding of the EEG signals, we propose a self-supervised pre-training of the convolutional transformer model for parameter initialization (Figure \ref{fig:main figure}). Inspired by the masked language model pre-training strategies \cite{bert,spanbert,roberta}, we formulate our self-supervised pre-training objective as follows:
+\begin{equation}
+\theta^* = \arg\max_\theta \sum_{(i, j) \in \mathcal{D}} \log P(M | C; \theta),
+\end{equation}
+where $M$ represents the masked tokens; $C$ represents the context or surrounding tokens; $\theta^*$ represents the optimal model parameters; $\theta$ represents the model parameters being optimized; $\mathcal{D}$ represents the training data, where $(i, j)$ are pairs of sentences or sentence fragments; and $P(M | C; \theta)$ is the probability of predicting the masked tokens.
+
+During the self-supervised pre-training stage, we add a convolutional decoder module on top of the convolutional transformer encoder to decode the input EEG signals. The input is the sentence-level EEG signals masked with different strategies and the output is the sentence-level EEG signals reconstructed by the CNN decoder. Specifically, we compared three different masking strategies for the sentence-level EEG signals as follows:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Masked Token Prediction} \cite{bert}: randomly masking 15\\item \textbf{Continuous Masked Token Prediction} \cite{spanbert}: randomly masking a sequence of consecutive tokens until a total of 15\\item \textbf{Re-Masked Token Prediction }\cite{roberta}: re-randomizing the masking of 15\\end{itemize}
+
+It is important to highlight that our self-supervised pre-training step allows for seamless integration of EEG data from diverse tasks, including image recognition. In our experiments, we further incorporated an image EEG dataset \cite{imageeeg} during pre-training, aiming to showcase the model's adaptability to EEG signals from multi-modal data and explore the potential for enhanced translation performance through the combination of EEG signals from diverse data modalities.
+
+The goal of this pre-training step is to have the convolutional transformer learn meaningful concepts such as context, relationships, and semantics present in sentence-level EEG signals during this pre-training process. After pre-training, the parameters are saved and used as the initial parameters for the final multi-view transformer model.  
+
+
+
+\begin{table}[t]
     \centering
+    \small
+    \begin{tabular}{m{11em}|m{14em}}
+    \toprule 
+    \multirow{1}{*}{Approximate Brain Areas} 
+     & Corresponding Electrodes\\
+     \midrule
+     \multirow{1}{*}{Prefrontal Cortex} 
+     & E6, E12, E5, E11, E16, E15, E20, E118, E24, E124, E26, E2, E27, E123 E3, E4, E23, E19, E22, E9, E10, E18, E28, E33, E117, E122\\
+     \midrule
+     
+    \multirow{1}{*}{Premotor Cortex} 
+     & CZ, E7, E106, E105, E104, E115, E114, E120, E110, E116, E121, E111, E112, E109, E13, E30\\
+     \midrule
+
+    \multirow{1}{*}{Broca's Area} 
+     & E29, E36, E35, E34\\
+     \midrule
+     
+    \multirow{1}{*}{Auditory Association Area} 
+     & E40, E38, E39, E43, E44, E46, E57, E58, E64\\
+     \midrule
+    \multirow{1}{*}{Primary Motor Cortex} 
+     & E31, E80, E55, E37, E87, E93, E103, E102, E108\\
+     \midrule
+    \multirow{1}{*}{Primary Sensory Cortex} 
+     & E54, E79, E61, E78, E62, E53, E86, E92, E98, E100, E101\\
+     \midrule
+    \multirow{1}{*}{Somatic Sensory Cortex} 
+     & E67, E77, E71, E72, E76, E66, E84, E60, E85\\
+     \midrule
+    \multirow{1}{*}{Auditory Cortex} 
+     & E59, E91, E97, E51\\
+     \midrule 
+     
+    \multirow{1}{*}{Wernicke's Area} 
+     & E41, E42, E52, E47, E45, E50\\
+     \midrule     
+    \multirow{1}{*}{Visual Area} 
+     & E65, E69, E70, E74, E75, E82, E83, E89, E90, E95, E96\\
+     \midrule     
+    \end{tabular}
+            \caption{Ten channel groups and their corresponding approximate brain areas.}
+    \label{tab:electreodes mapping}
+
+\end{table}
+
+
+\subsection{Multi-View Transformer for Different Spatial Regions of the Brain}
+Another important feature of our model is the novel multi-view transformer decoder architecture we introduced that encodes different regions of the brain with a different convolutional transformer  (Figure \ref{fig:main figure}). The multi-view transformer model takes into account the fact that different brain regions potentially play different roles in language processing. This spatial modeling therefore can improve the model performance, but has been overlooked in previous work.
+
+
+We partition the 105 channels into ten groups based on their spatial location under the guidance of functional brain regions (Table \ref{tab:electreodes mapping}). Specifically, we compared the spatial distribution of 105 electrodes with the spatial distribution of functional brain regions and mapped each electrode to its closest brain region. Details of the electrode spatial distribution can be found in \cite{hollenstein2018zuco}.
+
+After the partition of the electrodes, we create a multi-view transformer model including ten convolutional transformers at the bottom level, where each convolutional transformer encodes the EEG signals from the electrodes in that region. On top of the ten convolutional transformers, we add a global transformer to unify the information from different brain regions. The combined information from the global transformer is further fed into the BART model for text decoding. 
+
+In summary, the multi-view transformer envisions multiple parallel convolutional transformer models where each captures different aspects of EEG signals combined from different spatial regions of the brain regions. This approach enhances the spatial resolution of the model and further improves the text decoding performance.
+
+
+
+
+\section{Experiment}
+\subsection{Experimental Setup}
+\paragraph{Dataset}
+
+We utilize both the Zuco \cite{hollenstein2018zuco} and Image-EEG \cite{imageeeg} datasets for pre-training and use Zuco to train the multi-view transformer and BART model for text decoding. Details of both datasets are listed below.
+\begin{itemize}[leftmargin=*]
+    \itemsep0em
+    \item \textbf{Zuco} \cite{hollenstein2018zuco} contains EEG and eye-tracking data from 12 healthy adult native English speakers engaged in natural English text reading for 4 - 6 hours. This dataset covers two standard reading tasks and a task-specific reading task, offering EEG and eye-tracking data for 21,629 words across 1,107 sentences and 154,173 fixations. We pre-process the data to extract both word-level and sentence-level features to serve as input to our model.
+    \item \textbf{Image-EEG} \cite{imageeeg} is a large and rich dataset containing high temporal resolution EEG signals of images of objects on natural backgrounds. The dataset included 10 participants, each performing 82,160 trials across 16,740 image conditions.
+\end{itemize}
+
+
+\paragraph{Baselines}
+We compare \our with two baseline models for open-vocabulary EEG-to-text translation.
+\begin{itemize}[leftmargin=*]
+    \itemsep0em 
+    \item \textbf{Baseline} \cite{DBLP:journals/corr/abs-2112-02690} uses word-level EEG signals as input to a transformer model followed by a pre-trained BART model for decoding.
+    \item \textbf{DeWave} \cite{duan2023dewave} introduces a discrete codex encoding after the transformer layer, and uses both word-level EEG features and the raw EEG signals as input. 
+\end{itemize} 
+
+
+\paragraph{Evaluation Metrics} 
+We utilize BLEU-1, BLEU-2, BLEU-3, BLEU-4, and ROUGE-1 evaluation metrics to compare the performance of \our with the baselines. 
+
+
+The BLEU-N scores (N = 1, 2, 3, 4) are used to measure the quality of the generated text, with higher values indicating better performance.
+\begin{equation}
+\text{BLEU} = \text{BP} \cdot \exp\left(\sum_{n=1}^{N} w_n \cdot \log\left(\frac{\text{count}_{\text{clip}, n}}{\text{count}_{\text{ref}, n}}\right)\right),
+\end{equation}
+where \text{BLEU} represents the BLEU score; \text{BP} represents the brevity penalty; $N$ represents the max n-gram order; $w_n$ represents the n-gram weights; $count_{clip, n}$ represents count of candidate n-grams in reference and $count_{ref, n}$ represents count of reference  n-grams.
+
+ROUGE-1 scores, which include F (F1-score), P (precision), and R (recall), are used to evaluate the overlap between generated text and reference text. 
+
+\begin{equation}
+\text{ROUGE-1} = \frac{\sum_{\text{ref}} \sum_{\text{1-gram}} \min(\text{match}, \text{ref})}{\sum_{\text{ref}} \sum_{\text{1-gram}} \text{ref}},
+\end{equation}
+where \text{ROUGE-1} represents the ROUGE-1 score; \text{match} represents the count of matching 1-gram; \text{ref} represents the count of 1-gram.
+
+
+\begin{table}[t]
+    \centering
+    \scriptsize
+    \begin{tabular}{c c c}
+        \toprule
+         \textbf{Methods} &  \textbf{Batch Size} & \textbf{Learning Rate}  \\ \midrule
+
+         \our (Convolutional Transformer) & 4 & $1\times 10^{-5}$ \\ \midrule
+        \our (+ Pre-training) & 4 & $5\times 10^{-5}$ \\ \midrule
+         \our (+ Multi-View Transformer) & 4 & $3\times 10^{-5}$ \\ \bottomrule
+    \end{tabular}
+        \caption{Optimal hyper-parameters for \our ablations.}
+    \label{tab:hyper_params}
+\end{table}
+
+
+\begin{table*}[t]
+  \centering
+    \begin{tabular}{c cccc ccc}
+    \toprule
+     \multirow{2}{*}{\textbf{Methods}} &
+     \multicolumn{4}{c}{\textbf{BLEU-N}} & \multicolumn{3}{c}{\textbf{ROUGE-1}} \\
+     & N = 1 & N = 2 & N = 3 & N = 4 & F & P & R\\     \midrule  
+      Baseline \cite{DBLP:journals/corr/abs-2112-02690}  &  0.401 & 0.231  & 0.125 & 0.068 &  0.301 & 0.317 & 0.288  \\
+      DeWave \cite{duan2023dewave} &  0.413  & 0.241 & 0.139 & 0.082 & 0.288 & 0.337 & 0.306 \\
+    \midrule
+      \our (Convolutional Transformer) & 0.400 & 0.236 & 0.137 & 0.082 & 0.325 & 0.361 & 0.297 \\
+    \our (+ Pre-training)  & 0.445	& 0.274	&0.175&	0.117&	0.341&	0.383&	0.310\\
+    \our (+ Multi-View Transformer) & \textbf{0.452} & \textbf{0.291} & \textbf{0.197} & \textbf{0.141} & \textbf{0.342} & \textbf{0.369} & \textbf{0.320} \\ 
+        \bottomrule
+    \end{tabular}  \caption{Performance comparison of \our with baseline methods.}
+    \label{tab:our result}\end{table*}
+
+
+\begin{table*}[t]
+  \centering
+    \begin{tabular}{c cccc ccc}
+    \toprule
+     \multirow{2}{*}{\textbf{Methods}} &
+     \multicolumn{4}{c}{\textbf{BLEU-N}} & \multicolumn{3}{c}{\textbf{ROUGE-1}} \\
+     & N = 1 & N = 2 & N = 3 & N = 4 & F & P & R\\     \midrule  
+          Spectrogram + Transformer   &  0.386 & 0.220  &  0.121 & 0.067  &  0.306 & 0.342 &  0.306\\
+    Spectrogram + Convolutional Transformer & 0.374 & 0.209 & 0.112 & 0.061 &  0.302 & 0.339 &  0.274 \\
+
+      EEG signal + Convolutional Transformer &  \textbf{0.400} & \textbf{0.236}  &  \textbf{0.137} & \textbf{0.082} &  \textbf{0.325} & \textbf{0.361} & \textbf{0.297} \\
+        \bottomrule
+    \end{tabular}      \caption{Ablation study of different input formats of the EEG signals.}    
+  \label{tab:cnn ablation}\end{table*}
+
+
+\paragraph{Parameter Study}
+We used four A40 GPUs as our computing infrastructure and each training epoch took about 40 minutes.
+The optimal hyper-parameters for our results are listed in Table \ref{tab:hyper_params}. The value ranges of each hyper-parameter are listed below:
+\begin{itemize}[leftmargin=*]
+\itemsep0em 
+    \item Batch Size $\in \{4,8,16\}$
+
+      \item Learning Rate $\in \{$1$\times 10^{-6}$, $3\times 10^{-6}$, $5\times 10^{-6}$, $7.5\times 10^{-6}$, $8\times 10^{-6}$, $9\times 10^{-6}$, $1\times 10^{-5}$, $2\times 10^{-5}$, $3\times 10^{-5}$, $4\times 10^{-5}$, $5\times 10^{-5}$, $7.5\times 10^{-5}$, $1\times 10^{-4}$, $3\times 10^{-4}$, $5\times 10^{-4}$, $7.5\times 10^{-4}$, $1\times 10^{-3}$\}
+\end{itemize}
+
+
+\begin{table*}[t] 
+  \centering
+    \begin{tabular}{c cccc ccc}
+    \toprule
+     \multirow{2}{*}{\textbf{Methods}} &
+     \multicolumn{4}{c}{\textbf{BLEU-N}} & \multicolumn{3}{c}{\textbf{ROUGE-1}} \\
+     & N = 1 & N = 2 & N = 3 & N = 4 & F & P & R\\     \midrule  
     
-    \begin{subfigure}[b]{\columnwidth}
-        \centering
-        \includegraphics[width=\textwidth]{figs/phenomena/Metaphors.pdf}
-        \caption{Metaphors and Similes}
-        \label{fig:metaphors_similes}
-    \end{subfigure}
-    \hfill     \begin{subfigure}[b]{\columnwidth}
-        \centering
-        \includegraphics[width=\textwidth]{figs/phenomena/Humor.pdf}
-        \caption{Humor}
-        \label{fig:humor}
-    \end{subfigure}
-    \hfill     \begin{subfigure}[b]{\columnwidth}
-        \centering
-        \includegraphics[width=\textwidth]{figs/phenomena/Sarcasm_and_Idioms.pdf}
-        \caption{Sarcasm and Idioms}
-        \label{fig:sarcasm_idioms}
-    \end{subfigure}
+      Masked Token Prediction  &  0.409 & 0.242  &  0.141 & 0.087  & 0.325 & 0.357 & 0.300\\
+      Continuous Masked Token Prediction    &  0.411 & 0.243  & 0.137  & 0.078  &  0.319 & 0.352 & 0.294\\
+     Re-Masked Token Prediction & \textbf{0.431} & \textbf{0.260} & \textbf{0.157} & \textbf{ 0.098} & \textbf{0.330} & \textbf{0.361} & \textbf{0.306} \\
+        \bottomrule
+    \end{tabular}      \caption{Ablation study of different pre-training strategies of the EEG signals.}  
+  \label{tab:MLM ablation}\end{table*}
 
-    \caption{Performance of the models by phenomenon.}
-    \label{fig:byPhen}
-\end{figure}
 
-\section{Annotator Recruitment and Compensation}
+\begin{table*}[t]
+  \centering
+    \begin{tabular}{c cccc ccc}
+    \toprule
+     \multirow{2}{*}{\textbf{Methods}} &
+     \multicolumn{4}{c}{\textbf{BLEU-N}} & \multicolumn{3}{c}{\textbf{ROUGE-1}} \\
+     & N = 1 & N = 2 & N = 3 & N = 4 & F & P & R\\     \midrule  
+        Single-View without image-EEG   & 0.431 & 0.260 &  0.157 & 0.098 &  0.330 & 0.361 & 0.306 \\
+        Single-View with image-EEG &  0.445	& 0.274	&0.175&	0.117&	0.341&	0.383&	0.310\\
+        \midrule
+       Multi-View  without image-EEG &  0.442 & 0.277 & 0.179 & 0.121 & 0.335 & 0.365 & 0.311\\       Multi-View with image-EEG & \textbf{0.452} & \textbf{0.291} & \textbf{0.197} & \textbf{0.141} & \textbf{0.342} & \textbf{0.369} & \textbf{0.320} \\
+        \bottomrule
+    \end{tabular}      \caption{Ablation study of adding image-EEG data into pre-training.}  
+  \label{tab:image eeg result}\end{table*}
 
-All recruited annotators have significant background in figurative language understanding (having formal educational background in linguistics or literature). Annotators were recruited through Upwork platform. All are on fluent or native/bilingual level in English. All are fairly compensated with USD \$20 to \$25 per hour with self-reported time needed to complete the tasks.
+
+\begin{table*}[t]
+  \centering
+    \begin{tabular}{c cccc ccc}
+    \toprule
+     \multirow{2}{*}{\textbf{Methods}} &
+     \multicolumn{4}{c}{\textbf{BLEU-N}} & \multicolumn{3}{c}{\textbf{ROUGE-1}} \\
+     & N = 1 & N = 2 & N = 3 & N = 4 & F & P & R\\     \midrule  
+      Only Global Transformer   &  0.404	&0.238&	0.139&	0.084&	0.303	&0.335	&0.279\\
+      + One Convolutional Transformer &  0.436	&0.270&	0.168	&0.110&	 0.327	&0.363	&0.299\\
+      + Three Convolutional Transformers & \textbf{0.442} & \textbf{0.277} & \textbf{0.179} & \textbf{0.121} & \textbf{0.335} & \textbf{0.365} & \textbf{0.311} \\         \bottomrule
+    \end{tabular}      \caption{Ablation study of different training strategies of the multi-view transformer.} 
+  \label{tab:multi view result 1}\end{table*}
+
+
+\begin{table*}[t]
+    \centering
+    \begin{tabular}{m{1em}|m{35em}}
+    \toprule 
+     
+     \multirow{3}{*}{(1)} 
+     & Ground Truth:  It's not a particularly \textbf{good film}, but neither is it a \textbf{monsterous} one.\\
+     \cmidrule{2-2}
+     & Baseline Output: was a a bad \textbf{good} story, but it is it \textbf{bad bad}. one.\\
+    \cmidrule{2-2}
+     & \our output: 's a a \textbf{great} romantic \textbf{movie}, but it is it the \textbf{disaster} movie one.\\
+     \midrule    
+     \multirow{3}{*}{(2)} 
+     & Ground Truth: He won a \textbf{Nobel Prize in Chemistry} in 1928\\
+     \cmidrule{2-2}
+     & Baseline Output: was the Pulitzer Prize for Literature in 18.  \\
+    \cmidrule{2-2}
+     & \our Output: won \textbf{Nobel Prize in Chemistry} for 1901 \\
+     \midrule
+          \multirow{3}{*}{(3)} 
+          & Ground Truth: The book was awarded the 1957 \textbf{Pulitzer Prize for Biography}.\\
+     \cmidrule{2-2}
+     & Baseline Output: first is published the Pulitzer \textbf{Pulitzer Prize} for Fictionography.  \\
+    \cmidrule{2-2}
+     & \our Output: book is a \textbf{Pulitzer Prize for Biography}. \\
+    \bottomrule
+    \end{tabular}
+        \caption{Case study of the output sentences comparing \our and the baseline method \protect\cite{DBLP:journals/corr/abs-2112-02690}.}
+    \label{tab:generation_results}
+\end{table*}
+
+
+\subsection{Results}
+
+\paragraph{Main Results}
+Table \ref{tab:our result} shows our main experimental results. 
+The baseline method \cite{DBLP:journals/corr/abs-2112-02690} achieves a moderate performance in text decoding with BLEU scores. DeWave \cite{duan2023dewave} slightly improved the performance across all metrics, demonstrating the effectiveness of discrete encoding. \our improved the text decoding performance by a large margin due to several technical innovations. First, a single convolutional transformer achieved slightly lower BLEU scores (BLEU-1: -1.3\Second, \our with pre-training further enhanced the BLEU scores (BLEU-1: +1.8\Third, \our with multi-view transformers achieved the highest scores across all metrics, with a significant increase in the BLEU scores (BLEU-1: \textbf{+3.9\
+\paragraph{Convolutional Transformer}
+We first compare different input representations of the EEG signals to see how the representation affects the performance of a base convolutional transformer model. In this ablation study, we compare the raw EEG signals with their spectrograms using the fast Fourier transform \cite{cochran1967fast} to convert the original one-dimensional time array into a two-dimensional time-frequency matrix. The results are shown in Table \ref{tab:cnn ablation}. Using the raw EEG as the input consistently led to better performance than using the spectrogram as the input. Because the spectrogram only keeps the magnitude information and ignores the phase information of the raw EEG signal, the superior performance of the raw EEG signal suggested that the phase information might be important for decoding. Therefore, the raw EEG signals are used as the input in our subsequent experiments.  
+
+\paragraph{EEG Pre-Training}
+We then conducted ablation experiments to compare the effectiveness of three pre-training strategies: 1) Masked Token Prediction \cite{bert}, 2) Continuous Masked Token Prediction, and 3) Re-Masked Token Prediction \cite{roberta}. The results are shown in Table \ref{tab:MLM ablation}.
+The Re-Masked Token Prediction \cite{roberta} exhibits the best performance among all the three masking strategies. 
+One potential reason is that the convolutional transformer model can learn more diverse semantic information by masking different tokens in each training epoch during pre-training.
+
+In the above study, we focused on identifying the optimal pre-training strategy among the three without incorporating image-EEG data \cite{imageeeg}. As an additional component, we introduced image-EEG data to assess the compatibility of our model with EEG signals from multi-modal inputs. Leveraging our self-supervised pre-training strategy, we directly incorporated image-EEG data into the pre-training phase to enable the model to glean knowledge from diverse sources. The results, detailed in Table \ref{tab:image eeg result}, demonstrate that adding image-EEG data significantly enhances translation performance for both the single convolutional transformer and the multi-view transformer.
+
+\paragraph{Multi-View Transformer}
+Finally, we compare different training strategies of the multi-view transformer to demonstrate the effectiveness of the multi-view transformer and find the best training strategy. The image-EEG data was not included in this ablation study. Specifically, we compared three training strategies as follows:
+\begin{itemize}[leftmargin=*]
+\item \textbf{Only Global Transformer}: Fixing the parameters of all 10 convolutional transformer modules and training only the global transformer for text decoding.
+\item \textbf{Global Transformer + One Convolutional Transformer}: During each training epoch, train one convolutional transformer with the global transformer while fixing the parameters of the remaining nine convolutional transformers.
+\item \textbf{Global Transformer + Three Convolutional Transformers}: During each training epoch, train three convolutional transformers with the global transformer while fixing the parameters of the remaining seven convolutional transformers.
+\end{itemize}
+
+
+The results in Table \ref{tab:multi view result 1} demonstrate that activating three convolutional transformers together with the global transformer achieves the best performance.
+
+This suggests further improvement may be attainable by increasing the number of activated convolutional transformers during each training epoch if more GPU resources are available.
+
+
+
+
+\paragraph{Case Study}
+Table \ref{tab:generation_results} shows our case study results. 
+In the first sentence, the baseline model accurately translates "good," whereas \our, in addition, accurately captures the first half of the sentence with "movie" (synonymous with "film"). Additionally, \our correctly translates the second half of the sentence with "disaster movie" corresponding to "monstrous one" in the original sentence. 
+In the second sentence, \our accurately captured "won Nobel Prize in Chemistry," while the baseline produced incorrect information, stating "Pulitzer Prize" and the wrong field, "Literature."
+In the third sentence, both \our and the baseline correctly identified "book" and "Pulitzer Prize." However, \our, in addition, correctly identified the field as "Biography," while the baseline erroneously outputted "Fictionography."
+
+In addition, we conducted an interesting case study to show that \our has the ability of zero-shot image-to-text translation. Details can be found in Appendix \ref{sec:image-to-text}.
+
+
+\section{Related Work}
+\label{sec:bibtex}
+\paragraph{Brain Computer Interface}
+The landscape of brain-to-speech and brain-to-text decoding encompasses three principal approaches grounded in the features they capture: motor imagery-based, overt speech-based, and inner speech-based. These methods explore a variety of brain signals, including electroencephalogram (EEG), electrocorticography (ECoG), and functional magnetic resonance imaging (fMRI). Despite these endeavors, existing approaches exhibit limitations concerning vocabulary size, articulation dependence, speed, and device compatibility. Motor imagery-based systems, exemplified by point-and-click \cite{pandarinath2017high} mechanisms and imaginary handwriting \cite{willett2021high}, showcase high accuracy but modest typing rates. Overt speech-based techniques for decoding or synthesizing speech offer expedited communication rates. However, they require either physical vocal tract movement \cite{herff2015brain,anumanchipalli2019speech,makin2020machine} or mental articulation imagination \cite{moses2021neuroprosthesis,willett2023high}. This engenders language dependency and pronunciation variations across languages. Another line of research tackles articulation dependency by decoding imagined speech \cite{nieto2022thinking} or reading text \cite{sun2019towards,panachakel2021decoding}. 
+
+Our work follows this line of decoding reading text directly from EEG signals. 
+
+\paragraph{EEG-to-Text Decoding}
+Prior investigations into the decoding of EEG-to-text, as documented in the literature \cite{herff2015brain,sun2019towards,anumanchipalli2019speech,makin2020machine,panachakel2021decoding,moses2021neuroprosthesis,nieto2022thinking}, have demonstrated commendable accuracy when applied to limited and closed vocabularies. Nevertheless, these studies encounter challenges in attaining comparable levels of accuracy when confronted with more extensive and open vocabularies. New investigations have expanded their focus from closed-vocabulary EEG-to-text decoding to encompass open-vocabulary scenarios \cite{DBLP:journals/corr/abs-2112-02690,willett2023high,tang2023semantic,duan2023dewave}. The two research studies most similar to our work are a baseline method \cite{DBLP:journals/corr/abs-2112-02690} and DeWave \cite{duan2023dewave}. The baseline method proposes a framework utilizing transformer and pre-trained BART language models, which establish baseline performance of open-vocabulary EEG-to-text translation. DeWave employs a quantization encoder to derive discrete encoding and aligns it with a pre-trained language model for the open-vocabulary EEG-to-text translation.
+The limitations of both the baseline method and DeWave lie in their reliance on eye-tracking calibration for word-level EEG feature extraction that introduces error propagation and lacks generalizability to scenarios such as inner speech decoding. \our improves the open-vocabulary EEG-to-text translation performance as well as enhancing the generality by requiring only sentence-level EEG signals as input.
+
+
+
+\paragraph{EEG Encoding}
+It is a challenging problem to effectively encode the long and noisy EEG signals to facilitate subsequent decoding tasks. In Conformer \cite{song2022eeg}, the authors propose a compact convolutional transformer, named EEG Conformer, to encapsulate local and global features in a unified EEG classification framework. Specifically, the convolution module learns the low-level local features throughout the one-dimensional temporal and spatial convolution layers. The self-attention module is straightforwardly connected to extract the global correlation within the local temporal features. However, in the case of the Conformer model, the authors trained this model from scratch, whereas \our further incorporated pre-training and multi-view settings to enhance the text translation performance.
+
+\paragraph{EEG Pre-Training}
+Recent work, such as BrainBERT \cite{wang2023brainbert}, BENDR \cite{kostas2021bendr} and MAEEG \cite{maeeg}, has been done on EEG signal pre-training that greatly inspired \our. 
+
+BrainBERT converts intracranial recordings to spectrograms and uses spectrograms as input. BrainBERT then masks multiple continuous bands of random frequencies and time intervals from spectrograms and aims to reconstruct the original spectrogram. BENDR uses raw EEG signals as input. After a convolutional layer, the raw EEG signals are converted to embedding features. These embedding features are masked by using masked token prediction \cite{bert} and the reconstruction goal is the original embedding features.
+MAEEG uses raw EEG signals as input and masks the embedding features of the convolutional layer generated with a masked token prediction as BENDR. However, MAEEG's reconstruction goal is the raw EEG signals. \our directly masks the raw EEG signals with the pre-training objective to reconstruct the raw EEG signals. \our also experimented with various masking strategies and incorporated EEG signals for the pre-training process.
+
+
+\section{Conclusion}
+
+In this work, we proposed a novel EEG-to-text decoding model, \our that takes raw EEG signals as input and leverages EEG pre-training and a multi-view transformer to enhance the decoding performance. \our achieved superior performance for open-vocabulary EEG-to-text decoding. Future work includes expanding the model's capabilities to EEG signals from diverse multi-modal data.
+
+\clearpage
+
+\section*{Ethics Statement}
+Given our current methodology design, we believe that no significant ethical concerns are likely to arise. We have diligently used openly accessible datasets and models, enhancing transparency and accessibility in our study on EEG signal processing - a task gaining attention in Brain-Computer Interface (BCI) research.
+
+However, it is crucial to note that our architectural framework relies on the pre-trained model, BART, which may make biased decisions influenced by its pre-training data. While our experiments have not shown explicit performance issues due to biases, we must recognize that this observation may be limited to the specific dataset and pre-trained model we used. It is essential to stay vigilant and continue exploring methods to mitigate and correct potential biases that could arise when using pre-trained models. 
+
+\bibliographystyle{named}
+\bibliography{eeg}
+
+
+\clearpage
+
+
+\appendix
+
+\section{EEG to Stectrogram}
+Figure \ref{fig:spec} shows a piece of EEG signals and its corresponding spectrogram.
+\setcounter{figure}{0}
+\renewcommand{\thefigure}{A\arabic{figure}}
+\begin{figure*}[t!]
+\centering
+\includegraphics[width=\linewidth]{figure/spec2.png}
+\vspace{-4mm}
+\caption {a piece of EEG signals and its corresponding Spectrogram}  
+\label{fig:spec}
+\end{figure*}
+
+
+\section{Zero-Shot Image-to-Text Translation}
+\label{sec:image-to-text}
+Figure \ref{car} and \ref{fish} show the zero-shot image-to-text translation results. We directly input the EEG signals of image-EEG data into the multi-view transformer model after training, and the output results are image-to-text translation results. The first image contains multiple cars, and the output accurately captures the "car" keyword. The second image contains a fish, and the output captures the "fish" keyword equally accurately.
+\begin{figure*}[t]
+     \centering
+     \begin{subfigure}[b]{0.4\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figure/car.jpg}
+         \caption{An image of car. The translation result of \our is: "alog,,. \textbf{car},,,,,,,,,,,,,,,,,,,,,,"}
+         \label{car}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.4\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{figure/fish.jpg}
+         \caption{An image of car. The translation result of \our is: "\textbf{fish},,... has,,,,,,,,,,,,,,,,,,,,,,,,,,"}
+         \label{fish}
+     \end{subfigure}
+     \caption{Zero-Shot Image-to-Text Translation.}
+    \label{image-to-text}
+\end{figure*}
+
+
 \end{document}
 

@@ -1,487 +1,325 @@
 \begin{document}
 \affiliation{$$_affiliation_$$}
-\title{On Risk-Sensitive
-Decision  \\ Making Under Uncertainty}
+\title{Analysis of market efficiency in main stock markets: using Karman-Filter as an approach
+}
 \maketitle
-	\thispagestyle{empty}
-	\pagestyle{empty}
-	
-	
-\begin{abstract} 
-    This paper studies a {\em risk-sensitive} decision-making problem under uncertainty. It considers a decision-making process that unfolds over a fixed number of stages, in which a decision-maker chooses among multiple alternatives, some of which are deterministic and others are stochastic. The decision-maker's cumulative value is updated at each stage, reflecting the outcomes of the chosen alternatives. After formulating this as a stochastic control problem, we delineate the necessary optimality conditions for it. Two illustrative examples from optimal betting and inventory management are provided to support our theory.
+
+
+\begin{abstract}
+In this study, we utilize the Kalman-Filter analysis to assess market efficiency in major stock markets. The Kalman-Filter operates in two stages, assuming that the data contains a consistent trendline representing the true market value prior to being affected by noise. Unlike traditional methods, it can forecast stock price movements effectively. Our findings reveal significant portfolio returns in emerging markets such as Korea, Vietnam, and Malaysia, as well as positive returns in developed markets like the UK, Europe, Japan, and Hong Kong. This suggests that the Kalman-Filter-based price reversal indicator yields promising results across various market types.
 \end{abstract}
-	
-\vspace{3mm}
-\begin{IEEEkeywords}
-Stochastic Systems, Decision Making Under Uncertainty, Risk-Sensitive Optimization, Variance Regularization. 
-\end{IEEEkeywords}
-	
-	
-\section{Introduction}\label{section: introduction}
-Optimal decision-making under uncertainty is critical across various disciplines, including engineering, management, economics, and finance. The standard approach to addressing this issue is by applying expected utility theory, which formulates the problem as stochastic programming; see \cite{shapiro2021lectures, bertsekas2012dynamic}.
 
 
-Early paradigms for this type of problem include expected utility theory in \cite{von2007theory}, the Markowitz mean-variance portfolio optimization \cite{Markowitz_1952},  Kelly's criterion \cite{Kelly_1956, thorp2006kelly}, and the prospect theory~\cite{kahneman1979prospect}. Subsequent studies have explored different aspects of this topic. For instance, \cite{kuhn2010analysis} analyzed the rebalancing frequency in log-optimal portfolio selection, \cite{wu2020analysis} examined the Kelly betting problem in a finite stage framework. Studies by \cite{luenberger1993preference, luenberger2013investment} investigated the foundations of using Expected Logarithmic Growth (ELG) and the variance of logarithmic growth as preferences in portfolio management problems. 
+\keywords{Kalman-Filter; Market efficiency}
 
 
-Further studies by \cite{algoet1988asymptotic, cover2006elements} delved into ELG portfolios and derived various optimalities. More recently, \cite{hsieh2020necessary, hsieh2023asymptotic} explored the frequency-dependent log-optimal portfolio and its asymptotic log-optimality. Then
-\cite{wong2023frequency} studied the frequency-dependent log-optimal portfolio problems with costs. A nonlinear control theoretic approach is considered in \cite{proskurnikov2023benefit}.
-However, these studies largely omitted an explicit focus on \textit{risk} within the optimization goal.
+\section{Introduction}
+\subsection{A Review of Short-term Reversal and Market Efficiency}
+Modern financial theory rests on the efficient market hypothesis (EMH), which assumes that investors are rational. Empirically, EMH has been challenged by some ``anomalies'', and with the rise of behavioral finance, the traditional ``market efficiency'' hypothesis has been called into question. Although stock trading should be based on stocks' intrinsic values, many investors act impulsively and detract from the market's efficiency. Noise trading and herding behavior are two examples of common irrational actions. It rejects the ``rational economic man'' assumed in conventional economic and financial research in favor of the more nuanced ``bounded rationality'' assumption and the individualization of investors.
+
+Mid-to long-term stock price overreaction was first noticed and proposed by DeBondt \& Thaler (1985)\cite{DeBondt1985} in the US stock market. They proposed momentum trading and reversal trading, and show that using the latter during an overreaction will lead to a positive stock return. Furthermore, for more than 40 years, the short-term return reversal has been a recognized phenomenon. According to Jegadeesh (1990)\cite{Jegadeesh1990}, a reversal strategy that buys and sells stocks based on their previous month's returns and holds them for a month produced profits of roughly 2\
+Some research attributed the inefficiency of the stock market due to the irrationality of retail investors. Generally speaking, institutional investors have more resources, more expertise, and easier access to transaction data than retail investors do. Due to institutional investors' higher herding behavior and feedback trading tendencies than individual investors, Dennis \& Strickland (2002)\cite{Dennist2002} showed that equities having a bigger fraction of fund holdings in the market tended to have higher returns. And groups of individual investors often create stock price swings, whereas institutional investors help to stabilize prices. Similar results were found in follow-up studies by Barber, Odean, and Zhu (2009)\cite{Barber09}.
+
+\subsection{ A Brief Overview of Market Efficiency of Emerging Markets}
+Much less research into EMH has been done in developing markets. Moreover, emerging markets are believed to have higher friction, lower liquidity, and asymmetric information due to less efficient information transmission and less reliable institutional information (Bekaert and Harvey, 2002\cite{Bekaert2002};Griffin, Kelly, and Nardari,2010\cite{Griffin2010}). Because of this information deficiencies in emerging nations, the newly established stock market is inefficient, and market efficiency generally follows the norms of dynamic evolution (Cornelius, 1993\cite{Cornelius1993}).
+
+Recently, only a few of studies have put EMH to the test in isolated emerging economies. However, limitations associated with small sample sizes render these investigations unconvincing. The Indian market was found to be inefficient by Hiremath and Kumari(2014)\cite{Hiremath2014}, although they also found that it was improving with time. For the Czech market, Arltova (2000)\cite{Arlt2000} employed variance ratio tests to disprove the random walk hypothesis. When Seth and Sharma (2015)\cite{Seth2015} examined the informational efficiency and integration of several markets in Asia and the US, they found weak inefficiencies. In an effort to reconcile behavioral finance and market efficiency, Xiong et al. (2019)\cite{Xiong2019} demonstrated that while the Chinese stock market is efficient, the "Adaptive Market Hypothesis" provides a more accurate representation of the market. To date, there has been a lack of specificity in the research on improving market efficiency.
+
+\subsection{The Basic Idea of Testing the Market Efficiency}
+According to the efficient market hypothesis (weak-form), stock prices fluctuate randomly or that it is impossible to forecast future prices based on historical data. Tests for independence are used to assess returns in order to assess this hypothesis. A martingale sequence is frequently used in probability theory to characterize a generalized random walk. The variance-ratio methodology (Charles and Darné, 2009\cite{Charles2009}), the autoregressive time series test (test of randomness including the runs test), and the unit root tests (Dickey–Fuller, Phillip Perron, Ng–Perron, Elliot–Rothernbert–Stock) have all been used in previous studies. 
 
 
-To this end, this paper studies a class of \textit{risk-sensitive} decision-making problems under uncertainty. The objective is composed of expected log-growth and variance of log-growth of the decision maker's account.
-We consider a decision-making process that unfolds over a fixed number of stages, where a decision-maker chooses among multiple alternatives, some of which are deterministic and others are stochastic. The decision-maker's accumulated value is updated at each stage based on the chosen alternatives. This problem is modeled as a stochastic control problem, aimed at maximizing a risk-sensitive objective function. 
-Furthermore, the paper provides the necessary optimality conditions for this problem.
+However, traditional tests perform very poorly, according to Monte Carlo studies by Elliot, Rothenberg, Stock (ERS), and NG–Perron, among others. Additionally, several studies addressed this by using a different test called BDS in order to properly study independently and identically distributed (IID) data, as traditional tests did not take into account the nonlinearity of the data (Broock et al., 1996\cite{Broock1996}).
+
+\subsection{Why We Choose Kalman Filter as a Test of Market Efficiency}
+There are several ongoing debates on how to best measure market efficiency, notwithstanding recent advances in this area. Beginning in the 1980s, academics began exploring the impact of investor behavior on market fluctuations. Shiller (1981)\cite{Shiller1981} noticed that S\&P 500 index's return changed whenever fresh information entered the market. With the phrase ``adaptive market hypothesis'' (AMH), Lo provided a novel explanation for efficiency in financial markets in 2004. According to Lo's theory, the market may take some time to adjust to changing conditions since investor behavior is not viewed as purely rational but rather as the result of a number of interrelated psychological elements (for examples, see Barber and Odean (2000)\cite{Barber2000} and Shleifer (2000)\cite{Shleifer2000}). Studies of investors' attitudes are a modern addition to this field of study.
+
+Following Lo's development of the idea, methods for examining market efficiency underwent modifications. It appears that perceptions of the degree of market efficiency have shifted as a result of advancements in machine learning information extraction algorithms and the accessibility of both quantitative and qualitative data, such as that found on social media. 
+
+As a result, it's possible that the confirmed markets' efficiency has since been verified. As a result, the field of finance has a wealth of literature devoted to modeling and forecasting financial time series using statistics and mathematics. The techniques employed range from traditional statistical and econometric approaches to more contemporary machine learning (ML) and evolutionary-based optimization strategies; see e.g. Kanas and Yannopoulos (2001)\cite{Kanas2001} and Rather et al. (2015)\cite{Rather2015}.
+
+Price fluctuations on a daily basis are viewed as a white-noise process, or Brownian motion, in terms of modern financial engineering principles. Because white noise is a random process in which successive values are independent of each other, it follows that daily price increases and decreases have an equal chance of occurring. In actuality, it is not unusual for a market item to experience a stream of consecutive down days or up days over a brief period of time. The prices are said to be correlated when such event occurs. Our goal is to employ a Kalman Filter on these correlations to foretell future price changes. We will build upon our prior work here by using a Kalman Filter in place of our previous simple one-day predictor. As used here, the Kalman Filter is a two-stage technique predicated on the assumption that the data contains a smooth trendline representing the true value of the market item before being affected by market noise. And this filter be used to forecast stock price movement. A previous paper by the author (Li X. and Li W., 2000)\cite{Li2001} has explored the evolution of China's stock market efficiency for the period between May 1992 and March 2000.
+
+\subsection{What We Have Found in the Data}
+In our analysis, we may begin by introducing the data and the fundamental concept of Karman Filter analysis. Next, we may present the results of evaluations of market efficiency on the major stock exchanges. Finally, for developed and emerging stock markets, the short-term and long-term adaptation of market efficiency.
+
+Test on Market Efficiency: After constructing portfolio from Kalman Filter model and checking backtest statistics, it is easy to verify that the Kalman Filter strategy doesn’t work in US but works well in emerging markets such as Korea, Malaysia and Vietnam. Meanwhile, the strategy performance decays significantly in UK, Europe, Japan, Hong Kong in recent years, which may indicate improvement of price discovery efficiency in those markets.
 
 
+\section{Data and methodology}
+We obtain the constituents of each stock exchange's main board index from WIND and the exchange official website. And we then obtain the stock price from Yahoo Finance. Exchanges characteristics are shown in \ref{table:1}.
+
+\begin{center}
+\begin{tabularx}{0.9\textwidth} { 
+  | >{\raggedright\arraybackslash}X 
+  | >{\centering\arraybackslash}X 
+  | >{\centering\arraybackslash}X 
+  | >{\centering\arraybackslash}X 
+  | >{\raggedleft\arraybackslash}X | }
+ \hline
+ country code & exchange type & main board index & number of stocks & data history \\
+ \hline
+ US  & DM & SPY  & 504 & 2017.01 - 2024.03  \\
+ UK  & DM & FTSE100  & 100 & 2017.01 - 2024.03  \\
+ EU  & DM & STOXX500  & 500 & 2017.01 - 2024.03  \\
+ JP  & DM & TOPIX2000  & 2159 & 2017.01 - 2024.03  \\
+ HK  & DM & HSCI+HSI  & 523 & 2017.01 - 2024.03  \\
+ KR  & EM & KOSPI1000  & 1000 & 2017.01 - 2024.03  \\
+ VN  & EM & VNX  & 415 & 2023.01 - 2024.03  \\
+ MY  & EM & MYX  & 95 & 2017.01 - 2024.03  \\
+ ESG  & EM & CB  & 168 & 2017.01 - 2024.03  \\
+\hline
+\end{tabularx}
+\smallskip
+\captionof{table}{Key Information of Stocks Exchanges.}
+\label{table:1}
+\end{center}
+
+\subsection{Dataset}
+We use Yahoo finance api to download stock market data (included open, high, low, close, volume) from 2018.01 to 2024.03. We have collected the market data for most comprehensive universe/main board index constituents for major developed markets (US, UK, Europe, Japan, Hong Kong), and emerging markets (Korea, Malaysia and Vietnam).
+
+\subsection{Karman Filter}
+The Kalman Filter is a recursive algorithm developed in the 1960s to estimate the future stage of a moving target by measuring its current position. When applied to financial market data, this technology transforms noisy price observations into a sequence of intrinsic value hidden states. This implies that the estimated result and the current observation alone can be used to calculate the estimate for the current state. It does not require any prior estimates or observations, in contrast to batch estimation techniques.
 
 
- The rest of the paper is organized as follows. Section~\ref{section: problem formulation} provides the problem formulation for the risk-sensitive decision-making problem. Section~\ref{section: main results} first presents an equivalent optimization problem.
-Then we provide rigorous proof for the necessary condition for the optimality of the problem. Subsequently, Section~\ref{section: Illustrative Examples} illustrates the optimality result with several numerical examples. Finally, Section~\ref{section: Concluding Remarks} provides concluding remarks and outlines potential future research directions.
+Two variables are used to represent the filter's state: 2) $P_{k|k}$, the a posteriori estimate covariance matrix (a measure of the estimated accuracy of the state estimate); 1) $X_{k|k}$, the a posteriori state estimate mean at time k given observations up to and including at time k. We will refer to the state transition matrix $F_k$, measurement matrix $H_k$, and observation variable $z_k$ for clarity's sake. 
+
+The alpha-beta filter and the Kalman-Filter share a similar algorithmic structure. Despite the fact that the Kalman-zFilter can only be expressed as one equation,the two stages that are typically considered to be involved are "Predict" and "Update." To be more precise, the predict phase creates an estimate of the state at the current timestep using the state estimate from the preceding timestep. 
 
 
- 
-	
- 
-\section{Problem Formulation}\label{section: problem formulation}	
-Consider a decision maker engaged in a decision-making process that unfolds over a fixed number of stages, denoted by $N>1$. 
-For $k=0,1,\dots, N-1$, a decision maker chooses among~$m \geq 2$ alternatives, with one being a deterministic option with a nonnegative payoff $r(k) \geq 0.$ That is, the outcome is certain and is treated as a degenerate random variable with value $r(k)$ for all $k$ with probability one. 
-Alternatively, if the~$i$th alternative is stochastic, we take~$X_i(k)$ as the random payoffs.
-We assume that the payoff vectors~$
-X(k):=\left[ X_1(k), \, X_2(k),\,  \dots, \,X_m(k) \right]^\top 
-$
-are i.i.d. and have a known distribution and have components $X_i(\cdot)$ which can be arbitrarily correlated. 
-These vectors have components satisfying
-$
-X_{\min,i}  \leq X_i(k) \leq X_{\max,i}
-$
-with predefined limits, where $-1 < X_{\min,i} < 0 < X_{\max,i} < 1$.
+The equation for (a priori) anticipated state estimation is:
+$$x_{k|k-1}  =F_{k}x_{k-1|k-1}+B_{k}u_{k}$$
+
+And the equation for (a priori) estimate covariance estimation is:
+
+$$P_{k|k-1}=F_{k}P_{k-1|k-1}F_{k}^{T}+Q_{k}$$
+
+This predicted state estimate is also referred to as the a priori state estimate since it is an estimate of the state at the current timestep but does not include observational data from the current timestep. During the update phase, the state estimate is refined by adding the innovation (the pre-fit residual) to the previous estimate and multiplying it by the optimal Kalman gain. The term "a posteriori state estimate" refers to this improved estimate that was obtained from the current observation.
 
 
-\subsection{Notation}
-    Throughout the paper, we take $\mathbb{R}$ to be the set of real numbers and $\mathbb{R}_{+}$ to be the set of nonnegative real numbers.
-    We denote by $\textbf{1}$ the vector with all components to be equal to~$1$ and denote by $ e_i \in \mathbb{R}^m $ to be the unit vector having~1 at the~$i$th component.
-    All random objects are defined in a probability space~$(\Omega, \mathcal{F}, \mathbb{P})$ with $\Omega$ being the sample space,~$\mathcal{F}$ being the information set, and $\mathbb{P}$ being the probability measure. 
-    For~$a,b \in \mathbb{R}^n$, the term $\langle a, b \rangle$ means the standard inner product~$a^\top b$.
+Where the estimation of Innovation or measurement pre-fit residual is:
+$$y_k=z_k-H_kx_{k|k-1} $$ 
+Innovation (or pre-fit residual) covariance $S_k$ can be estimated as:
+$$S_k=H_kP_{k|k-1}H_k^T+R_k $$
 
 
-
-\subsection{Linear Decision Policy}
-Take $V(k)$ to be the decision maker's accumulated value and the $i$th feedback gain 
-	$
-    K_i(k) \in [0, 1]
-	$
-represents the fraction of the account allocated to the~$i$th asset for~$i=1,\dots,m$. 
-Said another way,  the~$i$th controller is  a linear feedback of the form~$
-	u_i(k) = K_i(k) V(k).
-	$
-For each $k$, we take $K_i(k) := K_i$ and impose a unit simplex constraint
-	$$
-	K \in {\mathcal K} := \left\{K \in \mathbb{R}^{m}: K_i \geq 0 \text{ for all $i$}, \; K^\top \textbf{1} = 1 \right\}
-	$$
- which is readily verified as a convex set. 
+And the optimal Kalman gain $K_{k}$ can be calculated as 
+$$K_k = P_{k|k-1}H_k^TS_{k-1}$$. 
+In the update phrase, we will update a posteriori state using estimation below:
+$$x_{k|k}=x_{k|k-1}  +K_ky_k$$
+And the covariance matrix can be updated as:
+$$P_{k|k}=(I-K_kH_k) P_{k|k-1}$$
+Where the post-fit residual can be measured as: 
+$$y_{k|k}=z_k-H_kx_{k|k}$$
+The two stages usually happen in turn, with the update taking into account the observation and the prediction pushing the state forward until the following planned observation. In our estimation, the predicted stock price can be obtained from $x_{k|k-1}$ , and we assume that the noise coveriance matrix is identity matrix.
 
 
+\subsection{Model and Stock Return Forecast}
+For each day and each stock, we will feed the latest close price(C) to Karman-Filter model as observations, and we retrieve the true state value of today’s close ($C_{kalman}$). With the assumption that the next day stock price will mean revert to true state value, our stock return forecast for next day will hence be $(C- C_{kalman} )/((C+C_{kalman})*0.5)$.
+
+\subsection{Portfolio Construction}
+
+We will construct an equity long-short portfolio based off our return forecast. Firstly, in the portfolio construction stage, for each country, we will normalized our stock return forecast to guarantee mean zero and unit standard deviation. Then, we will daily re-balance our portfolio to make sure each stocks’ daily dollar position is proportional to normalized stock return forecast. Following these steps, we will run a portfolio based on our Kalman-Filter price reversal strategy, of which we will calculate simulated back-test statistics. 
 
 
-\subsection{Value Dynamics} 
-    Letting $n \geq 1$ be the number of steps between decisions,  at time~{$k=0$}, the decision-maker begins with initial account~$V_0 := V(0)$ and initial investment control~{$
-	u(0) = \sum_{i=1}^m K_i V_0
-	$}
-	and waits~$n$ steps. Then, when~{$k=n$}, the control is updated to be~$
-		u(n) = \sum_{i=1}^m K_i V(n).
-		$
-	
+\section{Results}
 
-The decision-maker starts with an initial accumulated value~$V(0)>0$. At each stage, the decision-maker chooses to allocate a fraction of the accumulated value to each of the~$m$ alternatives. This allocation is represented by the control gain~$K$, where each $K_i$ is the fraction of the accumulated value allocated to the $i$th alternative.
-For decision period~$n \geq 1$, the corresponding account value at stage $n$ is described by the stochastic recursion
-	$
-	V(n) =  \langle K, \mathcal{R}_n \rangle V_0 
-	$
-where $\langle K, \mathcal{R}_n \rangle$ represents the total return from all alternatives at stage $n$ with the random vector $\mathcal{R}_n$ having the $i$th component 
-	$$
-	\mathcal{R}_{n,i} := \prod_{k=0}^{n-1} (1+X_i(k)) 
-	$$
- for $i=1,2, \ldots, m$.
-It is readily seen that~{$\mathcal{R}_{n,i} > 0$} for all~$n \geq 1$.
-In the sequel, we may sometimes write $V(n; K)$ to emphasize the dependence on the feedback gain $K$. 
+We apply the Karman-Filter analysis to both developed and emerging stock markets, including the United States, the United Kingdom, Europe, Japan, Hong Kong, South Korea, Vietnam and Malaysia. Overall, the US market is the most efficient compared to other markets. The y-axis, $ROG(bps)$, represents the daily return on gross value in basis points. $T1$ indicates the daily return on next trading day, and $T_{j}$ means the daily return on $T+j$ trading day. Regardless long-term or short-term, we are unable to profit from the U.S. market. The United States, the United Kingdom, and Japan have the lowest returns, indicating that their markets are the most efficient. And Korea's returns are greater in the extended term. Surprisingly, Vietnam's return decreased over the next five trading days, but increased over the extended term. Despite Hong Kong's high stamp duty, its return is not as high as other stock markets, such as Vietnam and Korea.
 
-
- 
-
-
-\subsection{Risk-Sensitive Decision Making Problem}
-For any decision period~$n \geq 1$, we consider a  \textit{risk-sensitive} objective function,\footnote{In finance, a utility function $U$ is said to be \textit{risk-averse} if it is concave, continuous, and strictly increasing; see \cite{luenberger2013investment}. } see \cite{luenberger1993preference}, as follows:
-Take
-\begin{align} \label{eq: risk-sensitive objective}
-	{U_n^\rho}(K; X) 
-	&:= \frac{1}{n} \mathbb{E}\left[ \log \frac{V(n; K)}{V_0} \right] - \frac{\rho}{2n^2}\text{var}\left( \log \frac{V(n; K)}{V_0} \right)
-\end{align}
-where $\rho \geq 0$ is the \textit{risk-aversion} constant, which modulates the degree of risk sensitivity, with higher values of $\rho$ indicating a greater aversion to risk.
-Our goal is to solve the following stochastic control problem parameterized by feedback gain $K$:
-\begin{align} \label{problem: stochastic optimal control problem}
-    \begin{aligned}
-        &\sup_{K \in \mathcal{K}}\; U_n^\rho (K; X)\\
-        &{\rm s.t. } \; V(n) = \langle K, \mathcal{R}_n \rangle V_0 
-    \end{aligned}
-\end{align}
-with $\mathcal{R}_n = [\mathcal{R}_{n,1}, \dots, \mathcal{R}_{n,m}]^\top$ with $ \mathcal{R}_{n,i} = \prod_{k=0}^{n - 1} ( 1 + X_i(k) ) $ for $i \in \{1, 2, \dots, m \}$.
-That is, the decision-maker must balance the expected logarithmic return against the risk, represented by the variance of the logarithmic return.
-
-\begin{remark}\rm
-    It should be noted that Problem~\eqref{problem: stochastic optimal control problem} may be nonconvex since the log-variance quantity may not be convex. However, if the risk-aversion constant~$\rho =0$, then Problem~\eqref{problem: stochastic optimal control problem} reduces to the classical expected log-growth maximization problem, which generally forms a concave program; see \cite{maclean2011kelly,hsieh2023asymptotic}. Later in Section~\ref{section: Illustrative Examples}, we shall demonstrate some cases where the log-variance is indeed convex.
-\end{remark}
-
-
-\section{Main Results}\label{section: main results}
-This section first presents an equivalent problem and then provides the necessary conditions for the optimality of the problem.
- Indeed, the next lemma simplifies Problem~\eqref{problem: stochastic optimal control problem}.
-
-\begin{lemma} \label{lemma: equivalent risk-sensitive problem}
-For $n\geq 1$,
-    the risk-sensitive objective function~$U_n^\rho(K; X)$   satisfies
-    \begin{align*}
-	{U_n^\rho}(K; X) 
-	&= \frac{1}{n}\mathbb{E}\left[ \log \langle K, \mathcal{R}_n \rangle  \right] - \frac{\rho}{2n^2}\mathbb{E}\left[ \left( \log\langle K, \mathcal{R}_n \rangle  \right)^2 \right] \\
-	&\qquad + \frac{\rho}{2n^2}\left( \mathbb{E}\left[ \log\langle K, \mathcal{R}_n \rangle  \right] \right)^2.
-\end{align*} 
-\end{lemma}
-
-\begin{proof}
-We shall proceed with a straightforward calculation.
-Note that
-    \begin{align*}
-	{U_n^\rho}(K; X) 
-	&= \frac{1}{n} \mathbb{E}\left[ \log \frac{V(n)}{V(0)} \right] - \frac{\rho}{2n^2}\text{var}\left( \log \frac{V(n)}{V(0)} \right)  \\
-	&= \frac{1}{n}\mathbb{E}\left[ \log \langle K, \mathcal{R}_n \rangle \right] - \frac{\rho}{2n^2}\text{var}\left( \log \langle K, \mathcal{R}_n \rangle \right) \\
-	&= \frac{1}{n}\mathbb{E}\left[ \log \langle K, \mathcal{R}_n \rangle \right] - \frac{\rho}{2n^2}\mathbb{E}\left[ \left( \log \langle K, \mathcal{R}_n \rangle \right)^2 \right] \\
-	&\qquad + \frac{\rho}{2n^2}\left( \mathbb{E}\left[ \log \langle K, \mathcal{R}_n \rangle \right] \right)^2,
-\end{align*}
-which is desired.
-\end{proof}
-
-
- 
-
-
-While Problem~\eqref{problem: stochastic optimal control problem} may be nonconvex, see Appendix, the following lemma indicates that the necessary condition for optimality is possible to establish.
-
-
-
- 
-\begin{lemma}[Necessary Optimality Conditions] \label{Lemma: risk term}
-    If the feedback vector $K^* \in \mathcal{K}$ is optimal to the stochastic control problem
-\begin{align} 
-    \begin{aligned} \label{problem: risk-sensitive problem}
-        &\sup_{K \in \mathcal{K}}\; U_n^\rho (K; X)\\
-        &{\rm s.t. } \; V(n) = \langle K, \mathcal{R}_n \rangle V_0 
-    \end{aligned}
-\end{align}
-    then for~$i=1,2,\ldots,m$, we have
-    \begin{align*}
-        & \mathbb{E}\left[ \frac{ \mathcal{R}_{n,i} }{ \langle K^{*}, \mathcal{R}_n \rangle } \right] 
-        - \frac{\rho}{n} \mathbb{E}\left[ \log \langle K^{*}, \mathcal{R}_n \rangle \cdot \frac{\mathcal{R}_{n,i}}{ \langle K^{*}, \mathcal{R}_n \rangle } \right] \\
-        & +\frac{\rho}{n} \mathbb{E} \left[ \log \langle K^{*}, \mathcal{R}_n \rangle \right] \mathbb{E}\left[ \frac{\mathcal{R}_{n,i}}{\langle K^{*}, \mathcal{R}_n \rangle } \right] = 1, \text{ if $K_i^* > 0$ }
-    \end{align*}
-    \begin{align*}
-         & \mathbb{E}\left[ \frac{\mathcal{R}_{n,i}}{\langle K^{*}, \mathcal{R}_n \rangle } \right] - \frac{\rho}{n}\mathbb{E}\left[ \log \langle K^{*}, \mathcal{R}_n \rangle \frac{\mathcal{R}_{n,i}}{\langle K^{*}, \mathcal{R}_n\rangle} \right] \\
-        & +\frac{\rho}{n}\mathbb{E}\left[ \log \langle K^{*}, \mathcal{R}_n \rangle \right] \mathbb{E}\left[ \frac{\mathcal{R}_{n,i}}{ \langle K^{*}, \mathcal{R}_n \rangle } \right] \leq 1, \text{ if $K_i^* = 0$. }
-    \end{align*}
-\end{lemma}
-
-
-\begin{proof}
-  With the aid of Lemma~\ref{lemma: equivalent risk-sensitive problem},  we rewrite Problem~\eqref{problem: risk-sensitive problem} as an equivalent constrained minimization problem described as follows:
-    \begin{align*}
-        &\min_{K} -\mathbb{E}\left[ \log \langle K, \mathcal{R}_n \rangle \right] + \frac{\rho}{2n} \mathbb{E}\left[ (\log \langle K, \mathcal{R}_n \rangle )^2 \right] \\
-        &\qquad   -\frac{\rho}{2n}\left( \mathbb{E}\left[ \log \langle K, \mathcal{R}_n \rangle \right]\right)^2 \\
-        &{\rm s. t.} \; K^\top  \mathbf{1} - 1 = 0; \\
-        &\;\;\;\;\; -K^\top  e_i \leq 0, \; i=1,2, \ldots, m
-    \end{align*}
-    where $ e_i \in \mathbb{R}^m $ is unit vector having 1 at the $i$th component. Consider the Lagrangian
-    \begin{align*}
-        \mathcal{L}(K, \lambda, \mu)
-        &:= -\mathbb{E}\left[ \log \langle K, \mathcal{R}_n \rangle \right] + \frac{\rho}{2n} \mathbb{E} \left[ ( \log \langle K, \mathcal{R}_n \rangle)^2 \right] \\
-        &\qquad -\frac{\rho}{2n}\left( \mathbb{E}\left[ \log \langle K, \mathcal{R}_n \rangle \right] \right)^2 \\ & \qquad + \lambda (K^\top  \mathbf{1} - 1) - \mu^\top K.
-    \end{align*}
-Then the Karush-Kuhn-Tucker (KKT) Conditions implies that if $K^*$ is a local maximum then there exists a scalar~$\lambda \in \mathbb{R}^1$ and a vector $\mu \in \mathbb{R}^m$ with component $\mu_j \geq 0$ such that, for~$i=1,2, \ldots, m$,
-    \begin{align}
-        &-\mathbb{E}\left[ \frac{\mathcal{R}_{n,i}}{ \langle K^{*}, \mathcal{R}_n \rangle} \right] \left( 1 + \frac{\rho}{n}\mathbb{E}\left[ \log \langle K^{*}, \mathcal{R}_n \rangle \right] \right) \nonumber \\
-        &\qquad + \frac{\rho}{n}\mathbb{E}\left[ \log \langle K^{*}, \mathcal{R}_n \rangle \frac{\mathcal{R}_{n,i}}{\langle K^{*}, \mathcal{R}_n \rangle }  \right] +\lambda - \mu_i = 0 \label{eq:partial Ki (risk)} \\
-        & K^{*\top} \mathbf{1} - 1 = 0 \label{eq: partical lambda (risk)} \\
-        & \mu_i K_i^* = 0 \label{eq: Mu_i x Ki* = 0 (risk)}
-    \end{align}
-From Equation~\eqref{eq:partial Ki (risk)}, we obtain
-    \begin{align} \label{eq: Mu_i with lambda (risk)}
-        \mu_i 
-        &= -\mathbb{E}\left[ \frac{\mathcal{R}_{n,i}}{K^{*\top}\mathcal{R}_n} \right] \left( 1 + \frac{\rho}{n}\mathbb{E}\left[ \log \langle K^{*}, \mathcal{R}_n \rangle \right] \right) \nonumber \\
-        &\qquad +\frac{\rho}{n}\mathbb{E}\left[ \log \langle K^{*}, \mathcal{R}_n \rangle \cdot \frac{\mathcal{R}_{n,i}}{ \langle K^{*}, \mathcal{R}_n \rangle }  \right] +\lambda.
-    \end{align}
-for $i=1,2, \ldots, m$. Using the fact that $\mu_i K_i^* = 0$, for $i=1,2,\dots,n$, we take weighted sum of Equation~(\ref{eq: Mu_i with lambda (risk)}) and have
-    \begin{align*}
-        &\sum_{i=1}^m \mu_i K_i^* \\
-        &\quad = \sum_{i=1}^m K_i^* \left( -\mathbb{E}\left[ \frac{\mathcal{R}_{n,i}}{ \langle K^{*}, \mathcal{R}_n \rangle } \right] \left( 1 + \frac{\rho}{n}\mathbb{E}\left[ \log \langle K^{*}, \mathcal{R}_n \rangle \right] \right) \right) \\
-        &\quad + \sum_{i=1}^m K_i^* \left( \frac{\rho}{n} \mathbb{E} \left[ \log \langle K^{*}, \mathcal{R}_n\rangle \cdot \frac{ \mathcal{R}_{n,i} }{\langle K^{*}, \mathcal{R}_n \rangle}  \right] + \lambda \right) = 0. 
-    \end{align*}
-Since 
-$$
-\sum_{i=1}^m K_i^* \mathbb{E}\left[ \frac{\mathcal{R}_{n,i}}{\langle K^{*}, \mathcal{R}_n \rangle } \right] 
-= \mathbb{E}\left[  \frac{\langle K^{*}, \mathcal{R}_n \rangle }{\langle K^{*}, \mathcal{R}_n \rangle} \right] = 1, 
-$$
-and $\sum_{i=1}^m K_i^* = 1$, we obtain
-    \begin{align}
-        -1 - \frac{\rho}{n} \mathbb{E}\left[ \log \langle K^{*}, \mathcal{R}_n \rangle \right] + \frac{\rho}{n} \mathbb{E}\left[ \log \langle K^{*}, \mathcal{R}_n \rangle \right] +\lambda = 0.
-    \end{align}
-Thus, we have $\lambda=1$ and substitute it into Equation~(\ref{eq: Mu_i with lambda (risk)}). This tells us that for $i=1,2, \ldots, m$,
-    \begin{align*}
-        \mu_i 
-        &= -\mathbb{E}\left[ \frac{\mathcal{R}_{n,i}}{\langle K^{*}, \mathcal{R}_n \rangle } \right] \left( 1 + \frac{\rho}{n} \mathbb{E}\left[ \log \langle K^{*}, \mathcal{R}_n \rangle \right] \right) \nonumber \\
-        &\qquad + \frac{\rho}{n}\mathbb{E}\left[ \log \langle K^{*}, \mathcal{R}_n \rangle  \cdot \frac{\mathcal{R}_{n,i}}{\langle K^{*}, \mathcal{R}_n \rangle }  \right] + 1.
-    \end{align*}
-    The fact $\mu_i K_i^*=0$ implies that if $K_i^* > 0$, then $\mu_i = 0$ and
-    \begin{align*}
-        & \mathbb{E}\left[ \frac{\mathcal{R}_{n,i}}{ \langle K^{*}, \mathcal{R}_n \rangle } \right] 
-        - \frac{\rho}{n} \mathbb{E}\left[ \log \langle K^{*}, \mathcal{R}_n \rangle \cdot \frac{\mathcal{R}_{n,i}}{\langle K^{*}, \mathcal{R}_n \rangle } \right] \\
-        &\qquad + \frac{\rho}{n}\mathbb{E}\left[ \log \langle K^{*}, \mathcal{R}_n \rangle \right] \mathbb{E}\left[ \frac{\mathcal{R}_{n,i}}{\langle K^{*}, \mathcal{R}_n \rangle} \right] = 1.
-    \end{align*}
-    If $K_i^* = 0$, then $\mu_i \geq 0$, which implies that
-    \begin{align*}
-        & \mathbb{E}\left[ \frac{\mathcal{R}_{n,i}}{\langle K^{*}, \mathcal{R}_n \rangle } \right] - \frac{\rho}{n}\mathbb{E} \left[ \log \langle K^{*}, \mathcal{R}_n \rangle  \cdot \frac{\mathcal{R}_{n,i}}{\langle K^{*}, \mathcal{R}_n \rangle } \right] \\
-        &\qquad +\frac{\rho}{n}\mathbb{E}\left[ \log(K^{*\top}\mathcal{R}_n) \right] \mathbb{E}\left[ \frac{\mathcal{R}_{n,i}}{K^{*\top}\mathcal{R}_n} \right] \leq 1.
-    \end{align*}
-Hence, the proof is complete.    
-\end{proof}
-
-
-\begin{remark}\rm
-    While Lemma~\ref{Lemma: risk term} only provides necessary conditions for optimality, it is possible to construct an example that {\em extends} these to both necessary and sufficient conditions. For an illustration,  see Section~\ref{section: Illustrative Examples} to follow.
-\end{remark}
-
-
-
-
-\section{Illustrations} \label{section: Illustrative Examples}
-This section provides two examples to validate our findings on the impact of the risk-aversion coefficient. The first is on optimal betting and the second is on retail inventory management.
-
-
-\subsection{Optimal Betting}
-    We now provide an example in optimal betting and illustrate how the risk term~$\rho$ affects the optimal feedback vector~$K^*$. We consider a two-alternative decision-making process with one risk-less alternative having zero interest rate; i.e., $X_1(k)=0$ with probability one; and the other is a risky alternative with i.i.d. payoffs $X_2(k) \in \{ -\frac{1}{2},\frac{1}{2} \}$ with probability
-    $$
-    \mathbb{P}\left( X_2(k) = \frac{1}{2} \right) := p \in \left( \frac{1}{2}, \frac{3}{4} \right).
-    $$
-With this setting, the log-variance becomes
-\begin{align*}
-    v(K)
-    & := {\rm var}\left( \log \frac{V(n; K)}{V_0} \right) \\
-    & = \mathbb{E}\left[ \left( \log \langle K, \mathcal{R}_n \rangle  \right)^2 \right]  
-        - \left( \mathbb{E} \left[ \log\langle K, \mathcal{R}_n \rangle  \right] \right)^2\\
-    & = p (\log (1 + K_2/2))^2  + (1-p) \log (1- K_2/2 )^2  \\
-    & \qquad - (p \log (1 + K_2/2) + (1-p)\log (1 - K_2/2)^2.
-\end{align*}
-A lengthy but straightforward calculation leads to the second-order derivative of $v(K)$:
-\[
-\frac{\partial^2 v(K)}{ \partial K_2^2 } = \frac{16 p (1-p)  (2 + K_2 \log \frac{2 + K_2 }{2 - K_2} )}{ \left( K_2^2 - 4 \right)^2} \geq 0,
-\]
-which shows that the log-variance $v(K)$ is convex. Therefore, the risk-sensitive objective~\eqref{eq: risk-sensitive objective} becomes a concave function in~$K_2$, which implies that Problem~\eqref{problem: risk-sensitive problem} is a concave program. Therefore, Lemma~\ref{Lemma: risk term} becomes a necessary and sufficient condition for optimality.    
-Specifically, for~$n=1$, with the aids of Lemma~\ref{Lemma: risk term}, we have
-\begin{align*}
-        & \mathbb{E} \left[ \frac{ \mathcal{R}_{1,2} }{ \langle K^{*}, \mathcal{R}_1 \rangle } \right] - \rho\mathbb{E}\left[ \log \langle K^{*}, \mathcal{R}_1 \rangle \cdot \frac{ \mathcal{R}_{1,2} }{ \langle K^{*}, \mathcal{R}_1 \rangle } \right] \\
-        & + \rho \mathbb{E} \left[ \log \langle K^{*}, \mathcal{R}_1 \rangle \right] \mathbb{E}\left[ \frac{\mathcal{R}_{1,2}}{ \langle K^{*}, \mathcal{R}_1 \rangle } \right] = 1.
-    \end{align*}
-We define the left-hand side as a function of $p, K_2$, and $\rho$, call it $f(p, K_2, \rho)$. Then, a straightforward calculation leads to
-\begin{align*}
-    f(p, K_2, \rho)
-    & =-1 + \frac{2p}{1+K_2^*}-\frac{2p\rho\log( 1 + K_2^* )}{ 1 + K_2^*}\\
-    & + \frac{2p\rho\left( p\log(1 + K_2^*)+(1-p)\log(1-K_2^*)\right)}{1+K_2^*}\\
-    & =0.
-\end{align*}
-Note that, for example, if $\rho = 0$, the function $f$ has a zero-crossing solution $K_2^* = 2(2p - 1)$, which reduces to the classical Kelly's solution; see~\cite{Kelly_1956, hsieh2019contributions}.
-As a second example, if~$p=0.6$, then $K_2^*=0.4$ as $\rho = 0$. If we increase~$\rho$ to~$0.1$, we obtain the~$K_2^* \approx 0.3646$, slightly smaller than~$0.4$, implying that investors will reduce the weight as the risk aversion constant $\rho$ rises. 
-When $\rho$ rises from $0$ to $1$, $K_2^*$ falls by around $0.2$ to $0.2035$; see Figures~\ref{fig: small p} and \ref{fig: small p zoom in}.
-
-We also consider extreme cases such as $p = 0.75$ which yields~$K_2^* = 1$ when $\rho = 0$ and $K_2^* \approx 0.5643$ when~$\rho = 1$; see Figure~\ref{fig: large p zoom in}. From the cases discussed above, we find that~$K_2^*$ is negatively affected by $\rho$ and is more sensitive to $\rho$ as the probability of profiting becomes higher.
-
-
-\begin{figure}[h!]
+\begin{figure}[h]
     \centering
-    \includegraphics[width=1\linewidth]{figs/p=0.6_n=1.eps}
-    \caption{Optimal Feedback Gain $K_2^*$ for $\rho \in \{0, 0.1, 0.2, \dots, 1\}$ when $p=0.6$.}
-    \label{fig: small p}
+    \includegraphics[width=1.\textwidth]{fig_ver2/rog.png}
+    \caption{Country Portfolios ROG(return on gross) Plot}
+    \label{fig:rog}
 \end{figure}
 
-\begin{figure}[h!]
+Next, we calculate the stock return for each less efficient stock market to determine if there is a time trend in their daily return, where $execution1$ represents the return from the market open to T+1's market open, $execution2$ represents the return from the market close to T+1's market close, and $execution3$ represents the return from the market open to same day's market close. 
+Generally $execution3$ generates the lowest return among all, and $execution1$ generates the highest return. We use metrics like return on gross (ROG) and sharpe-ratio (SR) to compare strategy historical performance.
+
+
+Since the indication is the measurement of mean reversal to real value anticipated by Karman-Filter on noise price movements, from the images below. Several patterns are discernible.
+
+
+The three execution strategies all generate positive returns in all markets except for the US consistently after ignoring the returns from the COVID period, which shows that most markets are inefficient for the majority of the time. The first universal ``reversal collapse'' occurs in 2020.03, which is the start of COVID and most international long short hedge funds had major draw downs in the same period.
+
+
+Additionally, by observing each market separately, we may compare the effectiveness of the three strategies depending on their various execution techniques. $execution1$ approach is typically the most most difficult to execute in real financial markets because, during this open market period, the market is digesting a lot of overnight information in the opening auction, and the market capacity is the smallest when auction trading volume is taken into account. However, due to the lack of intra-day minute-level data, the $execution2$ approximation is a practical approximation of the real market because it accounts for 10\
+
+The various patterns in the worldwide markets shown below show that the US market \ref{fig:us} (ROG -0.12bps, SR -0.04) is the most effective because even in $execution1$ strategy, where the market capacity is the smallest, there is a tiny amount of room for arbitrage. 
+
+\begin{figure}[h]
     \centering
-    \includegraphics[width=1\linewidth]{figs/p=0.6_n=1_ZoomIn.eps}
-    \caption{Zoom In: Optimal Feedback Gain $K_2^*$ for $\rho \in \{0, 0.1, 0.2, \dots, 1\}$ When $p=0.6$.}
-    \label{fig: small p zoom in}
+    \includegraphics[width=1.\textwidth]{fig_ver2/US.png}
+    \caption{Strategy Backtest in USA}
+    \label{fig:us}
 \end{figure}
 
 
+And for Europe(ROG 1.15bps, SR 0.47) Fig\ref{fig:eu}, the United Kingdom(ROG 2.25bps, SR 0.75) Fig\ref{fig:uk}, Japan(ROG 2.32bps, SR 1.32) Fig\ref{fig:jp}, Hong Kong(ROG 1.29 SR 0.45) Fig\ref{fig:hk}, and ESG indexes(ROG 1.92, sr 0.69) Fig\ref{fig:esg}, we can see that the $execution1$ strategy hardly ever makes a profit while the $execution2$ strategy has a limited amount of room for arbitrage when the market capacity is smaller. And out of the four markets, Hong Kong and Japan are the most alluring due to the largest divergence between the $execution1$ and $execution2$ strategies, specifically the higher return of the $execution3$ strategy (green line), and the highest SR ratio among the four markets.
 
-\begin{figure}[h!]
+\begin{figure}[h]
     \centering
-    \includegraphics[width=1\linewidth]{figs/p=0.75_n=1_ZoomIn.eps}
-    \caption{Zoom In: Optimal Feedback Gain $K_2^*$ for $\rho \in \{0, 0.1, 0.2, \dots, 1\}$ When $p = 0.75$.}
-    \label{fig: large p zoom in}
+    \includegraphics[width=1.\textwidth]{fig_ver2/EU.png}
+    \caption{Strategy Backtest in Europe}
+    \label{fig:eu}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.\textwidth]{fig_ver2/UK.png}
+    \caption{Strategy Backtest in United Kingdom}
+    \label{fig:uk}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.\textwidth]{fig_ver2/JP.png}
+    \caption{Strategy Backtest in Japan}
+    \label{fig:jp}
+\end{figure}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1.\textwidth]{fig_ver2/HK.png}
+    \caption{Strategy Backtest in Hong Kong}
+    \label{fig:hk}
 \end{figure}
 
-\begin{remark} \rm
-    This example illustrates optimal betting and investment decisions and underlines its practical relevance. By illustrating how risk aversion $\rho$ influences the allocation of resources among different alternatives, we shed light on bridging theoretical models and real-world financial decision-making.  
-\end{remark}	
+Aside from that, the least efficient markets include those in Korea (ROG 9.33, SR 3.18) Fig\ref{fig:kr}, Vietnam(ROG 19.01, SR 2.73) Fig\ref{fig:vn}, Malaysia(ROG 12.76, SR 2.51) Fig\ref{fig:my} since there is still room for arbitrage in open auction, regular trading, and intraday trading. Overall, from the standpoint of efficiency, we can see that the market is becoming more efficient, even in developed countries.
 
-
-\subsection{Retail Inventory Management}  
-   As a second example, we consider an inventory management problem faced by a retail operation, illustrating the application of a decision-making framework with an uncertain variable demand. 
-    Specifically, the retail operation is confronted with the challenge of setting the inventory levels for two distinct categories, encapsulated by feedback gains $K_1$ and~$K_2:=1-K_1$ with~\(K_i \in [0, 1]\). These gains represent the proportion of the maximum possible inventory capacity \( I_{\max} \) units, for an upcoming sales period. These decisions are adjusted in anticipation of demand fluctuations, modeled as~$X_2(k) \sim {\rm Uniform}(-1, X_{\max})$ and $X_1(k) := 0$ with probability one. 
-    
-    The retailer's objective is to find the optimal feedback gain vector \(K\) that maximizes a risk-sensitive objective function~\eqref{problem: risk-sensitive problem}, integrating the expected logarithmic profits and the variance of these profits, with the risk aversion parameter~\( \rho \) modulating the influence of risk.
-
-Similar to the prior example, we first verify the convexity of the log-variance. To this end, define an auxiliary random variable $\mathcal{X}_{n,i} := \mathcal{R}_{n,i} -1$ for $i \in \{1,2\}$ and $n\geq 1$. Note that
-\begin{align*}
-    v(K)
-    &={\rm var}\left( \log \frac{V(n; K)}{V_0} \right) \\ 
-     &= \mathbb{E}[(\log (1+K_2 \mathcal{X}_{n,2})^2] 
-         - \mathbb{E}[\log (1+K_2 \mathcal{X}_{n,2})]^2\\
-    & = \int_{-1}^{(1 + X_{\max})^n-1} (\log (1+K_2 x))^2 f_{\mathcal{X}_{n,2}} (x)dx \\
-    &\qquad - \left( \int_{-1}^{(1+X_{\max})^n-1}  \log (1+K_2 x)f_{\mathcal{X}_{n,2}} (x)dx \right)^2.
-\end{align*}
-where $f_{\mathcal{X}_{n,2}}$ is the probability density function of induced payoff~$\mathcal{X}_n$ obtained in Proposition~\ref{proposition: Erlang compound return} in Appendix.
-
-To illustrate, we take $I_{\max} = 1000$ units, symmetric demand volatility $X_{\max} = 1 = -X_{\min}$, risk-aversion constant~$\rho = 1/2$, and~$n \geq 1 $,
-Figure~\ref{fig: Convexity of the Log-Variance} shows the second-order derivative of the log-variance under various $n \in \{1, 5, 10\}$, which is readily seen that $v(K)$ is a convex function; hence, Problem~\eqref{problem: risk-sensitive problem} is a concave program and Lemma~\ref{Lemma: risk term} becomes necessary and sufficient conditions. Moreover, by Lemma~\ref{Lemma: risk term}, with $n=5$, we obtain $K_1^*=1$ and $K_2^*=0$.
-
-
-\begin{figure}[h!]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=1\linewidth]{figs/management_example_logvar_convexity_erlang.eps}
-    \caption{Convexity of the Log-Variance: $\frac{\partial^2 v(K)}{\partial K_2^2}$ Versus $K_2$.}
-    \label{fig: Convexity of the Log-Variance}
+    \includegraphics[width=1.\textwidth]{fig_ver2/KR.png}
+    \caption{Strategy Backtest in Korea}
+    \label{fig:kr}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.\textwidth]{fig_ver2/VN.png}
+    \caption{Strategy Backtest in Vietnam}
+    \label{fig:vn}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.\textwidth]{fig_ver2/MY.png}
+    \caption{Strategy Backtest in Malaysia}
+    \label{fig:my}
+\end{figure}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1.\textwidth]{fig_ver2/ESG.png}
+    \caption{Strategy Backtest in ESG Index}
+    \label{fig:esg}
 \end{figure}
 
+\section{Conclusion and Discussion}
 
-\begin{remark} \rm
-    Leveraging a uniform distribution for initial demand fluctuations, which compound into an Erlang-based distribution, underscores the strategic advantage of predictive inventory management in uncertain environments. The optimization of \(K\) values based on this compounded demand model supports a {\em focused} policy, potentially prioritizing a single product category to manage risk and enhance returns effectively. 
-\end{remark}
-    
- 
+In this paper, we applied the Kalman-Filter analysis to test the market efficiency of major stock markets across developed and emerging markets. The key findings are:
 
+First, even in execution techniques with smaller market capacity, the Kalman-Filter approach does not yield appreciable gains, suggesting that the U.S. market is the most efficient. Although there is some degree of inefficiency in other established markets, such as the UK, Europe, Japan, and Hong Kong, the execution2 strategy—which is based on closing the market close to the next day's close—generates statistically positive returns albeit tiny ones. With greater return divergences across various execution techniques, Hong Kong and Japan stand out. All three execution strategies show significant return premiums for emerging countries, such as Korea, Vietnam, and Malaysia, suggesting a higher degree of market inefficiency in these areas.
 
-\section{Concluding Remarks} \label{section: Concluding Remarks}
-    In this paper, we have introduced and examined a new risk-sensitive decision-making model under uncertainty, formulating the problem as a stochastic control problem and establishing necessary optimality conditions.
-    Illustrative examples are given to demonstrate the idea.
+Moreover, when returns of the Kalman-Filter approach is decreasing, particularly during times like the COVID-19 outbreak in 2020, there are indications that market efficiency is improving over time, even in the inefficient markets.
 
-    Our findings illuminate the intricate balance between maximizing expected log-growth and mitigating log-variance, providing a robust framework for decision-makers who face uncertain environments. This work has broad implications in financial sectors. Moreover, as seen in Section~\ref{section: Illustrative Examples}, the model's applicability extends beyond finance, offering valuable perspectives for risk management policies in sectors ranging from optimal betting to inventory management.
+Overall, the Kalman-Filter method looks at how asset prices mean-revert from their fundamental values, offering a fresh perspective on how to measure market efficiency overtime. And our findings suggest that while market efficiency varies across countries, emerging markets tend to be less efficient than developed ones.
 
-    Despite the contributions of this study, we recognize its limitations, including the i.i.d. assumptions on the stochastic alternatives. 
-    For future work, one possibility is to explore more generalized models that relax these assumptions, for example, dive into the \textit{variance-regularized} optimization problem, see~\cite{duchi2019variance}, and seek possible convex surrogates of log-variance so that it is possible to enhance computational tractability and near-optimality.  
-    Another interesting direction to pursue would be considering other practical constraints in the model such as risk limits~\cite{jorion2007value} or possible environmental and social constraints~\cite{eccles2014impact}.
+\appendix
 
- 
- \appendix
-\label{Induced Return:Uniform_Distribution}
-This appendix studies the probability density function for induced payoffs
-$\mathcal{X}_n := \prod_{k=0}^{n-1} (1+X(k)) -1 = \mathcal{R}_n - 1$
-where $X(k)$ are i.i.d. uniform distributed random variables on~$[ -1, X_{\max}]$ with $X_{\max} > 0$. 
+\bibliographystyle{elsarticle-num} 
+\bibliography{references}
 
 
-\begin{proposition} \label{proposition: Erlang compound return}
-    The probability density function for a random variable $\mathcal{X}_n := \prod_{k=0}^{n-1} (1+X(k)) -1  \in \mathbb{R}^1$ is as follows: For $ - 1 < z < \left( 1 + X_{\max } \right)^n - 1$, 
-\[
-f_{{\cal X}_n } \left( z \right) = \frac{1}{{{{(1 + {X_{\max }})}^n}\left( {n - 1} \right)!}}{\left( {\log \frac{{{{(1 + {X_{\max }})}^n}}}{{1 + z}}} \right)^{n - 1}};
-\]	
-Otherwise, $f_{\mathcal{X}_n}(z)=0.$
-\end{proposition}
-
- 
-
- The proof of the proposition above is established with the aid of the following lemma.
-
-\begin{lemma} \label{lemma: auxiliary lemma}
-    Let $X$ be a uniformly distributed random variable on $[-1, X_{\max}]$ with~$X_{\max} >0$. Define 
-	$$
-	Y := - \log \left( \frac{1 + X }{1+X_{\max}} \right).
-	$$ 
- Then $Y$ is exponentially distributed with parameter $\lambda=1$; i.e., $Y \sim \exp(1)$. 
-\end{lemma}
- 
-
-\begin{proof}
-    We begin with computing the cumulative distribution function (CDF) for $Y$. Note that $F_Y(y) = 0$ for all $y < 0$; therefore, it suffices to consider the CDF for $y \ge 0 $; namely,
-\begin{align*}
-	F_Y(y)
-	&= \mathbb{P} \left(  - \log \left( {\frac{{1 + X}}{1 + X_{\max } }} \right) \le y \right) 
-	\\ 
-	&= \mathbb{P}\left( {X \ge \left( {1 + {X_{\max }}} \right){e^{ - y}} - 1} \right)
-	\\ 
-	&= 1 - \mathbb{P}\left( {X \le \left( {1 + {X_{\max }}} \right){e^{ - y}} - 1} \right).
-\end{align*}
-Now note that for $y \ge 0$, 
-$$ - 1 \le \left( {1 + {X_{\max }}} \right){e^{ - y}} - 1 \le {X_{\max }}$$ 
-and since $X $ is uniform distributed on~$[-1, X_{\max}]$, we have
-\begin{align*}
-    F_Y(y)
-    & = 1 - \frac{{\left( 1 + X_{\max} \right){e^{ - y}} - 1 + 1}}{X_{\max } + 1}\\
-    &= 1 - e^{ - y},
-\end{align*}
-which is the CDF for an exponentially distributed with mean one; i.e., $Y \sim \exp(1).$
-\end{proof}   
 
 
- \begin{proof}[Proof of Proposition~\ref{proposition: Erlang compound return}] We begin with computing the cumulative distribution function~$F_{\mathcal{X}_n}(z)$ for $\mathcal{X}_n$. Note that~$F_{\mathcal{X}_n}(z)= 0$ for $z \le -1$; hence, it suffices to consider the CDF for~$z > -1$;~i.e.,
-\begin{align*}
-	F_{\mathcal{X}_n}(z)
-	&= \mathbb{P}\left( {\prod\limits_{k = 0}^{n - 1} {(1 + X(} k)) - 1 \le z} \right)
-	\\
-	&= \mathbb{P}\left( {\sum\limits_{k = 0}^{n - 1} {\log (1 + X(k))}  \le \log \left( {1 + z} \right)} \right).
-\end{align*}
-Using the identity 
-{\small 
-\[
-\sum_{k = 0}^{n - 1} {\log (1 + X(k))}  = \sum_{k = 0}^{n - 1} {\log \left( {\frac{{1 + X( k )}}{1 + X_{\max }}} \right)}  + n\log \left( {1 + {X_{\max }}} \right),
-\]
-}we have
-{\small \begin{align*}
- &\mathbb{P} ({\cal X}_n \le z) \\
-	&= \mathbb{P} \left( {\sum_{k = 0}^{n - 1} {\log \left( {\frac{{1 + X\left( k \right)}}{{1+X_{\max} }}} \right)}  + n\log \left( {1+X_{\max} } \right) \le \log \left( {1 + z} \right)} \right)
-	\\
-	&  = \mathbb{P} \left( {\sum_{k = 0}^{n - 1} Y (k) \ge n\log \left( 1 + X_{\max} \right) - \log \left( {1 + z} \right)} \right)
-\end{align*}
-}where
-$ Y(k) := - \log \left( \frac{1 + X( k )}{1+X_{\max}} \right)
-$
-for $k=0,1, \dots ,n-1$.
-Applying Lemma~\ref{lemma: auxiliary lemma}, it follows that $Y(k)\sim \exp(1)$. Furthermore, since the $Y(k)$ are i.i.d., using the fact that the sum of $n$ i.i.d. random variables with $\exp(1)$ is~$Erlang(n,1)$, see~\cite{gubner2006probability}, we have
-$
-E_n := \sum_{k=0}^{n-1} Y(k) \sim Erlang(n,1).
-$
-Now noting that $Erlang(n,1)$ has CDF $F_{E_n}(x) =0$ for $x \le 0$ and
-$
-F_{E_n}(x)= 1 - \sum_{k=0}^{n-1} \frac{x^k}{k!}e^{-x}
-$  
-for $x>0$. Hence, we have
-\begin{align*}
-	F_{\mathcal{X}_n}(z)
-	& = \mathbb{P}\left( { \sum_{k=0}^{n-1} Y(k)   \ge n\log \left( {1 + {X_{\max }}} \right) - \log \left( {1 + z} \right)} \right)
-	\\
-	& = \mathbb{P}\left( {\sum_{k=0}^{n-1} Y(k)  \ge \log \left( {\frac{{{ {\left( 1 + X_{\max } \right) }^n}}}{{1 + z}}} \right)} \right)
-	\\ 
-	&= 1 - \mathbb{P}\left( {\sum_{k=0}^{n-1} Y(k)   \le \log  {\frac{{{{\left( 1+X_{\max} \right)}^n}}}{{1 + z}}} } \right).
-\end{align*}
-Since for $-1 < z < (1+X_{\max})^n -1 $, we have
-\[\log \left( {\frac{{{{\left( {1 + {X_{\max }}} \right)}^n}}}{{1 + z}}} \right) > 0.
-\]
-Therefore, the corresponding CDF for $\mathcal{X}_n$ is given as follows: For $-1<z < {\left( {1 + X_{\max}} \right)^n} - 1$, we have
- $$
- F_{\mathcal{X}_n}(z ) =\frac{{1 + z}}{{{{\left( {1 + X_{\max}} \right)}^n}}}\sum_{k = 0}^{n - 1} {\frac{1}{{k!}}{{\left( {\log \left( {\frac{{{{\left( {1 + X_{\max}} \right)}^n}}}{{1 + z}}} \right)} \right)}^k}}
- $$
-otherwise, $F_{\mathcal{X}_n}(z ) = 0.$
-Thus, the associated probability density function is obtained by taking the derivative of the CDF above; i.e., For~${ - 1 < z < {{\left( {1 + {X_{\max }}} \right)}^n} - 1}$, we have
-\[{f_{{\cal X}_n } }\left( z \right) = \frac{1}{{{{(1 + {X_{\max }})}^n}\left( {n - 1} \right)!}}{\left( {\log \frac{{{{(1 + {X_{\max }})}^n}}}{{1 + z}}} \right)^{n - 1}}\]	
-otherwise, $f_{\mathcal{X}_n}(z)=0.$  
-\end{proof}
- 
 
-\bibliographystyle{ieeetr}
-\bibliography{refs}          
+
+
+\end{document}
+
+
+
+\lipsum[4] See Section \ref{sec:headings}.
+
+\subsection{Headings: second level}
+\lipsum[5]
+\begin{equation}
+\xi _{ij}(t)=P(x_{t}=i,x_{t+1}=j|y,v,w;\theta)= {\frac {\alpha _{i}(t)a^{w_t}_{ij}\beta _{j}(t+1)b^{v_{t+1}}_{j}(y_{t+1})}{\sum _{i=1}^{N} \sum _{j=1}^{N} \alpha _{i}(t)a^{w_t}_{ij}\beta _{j}(t+1)b^{v_{t+1}}_{j}(y_{t+1})}}
+\end{equation}
+
+\subsubsection{Headings: third level}
+\lipsum[6]
+
+\paragraph{Paragraph}
+\lipsum[7]
+
+\section{Examples of citations, figures, tables, references}
+\label{sec:others}
+\lipsum[8] \cite{kour2014real,kour2014fast} and see \cite{hadash2018estimate}.
+
+The documentation for \verb+natbib+ may be found at
+\begin{center}
+  \url{http://mirrors.ctan.org/macros/latex/contrib/natbib/natnotes.pdf}
+\end{center}
+Of note is the command \verb+\citet+, which produces citations
+appropriate for use in inline text.  For example,
+\begin{verbatim}
+   \citet{hasselmo} investigated\dots
+\end{verbatim}
+produces
+\begin{quote}
+  Hasselmo, et al.\ (1995) investigated\dots
+\end{quote}
+
+\begin{center}
+  \url{https://www.ctan.org/pkg/booktabs}
+\end{center}
+
+
+\subsection{Figures}
+\lipsum[10] 
+See Figure \ref{fig:fig1}. Here is how you add footnotes. \footnote{Sample of the first footnote.}
+\lipsum[11] 
+
+\begin{figure}
+  \centering
+  \fbox{\rule[-.5cm]{4cm}{4cm} \rule[-.5cm]{4cm}{0cm}}
+  \caption{Sample figure caption.}
+  \label{fig:fig1}
+\end{figure}
+
+\subsection{Tables}
+\lipsum[12]
+See awesome Table~\ref{tab:table}.
+
+\begin{table}
+ \caption{Sample table title}
+  \centering
+  \begin{tabular}{lll}
+    \toprule
+    \multicolumn{2}{c}{Part}                   \\
+    \cmidrule(r){1-2}
+    Name     & Description     & Size ($\mu$m) \\
+    \midrule
+    Dendrite & Input terminal  & $\sim$100     \\
+    Axon     & Output terminal & $\sim$10      \\
+    Soma     & Cell body       & up to $10^6$  \\
+    \bottomrule
+  \end{tabular}
+  \label{tab:table}
+\end{table}
+
+\subsection{Lists}
+\begin{itemize}
+\item Lorem ipsum dolor sit amet
+\item consectetur adipiscing elit. 
+\item Aliquam dignissim blandit est, in dictum tortor gravida eget. In ac rutrum magna.
+\end{itemize}
+
+
+\section{Conclusion}
+Your conclusion here
+
+\section*{Acknowledgments}
+This was was supported in part by......
+
+\bibliographystyle{unsrt}  
+\bibliography{references}  
+
 
 \end{document}

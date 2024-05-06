@@ -1,0 +1,586 @@
+\begin{document}
+\affiliation{$$_affiliation_$$}
+\title{The inclusive Synthetic Control Method}
+\maketitle
+\begin{abstract}
+We introduce the inclusive synthetic control method (iSCM), a modification of synthetic control type methods that allows the inclusion of units potentially affected directly or indirectly by an intervention in the donor pool. This method is well suited for applications with either multiple treated units or in which some of the units in the donor pool might be affected by spillover effects. Our iSCM is very easy to implement using most synthetic control type estimators.  As an illustrative empirical example, we re-estimate the causal effect of German reunification on GDP per capita allowing for spillover effects from West Germany to Austria.
+
+
+
+
+
+\end{abstract}
+\textbf{Keywords}: Synthetic Control Method, spillover effects, causal inference.\\
+\textbf{JEL classification}: C21, C23, C31, C33.
+
+\newpage
+
+\section{Introduction}
+
+
+The synthetic control method (SCM) introduced by \cite{Aba2003} and further developed in \cite{Aba2010} and \cite{Aba2015} allows the estimation of the causal effect of a policy intervention in settings where only a few treated and control units are observed over a long time period. The idea behind this method is to create a linear combination of control units that mimic what would have happened to the treated units in the absence of the intervention. The weights given to each control unit are chosen to minimize the distance in the pre-intervention characteristics of the treated and the synthetic control units. The causal effect of the intervention is then estimated as the difference between the observed outcome of the treated and that of the synthetic control in the post-intervention period. 
+One of the key assumptions of the SCM is that only units that are not affected by the interventions are included in the control group, often referred to as the donor pool. 
+This might be problematic in at least two scenarios: i) some of the treated units would ideally be included in the donor pool to improve the pre-intervention fit; ii) some of the control units are affected by the intervention indirectly but excluding them from the donor pool deteriorates the pre-intervention fit substantially. As a motivating example, consider the German reunification study by \cite{Aba2015} (see also \cite{Aba2020}). The authors point out it is possible that German reunification had spillover effects on neighboring countries such as Austria. As Austria receives a high weight (42\
+Our main contribution is to introduce the inclusive synthetic control method (iSCM), a novel procedure that allows us to eliminate post-intervention effects from control units and safely include them in the donor pool. We exploit the fact that the synthetic control weights are estimated only using pre-intervention data and no unit is treated in this period. Thus, when "potentially affected" units are added to the donor pool, the synthetic control unit becomes a weighted average of the outcomes of all the units in the donor pool and the effects of the intervention on "potentially affected" units, each weighted by their synthetic weights.
+This implies that comparing the "main treated" and its synthetic control version gives an estimate of the true effect minus the effects on other units, each weighted by their synthetic weights. If we create a synthetic control version of all "potentially affected" units (including the "main treated" unit in the respective donor pools) we can get an estimate of the true effects on those units plus the effects on other affected units (including the "main treated"), each weighted by their synthetic weights. This process yields a system of equations with "m" unknowns, comprising the treatment effect on the "main treated" unit and the "m-1" effects on "potentially affected" units which can be easily solved using Cramer's rule. This means that our procedure does not require any modification of the synthetic control estimator, and any alternative SC-type method which creates a synthetic control unit as a weighted average of the outcome of the units in the donor pool can be used instead (see, for example, \citealt{Aba2019}, \citealt{Amj2018}, \citealt{Ben2020}, \citealt{Ben2019}, \citealt{Dou2016}, \citealt{Fer2019}, \citealt{Kel2020},  \citealt{Xu2017}). In addition to the assumptions behind the particular SC-estimator chosen, our iSCM requires prior knowledge on which units can be ``potentially affected'' by the treatment.  
+Although iSCM only requires the existence of at least one "pure control" unit receiving non-zero weight,  our method becomes less reliable as the number of ``potentially affected'' units increases. Thus, it is advisable to impose assumptions that limit this number. This is in line with the literature on spillover effects, in which it is often assumed that interactions between units are only possible if they belong to a certain group, but no interactions are allowed between different groups (\citealt{Cer2017},  \citealt{For2018}, \citealt{Hub2019},  \citealt{Vaz2017}). This is also the case for the few extensions of the synthetic control method that allow for the presence of spillover effects.  \cite{Mar2019} propose reducing the donor pool to only units not affected by spillovers. They estimate the effects for the treated unit using a SCM with the restricted donor pool and the spillover effects by comparing units affected by spillover and the restricted donor pool. Their method is very effective in applications in which the restricted donor pool is sufficient to construct a ``good'' synthetic control. However, in a setting where including units affected by spillover in the donor pool improves the pre-intervention fit, as in the German reunification example, their method would likely produce less reliable results. \cite{Cao2019} provide a different identification and estimation strategy focusing more on the spillover effects structure.  In contrast, our approach can also be used in applications where one wants to include treated units in the donor pool. Another difference between the two approaches is that we allow for using any SC-type estimator as soon as the final estimator is based on a weighted average of the outcome of the units in the donor pool. Although our paper is related to the literature on spillover effects, our results also apply when there are multiple treated units and no spillover effects. Moreover, our identification relies on being able to observe the potential outcome under non-treatment of every unit in the pre-intervention period and it differs from the identification results in the spillover/peer effect literature.
+
+We provide a data-driven approach to check whether excluding "potentially affected" units from the donor pool can potentially lead to a large bias. Even in applications where the expected bias is small we still recommend using iSCM as a robustness check especially if the "potentially affected" units receive a high weight. 
+
+The rest of the paper is organized as follows: 
+Sections \ref{iscm} describe the iSCM; Section \ref{m=1} discuss the special case where there is only one "potentially affected" unit; Section \ref{biasm=1} compare the estimation errors of SCM and iSCM; in Section \ref{implementation} we compare iSCM and a "restricted" SCM and propose an implementation procedure; Section \ref{inference} suggests possible inference procedures; Section \ref{example} shows the results of the empirical application; and Section \ref{conclusion} concludes the paper.
+
+\section{The inclusive synthetic control method}\label{iscm}
+Assume we observe $j=1,...,J$ units for $t=1,...,T$ periods. For each unit $j$ at time $t$ we observe the outcome of interest $Y_{jt}$ and a set of $k$ predictors of the outcome $X_{1j},..., X_{kj}$, which often includes pre-intervention values of $Y_{jt}$. 
+We refer to the treated unit (unit $1$) as the "main treated". We also assume that the $J-1$ units in the donor pool, include $m< J-1$ units (units $2$ to $m$) that are directly or indirectly affected by the intervention (``potentially affected'' hereafter), i.e., they are either other treated units that we would like to include in the donor pool or control units that might be affected by spillover effects from the main treated. We refer to units $m+1$ through $J$, as "pure control" units and assume that they are not affected by the intervention at all. 
+We define the potential outcome  $Y_{1t}^I$ as the outcome that the "main treated" unit would obtain under the intervention at time $t$.  We define the potential outcome of "potentially affected" units $j$ at time $t$ as $Y_{jt}^S, j=2,\ldots,m$, which represents either the outcome of a unit "potentially affected" by spillover effects or simply the potential outcome under treatment if unit $j$ is a different treated unit.  
+Finally, we define $Y_{jt}^N, j=1,\ldots,J$ as the potential outcome in the absence of the intervention. 
+We assume that there are no anticipation effects together with the standard stable unit treatment value assumption (SUTVA) with the exception of the potential presence of spillover effects on units, who are chosen \textit{a priori}. This assumption can be formalized as
+\textbf{Assumption 1}: 
+\begin{itemize}
+	\item In the \textbf{pre}-intervention period, $Y_{jt}$=$Y_{jt}^N$ for all units.
+	\item In the \textbf{post}-intervention period, $Y_{jt}$=$Y_{jt}^N$ for the "pure control".
+	\item In the \textbf{post}-intervention period, $Y_{1t}$=$Y_{1t}^I$ for the "main treated".
+	\item In the \textbf{post}-intervention period, $Y_{jt}$=$Y_{jt}^S$ for the ``potentially affected units'' .
+\end{itemize}
+Assumption 1 may be restrictive in scenarios where it is unclear which units might be "potentially affected" by spillover effects. However, it is standard in contexts where the "potentially affected" units are other treated units.
+We are interested in the causal effect of the intervention on the "main treated" at time $t>T_0$, denoted by $\theta_{1t}$, and the causal effects on the other "potentially affected" units denoted by $\gamma_{jt}, j=2,\ldots, m, t>T_0$, defined as
+\begin{equation*}
+\theta_{1t}=Y_{1t}^I- Y_{1t}^N,\ \ \ \  t>T_0,\\ 
+\end{equation*}
+and
+\begin{equation*}
+\gamma_{jt}=Y_{jt}^S- Y_{jt}^{N}, \ \ \ \ j=2,\ldots, m, \ \ \ \ t>T_0.\\
+\end{equation*}
+To identify these causal effects, we need to recover $Y_{1t}^N$ and $Y_{jt}^N$ for  $j=2, \dots, m$ in the post-intervention period.\\
+Assume we use a SC-type estimator $\widehat{Y}_{1t}^N= \sum_{j=2}^J \widehat{w}_{j}Y_{jt}$, which estimates $Y_{1t}^N$ as a weighted average of the post-intervention outcomes of the units in the donor pool, e.g., the original SCM as described in \citet{Aba2010}. Let the $\left((J -1)\times 1\right)$ vector of weights $\widehat{W}=(\widehat{w}_{2}, \ldots , \widehat{w}_{J})'$ be the estimated weights of the chosen SC-type estimator that includes also the "potentially affected" units in the donor pool, under Assumption 1, $\forall \ t>T_0,$ we have
+
+\begin{eqnarray}
+\widehat{Y}_{1t}^N&=&\sum_{j=2}^J \widehat{w}_{j}Y_{jt}\notag,\\ &=&\sum_{j=m+1}^J \widehat{w}_{j}Y_{jt}+\sum_{j=2}^m \widehat{w}_{j}Y_{jt}\notag,\\
+&\underbrace{=}_{\textrm{Under Assumption 1}}&  \sum_{j=m+1}^J \widehat{w}_{j}Y^N_{jt}+\sum_{j=2}^m \widehat{w}_{j}Y^S_{jt}\notag,\\
+&=& \sum_{j=m+1}^J \widehat{w}_{j}Y^N_{jt}+\sum_{j=2}^m \widehat{w}_{j}\left(\underbrace{Y^N_{jt}+\gamma_{jt}}_{Y^S_{jt}}\right)\notag,\\
+&=&\sum_{j=2}^J \widehat{w}_{j}Y^N_{jt}+\sum_{j=2}^m \widehat{w}_{j}{\gamma_{jt}}\notag.
+\end{eqnarray}
+
+Therefore, under Assumption 1, we can decompose the estimation error\footnote{We will refer to the estimation error as bias hereafter. } of $\widehat{Y}_{1t}^N$, in two parts:
+\begin{eqnarray}
+Bias\left(\widehat{Y}_{1t}^N\right)=\widehat{Y}_{1t}^N-Y^N_{1t}=\left(\underbrace{\sum_{j=2}^J \widehat{w}_{j}Y^N_{jt}-{Y}_{1t}^N}_{B^1_{sc}}\right)+\left( \underbrace{\sum_{j=2}^m \widehat{w}_{j}{\gamma_{jt}}}_{B^1_{te}}\right)\label{ynmt}.
+\end{eqnarray}
+Similarly, consider a generic "potentially affected" unit  $i$, $i \in M\equiv [2, \ldots, m]$. Let $\widehat{L}^{i}$ the vector of weights estimated to create $\widehat{Y}_{it}^N= \sum_{j\neq i} \widehat{l}_{j}^{i}Y_{jt}
+$ a SC-type estimator of $Y_{it}^N$ that includes the "main treated" (unit 1), the other $m-1$ "potentially affected" units, as well as the $J-m$ "pure" control units in the donor pool. Assumption 1 implies that, $\forall \ i=2,\ldots,m, \ t>T_0$, we have
+
+\begin{eqnarray}
+\widehat{Y}_{it}^N&=& \sum_{j\neq i} \widehat{l}_{j}^{i}Y_{jt}\notag,\\&=&\sum_{j=m+1}^J \widehat{l}_{j}^{i}Y_{jt}+ \sum_{j \in M \backslash \{{i} \}}\widehat{l}_{j}^{i}Y_{jt} +\widehat{l}^{i}_{1}Y_{1t}\notag,\\
+&=& \sum_{j=m+1}^J \widehat{l}_{j}^{i}Y^N_{jt}+ \sum_{j \in M \backslash \{{i} \}} \widehat{l}_{j}^{i}Y^S_{jt}+\widehat{l}^{i}_{1}{Y^I_{1t}}\notag,\\
+&=& \sum_{j=m+1}^J \widehat{l}_{j}^{i}Y^N_{jt}+ \sum_{j \in M \backslash \{{i} \}} \widehat{l}_{j}^{i}\left(\underbrace{Y^N_{jt}+\gamma_{jt}}_{Y^S_{jt}}\right)+\widehat{l}^{i}_{1}{\left(\underbrace{Y^N_{1t}+\theta_{jt}}_{Y^I_{jt}}\right)}\notag,\\
+&=&\sum_{j\neq i}\widehat{l}_{j}^{i}  Y_{it}^N+ \sum_{j \in M \backslash \{{i} \}} \widehat{l}_{j}^{i}{\gamma_{jt}}+\widehat{l}^{i}_{1}{\theta_{1t}}\notag.
+\end{eqnarray}
+Therefore under Assumption 1 we can decompose the estimation error of $\widehat{Y}_{it}^N, i=2,\ldots,m$, in two parts:
+\begin{eqnarray}
+Bias\left(\widehat{Y}_{it}^N\right)=\widehat{Y}_{it}^N-Y^N_{it}=\left(\underbrace{\sum_{j\neq i}\widehat{l}_{j}^{i}  Y_{jt}^N-{Y}_{it}^N}_{B^i_{sc}}\right)+\left( \underbrace{\sum_{j \in M \backslash \{{i} \}} \widehat{l}_{j}^{i}{\gamma_{jt}}+\widehat{l}^{i}_{1}{\theta_{1t}}}_{B^i_{te}}\right), i=2,\ldots,m \label{ynpa}.
+\end{eqnarray}
+Looking at the bias decomposition in (\ref{ynmt}) and (\ref{ynpa}) it is clear that we have two distinct sources of bias. The first, $B^j_{sc}, j=1,\ldots,m$,  relates to how well the chosen SC-type estimators approximate the post-intervention counterfactual. This is the usual source of bias we encounter when using any SC-type estimator. The second, $B^j_{te}, j=1,\ldots,m$, is induced by the fact that we are using units that are "potentially affected" by the intervention in the donor pull. This type of bias solely depends on whether or not a given ("potentially affected") unit receives weight and its respective treatment effect but not on how "good" the chosen estimator is in recovering $Y_{jt}^N, j=1,\ldots,m$.   
+
+
+We will now assume that we have chosen a SC-type estimator to recover $Y_{1t}^N$ for which the first source of bias is negligible, formally
+\bigskip
+\begin{center}
+\textbf{Assumption 2}: The SC-type used to estimate $\widehat{W}$ satisfy $ \sum_{j=2}^J \widehat{w}_{j}{Y_{jt}^N}=Y_{1t}^N+o_p(1) $.
+\end{center}
+\bigskip
+
+We state Assumption 2 in terms of estimated weights without any loss of generality and simplify the discussion. Alternatively we can assume that the set of weights $\widehat{W}$ converges to a set of weights $W^*$ such that $\sum_{j=2}^J w^*_{j}{Y_{jt}^N}= Y_{1t}^N+ o_p(1)$. When using the original SC-estimator, Assumption 2 amounts to assuming an (approximately) perfect fit\footnote{see the discussion in \citet{Aba2020}, \citet{Fer2019}, and \cite{Pow2022} about the lack of a perfect fit.}. We state assumption 2 in very general terms as our results apply to any SC-type estimator that can be written as a weighted average of the control units post-intervention outcomes. For example, for the original SCM one can use the results in  \cite{Zha2022}, and state Assumption 2 accordingly.  Depending on the chosen estimator, one can state Assumption 2 more precisely. A non-exhaustive list of possible estimators includes the one proposed in: \citealt{Aba2019}, \citealt{Amj2018}, \citealt{Ben2020}, \citealt{Ben2019}, \citealt{Dou2016}, \citealt{Fer2019}, \citealt{Kel2020},  \citealt{Xu2017}.  
+  
+
+\paragraph{Lemma 1:} Under Assumption 1 and 2 
+\begin{equation}
+\widehat{\theta}_{1t}= \theta_{1t} - \sum_{j=2}^m \widehat{w}_{j}{\gamma_{jt}}+o_p(1)\notag.
+\end{equation}
+
+
+\paragraph{Proof of Lemma 1:}
+Under Assumption 1, we have
+\begin{eqnarray}
+\widehat{Y}_{1t}^N&=& \sum_{j=2}^J \widehat{w}_{j}Y^N_{jt}+\sum_{j=2}^m \widehat{w}_{j}{\gamma_{jt}}\notag.
+\end{eqnarray}
+Thus Assumption 2 immediately implies
+$$
+\widehat{\theta}_{1t} ={Y}_{1t}^I- \widehat{Y}_{1t}^N= \theta_{1t} - \sum_{j=2}^m \widehat{w}_{j}{\gamma_{jt}}+o_p(1).
+$$
+$\square$
+
+
+\paragraph{Remark 1:} It is important to notice that for each unit $j=2,\ldots,m$, if either  $\gamma_{jt}$ or $\widehat{w}_{j}$ is zero, that unit does not induce any extra bias in $\widehat{\theta}_{1t}$. This implies that units that receive a low estimated weight need to have an extremely large effect to induce a non-negligible bias in $\widehat{\theta}_{1t}$. For this reason, units that receive a low weight can be relatively safely treated as "pure controls" when estimating $\theta_{1t}$ in empirical applications.
+
+\paragraph{Remark 2:} When using SC-type estimators that allow for negative weights one needs to check the magnitude of the weights given to "potentially affected" units. For estimators that use a bias correction, one needs to subtract the estimated bias from the outcome of all units before running our iSCM (see equation (16) in \citealt{Aba2020}).
+
+
+
+
+In addition to Assumption 2, we assume that, $\forall \ i=2,\ldots,m$, we have chosen a SC-type estimator to recover $Y_{it}^N$ for which the bias $B_{sc}^i$ is negligible, formally 
+\bigskip
+\begin{center}
+\textbf{Assumption 3}: The SC-estimator chosen to estimate $\widehat{L}^{i}$ satisfy $\widehat{Y}_{it}^N= Y_{it}^N + o_p(1), \ \forall \ i=2,\ldots,m.$
+\end{center}
+\bigskip
+
+
+\paragraph{Lemma 2:} Under Assumption 1 and 3 
+\begin{equation}
+\widehat{\gamma}_{it}= \gamma_{it} - \sum_{j \in M \backslash \{{i} \}} \widehat{l}_{j}^{i}{\gamma_{jt}}- \widehat{l}_{1}^{i}{\theta_{1t}}+ o_p(1), \ \forall \ i=2,\ldots,m. \label{spill}
+\end{equation}
+
+
+\paragraph{Proof of Lemma 2:} Under Assumption 1 we have
+\begin{equation}
+\widehat{Y}_{it}^N=\sum_{j\neq i}  \widehat{l}^{i}_{j}Y_{jt}^N+ \sum_{j \in M \backslash \{{i} \}} \widehat{l}_{j}^{i}{\gamma_{jt}}+\widehat{l}^{i}_{1}{\theta_{1t}},
+\end{equation}
+with $M= \{2, ... , m\}$.
+Under assumption 3 it follows that
+$$
+\widehat{\gamma}_{it}=Y_{it}^I-\widehat{Y}_{it}^N= \gamma_{it} - \sum_{j \in M \backslash \{{i} \}} \widehat{l}_{j}^{i}{\gamma_{jt}}- \widehat{l}_{1}^{i}{\theta_{1t}}+ o_p(1), \ \forall \ i=2,\ldots,m.
+$$
+$\square$
+
+
+Combining the results of Lemma 1 and Lemma 2, and \textbf{ignoring the estimation biases} $B^j_{sc}, j=1,\ldots,m$,  without loss of generality, the following system of equations holds
+\begin{eqnarray*}
+\widehat{\theta}_{1t}&=&\theta_{1t} - \sum_{j \in M} \widehat{w}_{j}{\gamma_{jt}},\\
+\widehat{\gamma}_{2t}&=&\gamma_{2t} - \sum_{j \in M \backslash \{{2} \}}{\widehat{l}_{j}^{2}}{\gamma_{jt}} - \widehat{l}_{1}^{2}{\theta_{1t}},\\
+\widehat{\gamma}_{3t}&=&\gamma_{3t} - \sum_{j \in M \backslash \{{3} \}}{\widehat{l}_{j}^{3}}{\gamma_{jt}}- \widehat{l}_{1}^{3}{\theta_{1t}},\\
+&\ldots&\\
+\widehat{\gamma}_{mt}&=&\gamma_{jt} - \sum_{j \in M \backslash \{{m} \}}{\widehat{l}_{j}^{m}}{\gamma_{jt}}- \widehat{l}_{1}^{m}{\theta_{1t}}.
+\end{eqnarray*}
+
+After some simple manipulations, we obtain\footnote{One can add the biases $B^j_{sc}, j=1,\ldots,m$, on the left-hand side of each equation, however, they are negligible under assumptions 2 and 3. We show how these biases impact our iSCM estimator in the special case with $m=1$ in Section \ref{biasm=1} below. }:
+\begin{eqnarray*}
+\widehat{\theta}_{1t}&=&\theta_{1t} - \widehat{w}_{2}{\gamma_{2t}}- \widehat{w}_{3}{\gamma_{3t}}- \ldots - \widehat{w}_{m}{\gamma_{mt}},\\
+\widehat{\gamma}_{2t}&=&- \widehat{l}_{1}^{2}{\theta_{1t}} + \gamma_{2t} - \widehat{l}_{3}^{2}{\gamma_{3t}} - \ldots - \widehat{l}_{m}^{2}{\gamma_{mt}},\\
+\widehat{\gamma}_{3t}&=&- \widehat{l}_{1}^{3}{\theta_{1t}} - \widehat{l}_{2}^{3}{\gamma_{2t}}+ \gamma_{3t} - \ldots - \widehat{l}_{m}^{3}{\gamma_{mt}},\\
+&\ldots&\\
+\widehat{\gamma}_{mt}&=&- \widehat{l}_{1}^{m}{\theta_{1t}} - \widehat{l}_{2}^{m}{\gamma_{2t}} - \widehat{l}_{3}^{m}{\gamma_{3t}} - \ldots +{\gamma_{mt}}.
+\end{eqnarray*}
+
+This is a system of $m$ equations with $m$ unknowns, i.e., the  treatment effect on the "main treated" and the $m-1$ effects on the "potentially affected" units. 
+
+We can write this system in  matrix form, denoted by $\vartheta_t$ the ($m \times 1$) vector of unknown quantities (our effects of interest), by $\widehat{\Omega}$ the ($m \times m$) matrix of known quantities (our estimated weights) that has 1 on the main diagonal and by $\beta_t$ the ($m \times 1$) vector of known quantities (biased estimated effects), as 
+\begin{eqnarray}
+\widehat{\beta}_t=
+\begin{pmatrix}
+\widehat{\theta}_{1t} \\
+\widehat{\gamma}_{2t} \\
+\widehat{\gamma}_{3t} \\
+\vdots \\
+\widehat{\gamma}_{mt}\\
+\end{pmatrix}, \ \ \ \ \ \ \ \ \  
+\widehat{\Omega}=
+\begin{pmatrix}
+1 & - \widehat{w}_{2} & - \widehat{w}_{3} & \dots & - \widehat{w}_{m} \\
+- \widehat{l}_{1}^{2} & 1 & -\widehat{l}_{3}^{2} & \dots & -\widehat{l}_{m}^{2} \\
+-\widehat{l}_{1}^{3} & -\widehat{l}_{2}^{3} & 1 & \dots &  -\widehat{l}_{m}^{3} \\
+\vdots & \vdots & \vdots & \ddots & \vdots\\
+-\widehat{l}_{1}^{m} & -\widehat{l}_{2}^{m} & -\widehat{l}_{3}^{m} & \dots & 1 \\
+\end{pmatrix}, \ \ \ \ \ \ \ \ \  
+\vartheta_t=
+\begin{pmatrix}
+\theta_{1t} \\
+\gamma_{2t} \\
+\gamma_{3t} \\
+\vdots \\
+\gamma_{mt}\\
+\end{pmatrix}.\label{sye}
+\end{eqnarray}
+
+
+We now assume that $\widehat{\Omega}$ is invertible, namely
+
+\bigskip
+\begin{center}
+\textbf{Assumption 4}: $\widehat{\Omega}$ is non-singular.
+\end{center}
+\bigskip
+
+It is easy to show that $\widehat{\Omega}$ is always invertible, if $m< J-1$, except for the extreme cases in which two units give weight 1 to each other and/or every single weight associated with the "pure control" units is zero (see Appendix \ref{proofns}).
+
+We now state our main result in the following theorem.
+
+\paragraph{Theorem 1:} Under Assumptions 1, 2, 3, and 4, we have $$\widehat{\vartheta}^{iSCM}_t=\widehat{\Omega}^{-1}\widehat{\beta}_t= \vartheta_t+o_p(1) .$$
+\paragraph{Proof of Theorem 1:} The result immediately follows from lemma 1 and 2 and using the fact that under Assumption 4 $\widehat{\Omega}$ is invertible. $\square$
+
+
+The result in Theorem 1 can be readily used to identify our effects of interest by simply applying Cramer's rule: 
+\begin{equation*}
+\widehat{\vartheta}^{iSCM}_{jt} = \frac {\det(\widehat{\Omega}_{j,t})}{\det(\widehat{\Omega})}, \  j=1, ... , m.
+\end{equation*}
+where $\widehat{\Omega}_{j,t}$ is the matrix obtained by replacing the $j$-th column of $\widehat{\Omega}$ by the vector $\widehat{\beta}_t$.
+
+
+The expression above makes it very easy to construct estimators for our causal effects of interest that only require very basic linear algebra operations together with the preferred SC-type estimator for the weight matrix $\widehat{\Omega}$ and  the vector $\widehat{\beta}_t$. 
+\section{An example with a single "potentially affected" unit}\label{m=1}
+To further illustrate our results, it is useful to consider the special case in which, together with the "main treated" unit, only one additional unit is "potentially affected" by the intervention ($m=1$). First, we show the standard case and then the simplified case in which including the "main treated" in the donor pool of the "potentially affected" unit is not necessary. 
+
+
+With only one "potentially affected" unit, the system of equation defined in Section \ref{iscm}, again ignoring the estimation errors, simplifies to 
+
+\begin{align*}
+\widehat{\theta}_{t}&=\theta_{t} - \widehat{w}_{2}{\gamma_{t}},\\
+\widehat{\gamma}_{t}&=- \widehat{l}_{1}{\theta_{t}} + \gamma_{t}.
+\end{align*}
+
+
+where ($\widehat{\theta}_{t}$) is the estimated effect for the "main treated"; ($\widehat{\gamma}_{t}$) is the estimated effect for the "potentially affected" unit; ($\widehat{w}_{2}$) and ($\widehat{l}_{1}$) are the estimated weights; ($\theta_{t}$) and ($\gamma_{t}$) are the unknown effects.
+
+
+Therefore, we have
+\begin{align*}
+\widehat{\beta}_t=
+\begin{pmatrix}
+\widehat{\theta}_{t} \\
+\widehat{\gamma}_{t} \\
+\end{pmatrix}, \    
+\widehat{\Omega}=
+\begin{pmatrix}
+1 & - \widehat{w}_{2}  \\
+- \widehat{l}_{1} & 1 \\
+\end{pmatrix}, \   
+\vartheta_t=
+\begin{pmatrix}
+\theta_{t} \\
+\gamma_{t} \\
+\end{pmatrix}.
+\end{align*}
+
+To derive expressions for our estimators, we need to find  $\det(\widehat{\Omega})$, $\det(\widehat{\Omega}_{1,t})$, and $\det(\widehat{\Omega}_{2,t})$, which are given by
+\begin{align*}
+\det(\widehat{\Omega})=
+\begin{vmatrix}
+1 & - \widehat{w}_{2}  \\
+- \widehat{l}_{1} & 1 \\
+\end{vmatrix} 
+= 1-\widehat{w}_{2}\widehat{l}_{1},
+\end{align*}
+
+\begin{align*}
+\ \ \det(\widehat{\Omega}_{1,t})=
+\begin{vmatrix}
+\widehat{\theta}_{t} & - \widehat{w}_{2}  \\
+\widehat{\gamma}_{t} & 1 \\
+\end{vmatrix} 
+= \widehat{\theta}_{t}+\widehat{w}_{2}\widehat{\gamma}_{t},
+\end{align*}
+
+\begin{align*}
+\det(\widehat{\Omega}_{2,t})=
+\begin{vmatrix}
+1 & \widehat{\theta}_{t} \\
+- \widehat{l}_{1} & \widehat{\gamma}_{t}\\
+\end{vmatrix}
+= \widehat{\gamma}_{t}+\widehat{l}_{1}\widehat{\theta}_{t}.
+\end{align*}\\
+
+Following Cramer's rule, we obtain
+\begin{equation}
+\widehat{\theta}^{iSCM}_{t}= \frac {\widehat{\theta}_{t}+\widehat{w}_{2}\widehat{\gamma}_{t}}{1-\widehat{w}_{2}\widehat{l}_{1}},\label{tiscm}
+\end{equation}
+
+\begin{equation*}
+\widehat{\gamma}^{iSCM}_{t}= \frac {\widehat{\gamma}_{t}+\widehat{l}_{1}\widehat{\theta}_{t}}{1-\widehat{w}_{2}\widehat{l}_{1}}.
+\end{equation*}
+
+In this case, it is easy to see that $\det(\widehat{\Omega})$ is always different from zero, except when $\widehat{w}_{2}$ = $\widehat{l}_{1}= 1$. Thus, our effects of interest are always identified unless the "main treated" gives weight 1 to the other "potentially affected" unit, which in turn gives weight 1 to the "main treated". This would be the case, for example, if there are no "pure control" units.
+
+An interesting special case is when we do not need to include the "main treated" in the donor pool of the "potentially affected" unit.
+In this case, the system of equations further simplifies to
+\begin{align}
+\label{simp}
+\widehat{\theta}_{t}&=\theta_{t} - \widehat{w}_{2}{\gamma_{t}},\\
+\widehat{\gamma}_{t}&= \gamma_{t}.
+\end{align}
+Thus, estimating  $\theta_t$ and $\gamma_t$ becomes substantially easier.
+
+\section{Bias comparison between iSCM and SCM for $\bm{m=1}$}\label{biasm=1}
+So far we have ignored the estimation biases $B_{sc}^i$. 
+When $m=1$, $$Bias\left(\widehat{\theta}_{t}\right)=-B_{sc}^1-\widehat{w}_{2}\gamma_t.$$
+
+We can derive the bias of $\widehat{\theta}^{iSCM}_{t}$ by adding those biases into equation (\ref{tiscm}) 
+
+\begin{eqnarray*}
+Bias\left(\widehat{\theta}^{iSCM}_{t}\right)&=& \frac {\widehat{\theta}_{t}+\widehat{w}_{2}\widehat{\gamma}_{t}}{1-\widehat{w}_{2}\widehat{l}_{1}}-\theta_t,\\
+&=&\frac {\theta_t-B_{sc}^1-\widehat{w}_{2}\gamma_t+\widehat{w}_{2}\gamma_t-\widehat{w}_{2}B_{sc}^2-\widehat{w}_{2}\widehat{l}_{1}\theta_t}{1-\widehat{w}_{2}\widehat{l}_{1}}-\theta_t,\\
+&=&\frac {-B_{sc}^1-\widehat{w}_{2}B_{sc}^2}{1-\widehat{w}_{2}\widehat{l}_{1}}.
+\end{eqnarray*}
+
+The bias of $\widehat{\theta}_{t}^{iSCM}$ approaches zero as the estimation biases $B_{sc}^1$ and $B_{sc}^2$ approach zero. In contrast, if we include "potentially affected" units, $Bias\left(\widehat{\theta}_{t}\right) =- \widehat{w}_{2}\gamma_t$, even when $B_{sc}^1$ approaches zero.
+
+Note that $Bias\left(\widehat{\theta}^{iSCM}_{t}\right)$ is proportional to $-B_{sc}^1 - \widehat{w}_{2}B_{sc}^2$ by a factor of $a = \frac{1}{1 - \widehat{w}_{2}\widehat{l}_{1}} > 1$. To compare the two biases, we can express $Bias\left(\widehat{\theta}^{iSCM}_{t}\right)$ as $-aB_{sc}^1 - a\widehat{w}_{2}B_{sc}^2$ and compare each term with the one of the bias of $Bias\left(\widehat{\theta}_{t}\right)$ which is  $-B_{sc}^1 - \widehat{w}_{2}\gamma_t$. Clearly, the first term of $Bias\left(\widehat{\theta}^{iSCM}_{t}\right)$, $-aB_{sc}^1$, is larger in magnitude than the first term of $Bias\left(\widehat{\theta}_{t}\right)$, $-B_{sc}^1$. We can easily determine the exact difference by calculating $a$. For example, in our application where $\widehat{w}_{2} = 0.42$ and $\widehat{l}_{1} = 0.33$, $a \approx 1.16$. Thus, $-aB_{sc}^1$ is about 16\
+In case it is not necessary to include the "main treated" in the donor pool of the "potentially affected" unit, we have
+$$
+Bias\left(\widehat{\theta}^{iSCM}_{t}\right)=-B_{sc}^1 - \widehat{w}_{2}B_{sc}^2.
+$$
+Thus, as soon as we have chosen a SC-type estimator such that its bias ($B_{sc}^2$) is smaller in magnitude than its target parameter ($\gamma_t$), $\widehat{\theta}^{iSCM}_{t}$ will always be smaller than $\widehat{\theta}_{t}$.
+
+
+\section{iSCM vs "restricted" SCM}\label{implementation}
+When using SC-type estimators, it is advisable to include in the donor pool units with similar characteristics and those possibly affected by similar shocks as the treated unit. Often, these units are either directly or indirectly affected by the intervention. For instance, it is likely that other treated units or units "potentially affected" by spillover effects are the closest (geographically and/or economically) to the "main treated" unit. For example, \cite{Aba2020} proposes including units "potentially affected" by spillover in the donor pool, even if they induce a bias.
+
+Indeed, discarding "potentially affected" units could substantially decrease the match quality between the characteristics of the treated and the synthetic control, as those units are typically the closest to the treated. Therefore, choosing between our iSCM and a "restricted" version of SCM, where "potentially affected" units are excluded, depends on the importance of the excluded units in creating the synthetic control. 
+
+In the Appendix's Section \ref{why}, we demonstrate that iSCM may be superior to a "restricted" SCM even in scenarios where both "main treated" and "potentially affected" units are within the "pure control" units' convex hull. In this scenario, a "restricted" SCM will potentially work, however, if the “potentially affected” units are the closest to the “main treated”, excluding them might increase interpolation bias. Additionally, we explore cases more common in empirical settings, where either or both the "main treated" and "potentially affected" units fall outside the convex hull.
+
+To understand whether we expect a large bias by excluding "potentially affected" units, before implementing our iSCM, we advise taking the following steps to assess the potential gains of using our method instead of running a "restricted" SCM. When the SC-type estimator used is the one proposed by \cite{Aba2010}, we suggest following the procedure described below before adopting our method.
+
+
+
+
+\begin{enumerate}
+    \item Implement SCM, including units "potentially affected" by the intervention (i.e., other treated units or units affected by spillovers).
+\end{enumerate}
+\begin{itemize}
+\item If all "potentially affected" units receive low or zero weights, they induce a negligible bias and can be used as "pure controls" in a SCM.
+\item If some of the "potentially affected" units receive high weights, proceed with step 2.
+\end{itemize}
+\begin{enumerate}\setcounter{enumi}{1}
+    \item Implement the ``restricted'' SCM, i.e., excluding units "potentially affected" by the intervention and:
+\begin{enumerate}
+\item Compare the bias in terms of predictors ($X_1-X_0\widehat{W}$) between the ``restricted'' SCM and the ``unrestricted'' SCM;
+\item Compare Root Mean Squared Prediction Errors (RMSPEs) in the pre-intervention period of the ``restricted'' SCM and ``unrestricted''  SCM.
+\begin{equation*}
+RMSPE=\left( \frac{1}{T_{0}}\sum_{t=1}^{T_{0}} \left(Y_{1t} - \sum_{j\neq1}\widehat{w}_jY_{jt}\right)^2\right)^{1/2}.
+\end{equation*}
+\end{enumerate}
+\end{enumerate}
+\begin{itemize}
+\item If ($X_1-X_0^{res}\widehat{W}^{res})\approx (X_1-X_0\widehat{W}^{unres}$) and $RMSPE^{res}\approx RMSPE^{unres}$, we advise using the ``restricted'' SCM as main specification and iSCM as a robustness check\footnote{Alternatively, one could divide the pre-intervention period into a training period and a validation period, estimate the two models during the training period, and compare their RMSPEs in the validation period. Note that the "restricted" SCM does not have by construction an RMSPE that is greater than or equal to that of the "unrestricted" one, see for example Section \ref{example}.}.
+\item If ($X_1-X_0^{res}\widehat{W}^{res})>(X_1-X_0\widehat{W}^{unres}$) and/or $RMSPE^{res}>RMSPE^{unres}$, we advise using our iSCM.
+\end{itemize}
+
+
+Repeat these steps for each "potentially affected" unit as if it were the "main treated". A similar procedure can be used for other SC-type estimators.  In case there is no substantial gain from including the treated in the donor pool of "potentially affected" units, our iSCM becomes easier to implement, as shown in Equation \ref{simp}. Finally, it's worth comparing the results of the three methods, keeping in mind that the "unrestricted" SCM is biased if any of the units in the donor pool receiving non-negligible weight is affected by the treatment. 
+
+
+\section{Inference}\label{inference}
+Dealing with only a small number of units makes inference for synthetic control-based methods like ours complicated. We can, however, easily adapt existing methods to our setting. The most popular choice is to implement permutation tests. \cite{Aba2010} and \cite{Aba2015} propose placebo tests in time, i.e., reassigning the intervention artificially before its real implementation, and placebo tests in-space, i.e., reassigning the intervention artificially for units in the control group. The latter approach is often preferred because of possible shocks that might have occurred in the past that affect units differently. Placebo tests in space measure the statistical significance of the effect through the ratio between the RMSPE in the post-treatment period and in the pre-treatment period. 
+
+
+To run the in-space placebo test for $\widehat\theta_t^{iSCM}$, all we need to do is subtract the estimated effects from the outcomes of "potentially affected" units. That is, we replace $Y_{it}$ with $Y_{it} - \widehat\gamma_{it}^{iSCM}$, for all $i = 2, \ldots, m$, and $t > T_0$. Similarly, to construct a placebo test for $\widehat\gamma_{it}^{iSCM}$ for a generic "potentially affected" unit $i$, we need to subtract the estimated effects from the outcomes of all other "potentially affected" units as well as the "main" treated unit, leaving the outcome of unit $i$ untouched.
+
+
+
+
+
+
+
+
+
+This idea can easily be applied to other inference procedures available in the literature (see, e.g., \citealt{Cao2019,Che2019, Fir2018,Gob2016,Li2019}).
+For example,  the inference procedure of \cite{Che2019} can be easily adapted to our framework by taking into account that the post-intervention observed outcome of each "potentially affected" unit includes its treatment effect. This has to be considered both in the first step, i.e., in the construction of the data under the null hypothesis and in the second step to compute the SCM residuals.
+
+\section{Empirical example}\label{example}
+In this section, we use iSCM to estimate the effect of German reunification on West Germany's  GDP per capita. In October 1990, less than a year after the fall of the Berlin wall in November 1989, the German Democratic Republic (``East Germany'') and the Federal Republic of Germany (``West Germany'') were officially reunified.
+German reunification, defined as one of the most important historical milestones of European history after 1945, most likely affecting not only the German economy but also the economies of other European countries.
+
+As discussed in \cite{Aba2015} and \cite{Aba2019}, German reunification could have had negative spillover effects on Austria's economic growth because West Germany diverted demand and investment from Austria to East Germany. Austria has historically had tight links with Germany: the two countries share the same language and, to a great extent,  a common history. In 1938, Austria was annexed by the Third Reich, which benefited from Austria's raw materials and labor to complete German rearmament. In 1945, Austria was separated from Germany. However, the economic cooperation between Austria and West Germany continued during the Cold War. 
+Given these strong cultural and economic ties, it is arguably important to include Austria in the donor pool when constructing a synthetic version of West Germany. Therefore, our iSCM is very well suited for estimating the impact of the German reunification not only on West Germany but also on Austria.\footnote{Given that other European countries receive very little weight, the impact of potential spillover effects on those countries would likely be negligible, as shown in Lemma 1. Results for the case in which Switzerland and the Netherlands are considered as "potentially affected"  units are available from the authors upon request.}
+
+We use the same country-level panel data of \cite{Aba2015}. The data cover the period 1960-2003, with the post-intervention period starting in 1990. In addition to Austria, the remaining "pure control" countries in the donor pool include 15 other OECD countries: Australia, Belgium, Denmark, France, Greece, Italy, Japan, the Netherlands, New Zealand, Norway, Portugal, Spain, Switzerland, the United Kingdom, and the United States. The outcome variable is real  GDP  at Purchasing Power Parity (PPP) per capita measured in 2002 USD.\\
+We start by implementing the procedure described in Section \ref{implementation}. First, we replicate the SCM estimate of \cite{Aba2015} and check the weight assigned to Austria\footnote{We refer to \cite{Aba2015} for a detailed discussion of the estimation procedure.}. Given that Austria does receive the highest weight (42\Table \ref{predictors} suggests that the ``unrestricted''  synthetic version of West Germany (second column) is much closer in therms of observable characteristics to  West Germany (first column) than the ``restricted'' version (third column).
+
+Next, we compare the pre-intervention RMSPEs of the ``unrestricted'' and ``restricted'' SCM. The  RMSPE of the latter (270.74) is larger than the one of the former (119.07). Therefore, we expect iSCM to perform better than ``restricted'' SCM.
+We now repeat the same procedure to decide whether West Germany should be included in  synthetic Austria's donor pool. First, we  check  whether West Germany receives a non-negligible weight.
+To construct synthetic Austria, we must use a slightly different specification than the one used for creating synthetic West Germany. In particular we are not able to chose the weights assigned to the predictors using the sample splitting methods described in \cite{Aba2015}.  
+As described in \cite{Geh2018}, in 1980, not long before the sample split cut-off, Austria provided several loans to East Germany, and in return, Austrian nationalized industries received large-scale orders. This most likely stimulated Austria’s exports and contributed to job creation in its industries. Thus, the sample split procedure might catch the effect of this economic shock. This is corroborated by the fact that using this method to chose the predictor weights leads to a poor pre-intervention fit. For this reason, we decided to follow the data driven procedure suggested by  \cite{Aba2010} instead. 
+As shown in Table \ref{WG}, Synthetic Austria gives the highest weight to West Germany. Thus, we can proceed to step 2, i.e., checking how well "restricted" (excluding West Germany) and "unrestricted" synthetic Astria matches real Austria's observable characteristics and comparing the pre-intervention RMPEs of the two specifications.
+
+Table \ref{predictors} 
+suggests that the ``unrestricted'' synthetic Austria (second column) does a better job of reproducing Austria's (first column)  pre-reunification predictors than the ``restricted'' version (third column), except for GDP per capita. The pre-intervention RMSPE of the ``restricted'' SCM (181.22) is slightly lower than the one of the ``unrestricted'' version (194.67).  However, the difference is rather small. Taking everything into account, we argue that it is better to include West Germany in Austria's donor pool. 
+
+\begin{table}[H]\centering 
+\caption{Economic growth predictors before German reunification} 
+\label{predictors} 
+\begin{tabular}{@{\extracolsep{5pt}} lccccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & &  Unrestricted& Restricted &Unrestricted& Restricted  \\ 
+West Germany	& Observed  &synthetic &  synthetic & Bias & Bias\\
+\hline \\[-1.8ex] 
+GDP per capita & 15,808.90 & 15,804.64 & 16,138.83 & 4.26 & 329.93 \\ 
+Trade openness & 56.78 & 56.91 & 50.73 & 0.14 & 6.04 \\ 
+Inflation rate & 2.60 & 3.51 & 3.38 & 0.91 & 0.79 \\ 
+Industry share & 34.54 & 34.38 & 33.30 & 0.15 & 1.24 \\ 
+Schooling & 55.50 & 55.23 & 50.71 & 0.27 & 4.79 \\ 
+Investment rate & 27.02 & 27.04 & 25.70 & 0.02 & 1.31 \\ 
+\hline \\[-1.8ex] 
+ & &  Unrestricted& Restricted &Unrestricted& Restricted  \\ 
+Austria	& Observed  &synthetic &  synthetic & Bias & Bias\\
+\hline \\[-1.8ex] 
+GDP per capita & 10781.80 & 10798.41 & 10778.61 & 16.61 & 3.19 \\ 
+Trade openness & 69.45 & 69.43 & 83.13 & 0.02 & 13.68 \\ 
+Inflation rate & 4.91 & 4.92 & 5.59 & 0.01 & 0.68 \\ 
+Industry share & 37.81 & 37.81 & 37.58 & 0.00 & 0.23 \\ 
+Schooling & 53.25 & 45.71 & 35.44 & 7.54 & 17.81 \\ 
+Investment rate & 26.64 & 26.64 & 27.03 & 0.00 & 0.38 \\ 
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table} 
+\begin{table}[H]\centering 
+\caption{``Unrestricted'' and ``Restricted'' synthetic control weights for West Germany and Austria} 
+\label{WG} 
+\begin{tabular}{@{\extracolsep{5pt}} lcccc} 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+    &\multicolumn{2}{c}{West Germany } &\multicolumn{2}{c}{Austria} \\
+  Country  &Unrestricted &Restricted&Unrestricted &Restricted\\
+\hline \\[-1.8ex] 
+West Germany&-&-&0.33&-\\
+Austria&0.42&-&-&-\\
+Australia&0&0&0&0\\
+Belgium&0&0&0.12&0.511\\
+Denmark&0&0&0&0\\
+France&0&0&0&0\\
+Greece&0&0&0&0\\
+Italy&0&0&0&0\\
+Japan&0.16&0.216&0.21&0.31\\
+Netherlands&0.09&0.3&0.31&0.06\\
+New Zealand&0&0&0&0\\
+Norway&0&0&0.03&0\\
+Portugal&0&0&0&0\\
+Spain&0&0&0&0\\
+Switzerland&0.11&0.089&0&0.12\\
+UK&0&0&0&0\\
+USA&0.22&0.395&0&0\\
+\hline \\[-1.8ex] 
+\end{tabular} 
+\end{table}
+
+Now we can use  the "unrestricted" SCM estimates of  $\widehat{\theta_{t}}$, $\widehat{\gamma_{t}}$, the weight assigned to Austria $\hat{w}_A=0.42$, and the weight assigned to West Germany $\hat{l}_{WG}=0.33$ to estimate $\theta_t$, and $\gamma_t$ as
+ 	 $$\widehat{\theta}_{t}^{iSCM}=\frac{\widehat{\theta}_{t}+\hat{w}_A\widehat{\gamma}_{t}}{1-\hat{w}_A\hat{l}_{WG}}=1.16\left(\widehat{\theta}_{t}+0.42\widehat{\gamma}_{t}\right), \quad \textrm{ and } \quad \widehat{\gamma}_{t}^{iSCM}=\frac{\widehat{\gamma}_{t}+\hat{l}_{WG}\widehat{\theta}_{t}}{1-\hat{w}_A\hat{l}_{WG}}=1.16\left(\widehat{\gamma}_{t}+0.33\widehat{\theta}_{t}\right).$$
+
+
+We can also construct the matrix $\widehat{\Omega}$, and check whether it is non-singular as required by Assumption 4. Given the estimated weights we get 
+\begin{align*}
+\widehat{\Omega}=
+\begin{pmatrix}
+1 & - 0.42 \\
+- 0.33 & 1 \\
+\end{pmatrix}.
+\end{align*}
+As $det(\widehat{\Omega})=0.86$, Assumption 4 holds in this application, and we can safely use our iSCM estimators. 
+
+Figure \ref{gap} shows our main results. In Panel \ref{gap:west germany} and \ref{gap:austria} we report the gaps estimated by the "unrestricted" SCM,  the "restricted" SCM, and our iSCM, for West Germany and Austria, respectively\footnote{Notice that the ``unrestricted'' SCM and the iSCM are identical in the pre-treatment period because the spillover effect due to German reunification only happens after the intervention.}. In Panel \ref{trend:west germany} we plot the GDP per capita trajectories (1960–2003) of Real West Germany, its "unrestricted" synthetic version, its ``restricted'' synthetic version, and its inclusive synthetic version. Panel \ref{trend:austria}  produces an analogous plot for  Austria. 
+
+For West Germany, we can observe that both the standard and the inclusive synthetic version of West Germany in the pre-reunification period almost perfectly reproduce West Germany's per capita GDP. Meanwhile, excluding Austria substantially worsens the pre-reunification fit. This confirms the importance of including Austria in the donor pool. \cite{Aba2015} find a negative effect of the reunification on West Germany's per capita GDP, which was reduced by approximately 7.67\
+If we look at the estimated spillover effects for Austria we draw similar conclusions. In the post-reunification period, iSCM estimates a decrease in per capita GDP of only up to  708 USD.
+However, this effect is unlikely to be statistically significant (see Figure \label{rmspe} Panel \label{rmspe:austria}). It is important to notice that both the "unrestricted" SCM and the "restricted" SCM estimate a positive spillover effect for Austria, up to 894 and 1350 USD, respectively. However, we know a priori that the "unrestricted" SCM is biased and its bias is $-\hat{l}_{WG}\theta_{t}$. Given we have strong evidence that $\theta_{t}$ is negative, we do expect the "unrestricted" SCM to overestimate $\gamma_{t}$. Thus, the fact that both the "unrestricted" and the "restricted" SCM estimate positive spillover effects underscores the necessity of including West Germany in the donor pool and employing our iSCM in this application.
+
+
+
+
+
+\begin{figure}[H]
+\centering
+\subfloat[Gaps West Germany]{\includegraphics[width=0.4\textwidth]{plotwestgermanygap.pdf}\label{gap:west germany}}
+\subfloat[Gaps Austria]{\includegraphics[width=0.4\textwidth]{plotAustriagap.pdf}\label{gap:austria}} 
+\hfill
+\subfloat[Trends on West Germany]{\includegraphics[width=0.4\textwidth]{plotwestgermanytrend.pdf}\label{trend:west germany}}
+\subfloat[Trends on Austria]{\includegraphics[width=0.4\textwidth]{plotaustriatrend.pdf}\label{trend:austria}} 
+\caption{Estimated effects}
+\label{gap}
+\end{figure}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Finally, Panels \ref{rmspe:west germany} and \ref{rmspe:austria} show the ratios between the RMSPEs in the post- and pre-reunification of West Germany's donor pool and Austria's donor pool, respectively. We can observe that West Germany's value is very high and is the largest compared to any other countries in the donor pool. On the other hand, Austria's RMSPE ratio is the second lowest indicating the spillover effect is not significant, as we mentioned above. 
+
+\begin{figure}[H]
+\centering 
+\subfloat[RMSPE ratios West Germany]{\includegraphics[width=0.5\textwidth]{ratioRMSPE.pdf}\label{rmspe:west germany}}
+\subfloat[RMSPE ratios Austria]{\includegraphics[width=0.5\textwidth]{ratioRMSPEAustria.pdf}\label{rmspe:austria}} 
+\caption{Post- and pre-reunification RMSPE ratios for West Germany and Austria}
+\label{rmspe}
+\end{figure}
+
+
+\section{Conclusion}\label{conclusion}
+We introduce iSCM, a modification of the  SCM that allows the inclusion of units "potentially affected" by an intervention in the donor pool. Our method is useful in applications where it is either important to include other treated units in the donor pool or where some of the units in the donor pool are affected indirectly by the intervention (spillover effects). Our iSCM requires that we choose \textit{a priori} which units are "potentially affected" by the treatment and that the assumptions of the chosen SC-type estimator are valid.  In addition, our methods can only be used if at least one ``pure'' control unit receives non-zero weight. A major advantage of iSCM is that it can be easily implemented using the synthetic control estimator or many of the new estimation methods available in the literature. 
+Moreover, we demonstrate that iSCM is almost certain to enhance the performance compared to the "unrestricted" SCM. Additionally, we introduce a data-driven approach to determine whether iSCM could potentially outperform the "restricted" SCM. Even in situations where excluding "potentially affected" units from the donor pool does not seem to be harmful, our iSCM can serve as a robustness check.
+Finally, we illustrate the use of iSCM by re-estimating the impact of German reunification on GDP per capita, confirming \cite{Aba2015} expectations about the potential direction of the spillover effect from West Germany to Austria. We find small negative spillover effects on Austria, which would imply an even more negative treatment effect on West Germany.
+
+
+\bibliographystyle{chicago}
+\bibliography{ref}
+
+\newpage
+\appendix
+
+\section{Appendix}
+
+\subsection{Non-singularity}\label{proofns}
+
+Let $\widehat{\Omega}_{ij}$ a generic element of $\widehat{\Omega}$. We have that
+\begin{enumerate}
+	\item $\widehat{\Omega}_{ii}=1, \ \ \forall i=1,\ldots,m$ (the main diagonal elements are all one by definition).
+	\item $0 \leq \vert \widehat{\Omega}_{ij} \vert \leq 1$ (the non-diagonal elements include estimated weights).
+	\item $0\leq \sum_{i}  \widehat{\Omega}_{ij} \leq 1$ (the sum of the weights in a row cannot be bigger than one).
+	\item If $\vert \widehat{\Omega}_{ij} \vert = 1, \ j \neq i$, then all the non-diagonal elements on the same row are zero (if one of the weights equals one, all of the others must be zero).
+\end{enumerate}
+
+As $\widehat{\Omega}$ is a square matrix, it is non-singular if, and only if, its determinant is different from zero, which can only be the case if none of the three conditions below are satisfied:
+\begin{enumerate}
+	\item Either one of its rows or one of its columns only contains zeros.
+	\item Either two of its rows or two of its columns are proportional to each other. 
+	\item Either one of its rows or one of its columns is a linear combination of at least two others.
+\end{enumerate}
+
+The first and the second conditions are immediately ruled out by the fact that $\widehat{\Omega}$ always contains ones on its main diagonal and all its other elements are smaller than 1 in absolute value. The third conditions can only occur if either  $\widehat{\Omega}_{ij}=\widehat{\Omega}_{ji}=-1,  \ j\neq i$ or if in every single row we have $\sum_{i}  \widehat{\Omega}_{ij} = 0$. 
+
+
+\subsection{A geometrical interpretation on why use iSCM}\label{why}
+In Figures \ref{convexhull1} and \ref{convexhull2}, we graphically represent possible scenarios from the point of view of unit 1 ("main treated" unit) on the left side and unit 2 ("potentially affected" unit) on the right side. Without loss of generality, we assume to observe only two predictors ($x_1$ and $x_2$) for each unit. $X_1$, i.e., the red point, is the vector that includes the pre-intervention predictors of the "main treated" and $X_2$, i.e., the blue point, is the vector that includes the pre-intervention predictors of the only affected unit. All other points represent the vectors of pre-intervention predictors of each "pure control" unit. When marked in black, they contribute to the synthetic control, whereas when marked in grey they do not contribute. 
+
+Figure \ref{convexhull1} shows the scenario in which both the "main treated" and the "potentially affected" units \textit{lie inside the convex hull} of the "pure control" units. In this case, one can reproduce $X_1$ only using "pure control" units. However, a closer look at the right side of Panel \ref{1} reveals that including the "potentially affected" unit to reproduce the characteristics of the "main treated" unit allows the exclusion of the farthest "pure control" unit (unit 3), restricting the donor pool, and potentially reducing interpolation bias (see \citealt{Aba2020}). 
+The same goes for the "potentially affected" unit: including the "main treated" in the donor pool allows the exclusion of unit 4, which lies farther away from unit 2.
+
+\begin{figure}[H]
+\centering
+\subfloat[Panel 1\label{1}]{
+\includegraphics[width=0.6\columnwidth]{1.pdf}}
+\quad
+\caption{Both units lie inside the convex hull}
+\label{convexhull1}
+\end{figure}
+
+Figure \ref{convexhull2} presents some scenarios in which \textit{only one unit between the "main treated" and the "potentially affected" unit lies inside the convex hull} of the other and the "pure control" units.
+The left side of Panel \ref{2a} shows the case in which the "main treated" unit lies outside but close to the convex hull. Regardless of whether we exclude or include the "potentially affected" unit, we can only approximate  $X_1$.  However, excluding unit 2 would lead to a bigger discrepancy between $X_1-X_0W$, therefore it is better to include it in the donor pool. On the right side of Panel \ref{2a}, we notice that the "potentially affected" unit lies outside the convex hull unless we include the "main treated" in its donor pool. 
+Panel \ref{2b} shows a symmetric situation to that in Panel \ref{2a}. 
+The left side of Panel \ref{2c} shows a scenario in which the "main treated" lies outside the convex hull and including unit 2 improves the approximation. The right side of Panel \ref{2c} shows a scenario in which unit 2 is always in the convex hull and including unit 1 the convex hull becomes bigger but it allows to improve approximation because unit 3 can be excluded.
+Panel \ref{2d} describes a scenario in which using iSCM clearly makes things worse. We suggest using iSCM when the "potentially affected" units receive substantial weight. It is less likely in this scenario. 
+
+\begin{figure}[H]
+\centering
+\subfloat[Panel 2a\label{2a}]{
+\includegraphics[width=0.6\columnwidth]{2a.pdf}}
+\quad
+\subfloat[Panel 2b\label{2b}]{
+\includegraphics[width=0.6\columnwidth]{2b.pdf}}
+\quad
+\subfloat[Panel 2c\label{2c}]{
+\includegraphics[width=0.6\columnwidth]{2c.pdf}}
+\quad
+\subfloat[Panel 2d\label{2d}]{
+\includegraphics[width=0.6\columnwidth]{2d.pdf}}
+\caption{At least one unit lies outside the convex hull}
+\label{convexhull2}
+\end{figure}
+\end{document}

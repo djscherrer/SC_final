@@ -1,0 +1,296 @@
+\begin{document}
+\affiliation{$$_affiliation_$$}
+\title{Hoaxpedia: A Unified Wikipedia Hoax Articles Dataset}
+\maketitle
+\begin{abstract}
+Hoaxes are a recognised form of disinformation created deliberately, with potential serious implications in the credibility of reference knowledge resources such as Wikipedia. What makes detecting Wikipedia hoaxes hard is that they often are written according to the official style guidelines. In this work, we first provide a systematic analysis of the similarities and discrepancies between legitimate and hoax Wikipedia articles, and introduce \textsc{Hoaxpedia}, a collection of 311 Hoax articles (from existing literature as well as official Wikipedia lists) alongside semantically similar real articles. We report results of binary classification experiments in the task of predicting whether a Wikipedia article is real or hoax, and analyze several settings as well as a range of language models. Our results suggest that detecting deceitful content in Wikipedia based on content alone, despite not having been explored much in the past, is a promising direction.\footnote{The Dataset(view-only, access upon request) is available in: \url{https://osf.io/rce8m/?view_only=ed469941644c496fb4a6425297ced1f2}. We will publicly release our models and the datasets in Huggingface upon acceptance} \end{abstract}
+
+\section{Introduction}
+
+Wikipedia is, as \citet{hovy2013collaboratively} define it, the ``largest and most popular collaborative and multilingual resource of world and linguistic knowledge'', and it is acknowledged that its accuracy is on par with or superior than, e.g., the Encyclopedia Britannica \cite{giles2005special}. However, as with any other platform, Wikipedia is also the target of online vandalism, and \textit{hoaxes}, a more obscure, less obvious form of vandalism\footnote{\url{https://en.wikipedia.org/wiki/Wikipedia:Do_not_create_hoaxes}.}, constitute a threat to the overall integrity of this collaborative encyclopedia \citep{kumar2016disinformation,wong2021wikireliability,wangmckeown2010got}, precisely because of its ``publish first, ask questions later'' policy \cite{asthana2018with}. Although Wikipedia employs community based New Page Patrol systems to check the credibility of a newly created article, the process is always in backlog\footnote{\url{https://en.wikipedia.org/wiki/Wikipedia:New_pages_patrol}.}, making the process overwhelming \cite{schinder2014accept}.
+
+
+Hoax articles, created to deliberately spread false information \cite{kumar2016disinformation}, harm the credibility of Wikipedia as a knowledge resource, and generate concerns among its users \cite{hu2007measuring}. Since manual inspection of quality is a process typically in backlog \cite{dang2016quality}, the automatic detection of such articles is a desirable feature. However, most works in the literature have centered their efforts in metadata associated with hoax articles, e.g., user activity, appearance features or revision history \cite{zeng2006trust,elebiary2023role, kumar2016disinformation,wong2021wikireliability,hu2007measuring, susuri2017detection}. For example, \citet{adler2011wikipedia} introduced a vandalism detection system using metadata, content and author reputation features, whereas \citet{kumar2016disinformation} provides a comprehensive study of hoax articles and their timeline from discovery to deletion. In this work, the authors define the characteristics of a successful hoax, with a data-driven approach based on studying a dataset of 64 articles (both hoax and real), on top of which they train statistical classifiers. Furthermore, other works have compared network traffic and features of hoax articles to those of other articles published the same day \citep{elebiary2023role}, and conclude that hoax articles attract more attention after creation than \textit{cohort} articles. Finally, \citet{wong2021wikireliability} study various Wikipedia vandalism types and introduce the Wiki-Reliability dataset, which comprises articles based on 41 author-compiled templates. This dataset contains 1,300 articles marked as hoax, which are real articles with false information, a.k.a hoax facts \citep{kumar2016disinformation}.
+
+
+We part ways from previous works and focus exclusively on the content of hoax articles, and aim to answer the research question \emph{``Can hoax articles be distinguished from real articles using NLP techniques by looking exclusively at the article's content''}? We first construct a dataset (\textsc{HoaxPedia}) containing 311 hoax articles and around 30,000 \textit{plausible negative examples}, i.e., real Wikipedia articles that are semantically similar to hoax articles, to create a set of negatives that \textit{cover similar topics} to hoax articles (e.g., a newly discovered species). We also explore whether a Wikipedia definition (the first sentence of the article) can provide hints towards its veracity. Our results (reported at different ratios of hoax vs real articles) suggest that, while style and shallow features are certainly not good predictors of hoax vs real Wikipedia articles, LMs are capable of exploiting other more intricate features, and open a promising research direction focused on content-based hoax flagging. \coling{ Our contributions in this work can be summarised as follows.
+\begin{itemize}
+    \item We systematically contrast a set of proven Wikipedia hoax articles vs. legitimate articles. 
+    \item We propose HoaxPedia, a novel Wikipedia Hoax article dataset with 311 hoax articles and semantically similar legitimate articles collected from Wikipedia.
+    \item We conduct binary classification experiments on this dataset, using a range of language models to accurately predict whether an article is a hoax or real based solely on its content.
+\end{itemize}
+}
+\section{\textsc{HoaxPedia} Construction}
+\label{sec:dataset}
+\textsc{HoaxPedia} is constructed by unifying five different resources that contain known hoaxes, e.g., from \citet{kumar2016disinformation,elebiary2023role}, as well as the official Wikipedia hoaxes list\footnote{\url{https://en.wikipedia.org/wiki/Wikipedia:List_of_hoaxes_on_Wikipedia}} and the Internet Archive. We used Internet Archive to manually retrieve Wikipedia pages that are now deleted from Wikipedia, but were at one point in the past identified as hoaxes. \coling{We manually verify each of the article we collect from Wikipedia and Internet Archive as hoax using their accompanied deletion discussion and reasons for citing them as a hoax.}  In terms of negative examples, while we could have randomly sampled Wikipedia pages, this could have introduced a number of biases in the dataset, e.g., hoax articles contain historical events, personalities or artifacts, and thus we are interested in capturing a similar breadth of topics, entities and sectors in the negative examples so that a classifier cannot rely on these spurious features. \coling{We select these negative examples (truthful articles) by ensuring they correspond to authentic content. This is achieved by verifying they do not carry the {{Db-hoax}} flag, which Wikipedia's New Page Patrol policy uses to mark potential hoaxes.} Within this set, we extract negative examples as follows. Let $H$ be the set of hoax articles, and $W$ the set of candidate \textit{real} Wikipedia pages, with $T_H = \lbrace t_{H^{1}}, \dots, t_{H^{p}} \rbrace$ and $T_W = \lbrace t_{W^{1}}, \dots, t_{W^{q}} \rbrace$ their corresponding vector representations, and $p$ and $q$ the number of hoax and candidate Wikipedia articles, respectively. Then, for each SBERT(all-MiniLM-L6-v2) ( \citep{reimers2019sentence} title embedding $t_{H^i} \in T_H$, we retrieve its top $k$ nearest neighbors (\textsc{NN}) from $T_W$ via cosine similarity \textsc{cos}. We experiment with different values for $k$, specifically $k \in \lbrace 2, 10, 100 \rbrace$:
+
+\[
+\mbox{\textsc{NN}}\left(t_{H^i}\right) = \lbrace t_{W^j} : j \in J_k(t_{H^i}) \rbrace 
+\]
+
+where $J_k(t_{H^i})$ contains the top $k$ cosine similarities in $T_W$ for a given $t_{H^i}$, and 
+
+\[
+\mbox{\textsc{cos}}\left(t_{H^i}, t_{W^j}\right) = \frac{t_{H^i} \cdot t_{W^j}}{\vert\vert t_{H^i} \vert\vert \vert\vert t_{W^j} \vert\vert}
+\]
+
+
+The result of this process is a set of positive (hoax) articles and a set of negative examples we argue will be similar in content and topic, effectively removing any topic bias from the dataset.
+
+\section{Hoax vs. Real, a Surface-Level Comparison}
+
+To maintain the longevity and to avoid detection, hoax articles follow Wikipedia guidelines and article structure. This raises the following question: \emph{``how (dis)similar are hoaxes with respect to a hypothetical real counterpart?''}. Upon inspection, we found comments in the deletion discussions such as \emph{``I wouldn't have questioned it had I come across it organically''} (for the hoax article \textit{The Heat is On} \footnote{\url{https://en.wikipedia.org/wiki/Wikipedia:Articles_for_deletion/The_Heat_Is_On_(TV_series)}}), or \emph{``The story may have a "credible feel'' to it, but it lacks any sources''}, a comment on article \textit{Chu Chi Zui}\footnote{\url{https://en.wikipedia.org/wiki/Wikipedia:Articles_for_deletion/Chu_Chi_Zui}}. Comments like these highlight that hoaxes are generally well written (following Wikipedia's guidelines), and so we proceed to quantify their stylistic differences in a comparative analysis that looks at: (1) article text length comparison; (2) sentence and word length comparison; and (3) a readability analysis. 
+\noindent\paragraph{\textbf{Article Text length distribution:}} Following the works of \citet{kumar2016disinformation}, we conduct a text length distribution analysis with hoax and real articles, and verify they show a similar pattern (as shown in Figure \ref{fig:text_len}), with similar medians for hoax and real articles, specifically 1,057 and 1,777 words, respectively. 
+
+
+        \begin{figure}[h]
+            \centering
+            \includegraphics[width=1\linewidth]{images/avg_text_len.png}
+            \caption{Text length distribution for hoax and real articles.}
+            \label{fig:text_len}
+        \end{figure}
+
+
+\noindent\paragraph{\textbf{Average sentence and word length:}} Calculating average sentence and word length for hoaxes and real articles separately can be a valuable proxy for identifying any obvious stylistic or linguistic (e.g., syntactic complexity) patterns. We visualize these in a series of box plots in Figure \ref{fig:all_style_analysis}. They clearly show a similar style, with  sentence and word length medians at 21.23 and 22.0, and 4.36 and 4.35 for real and hoax articles respectively. 
+\begin{comment}
+\begin{figure*}
+    \centering
+    \includegraphics[width=1.0\linewidth]{images/all_box_f1.png}
+    \caption{Results of different stylistic analyses on Hoax (red) and Real (blue) articles.}
+    \label{fig:all_style_analysis}
+\end{figure*}
+\end{comment}
+
+\begin{figure*}
+    \centering
+    \begin{subfigure}{.33\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/fk_grade.jpeg}
+        \subcaption{Flesch-Kincaid Grade}
+        \label{fig:fk_grade}
+    \end{subfigure}\hfill
+    \begin{subfigure}{.33\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/average_sent_len.jpeg}
+        \subcaption{Average Sentence Length}
+        \label{fig:average_sent_len}
+    \end{subfigure}\hfill
+    \begin{subfigure}{.33\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{images/average_word_len.jpeg}
+        \subcaption{Average Word Length}
+        \label{fig:average_word_len}
+    \end{subfigure}
+    \caption{Results of different stylistic analyses on Hoax (red) and Real (blue) articles.}
+    \label{fig:all_style_analysis}
+\end{figure*}
+
+
+
+
+\noindent\paragraph{\textbf{Readability Analysis:}} \coling{Readability analysis gives a quantifiable measure of the complexities of texts. It can clarify on easement of understanding the text, revealing patterns that can be used to either disguise disinformation like hoaxes or convey clear, factual content.}  For readability analysis, we use Flesch-Kincaid (FK) Grading system \citep{flesch2007flesch}, a metric that indicates the comprehension difficulty when reading a passage in the context of contemporary academic English. \coling{ This metric gives us an aggregate of the complexity of documents, their sentences and words, measured by the average number of words per sentence and the average number of syllables per word.} After obtaining an average for both hoax and real articles, we visualize these averages again in Figure \ref{fig:all_style_analysis}, we find a median of 9.4 for real articles and 9.5 for hoax articles, again highlighting the similarities between these articles.
+
+    
+
+
+
+
+
+
+        
+
+The above analysis suggests that hoax Wikipedia articles are indeed well disguised, and so in the next section we propose a suite of experiments for hoax detection based on language models, setting an initial set of baselines for this novel dataset.
+
+\section{Experiments}
+\label{expt}
+We cast the problem of identifying hoax vs. legitimate articles as a binary classification problem, in whcih we evaluate a suite of LMs, specifically: BERT-family of models (BERT-base and large \cite{devlin2019bert}, RoBERTa-base and large \cite{liu2019roberta}, Albert-base and large \cite{lan2019albert}), as well as T5 (Base and Large) \cite{raffel2020exploring} and Longformer (Base) \cite{beltagy2020longformer}. We use the same training configuration for the BERT-family of models, T5 models and Longformer, and set the generation objective as \emph{Binary classification} for the T5 models. In terms of data size, we consider the three different scenarios outlined in Section \ref{sec:dataset} (2x, 10x and 100x negative examples). \coling{ This approach naturally increases the challenge for the classifiers. The details about the data used in different settings are given in Appendix \ref{app:dataset_details}.}
+
+
+In addition to the three different settings for positive vs negative ratios, we also explore \textit{how much text is actually needed to catch a hoax}, or in other words, \textit{are definition sentences in hoax articles giving something away}? This is explored by running our experiments on the full Wikipedia articles, on one hand, and on the definition (first sentence alone), on the other. This latter setting is interesting from a lexicographic perspective because it helps us understand if the Wikipedia definitions show any pattern that a model could exploit. Moreover, from the practical point of view of building a classifier that could dynamically \emph{``patrol''} Wikipedia and flag content automatically, a definition-only model would be more interpretable \coling{(with reduced amiguity and focusing on core meaning/properties of the entity)} and could have less parameters \coling{(handling smaller vocabularies, and compressed knowledge)}, which would have practical retraining/deployment implications in cost and turnaround. 
+\begin{comment}
+\begin{itemize}
+    \item \textbf{1Hoax2Real}: We consider 2 real articles with respect to each hoax article to build the dataset  for the model.
+    \item \textbf{1Hoax10Real}: We consider 10 real articles per one hoax article to build the dataset for the model.
+    \item \textbf{1Hoax100Real}: We consider 100 real articles per one hoax article to build the dataset for the model.
+\end{itemize}   
+
+
+\begin{figure*}[!htbp]         \centering
+        \includegraphics[width=\textwidth]{latex/images/Fulltext_Definition_ALL.png}
+        \caption{Performance (F1 on the positive class - \textit{hoax}) at different degrees of data imbalance.}
+        \label{fig:all_imbalanced_comparison}
+\end{figure*}
+
+
+\begin{figure*}[!htbp]
+    \centering
+    \begin{subfigure}[b]{0.75\textwidth}
+        \includegraphics[width=\textwidth]{latex/images/ft_def_comp/1h2r.png}
+        \caption{1 Hoax 2 Real Setting}
+        \label{fig:1h2r}
+    \end{subfigure}
+    \vspace{1ex}
+
+    \begin{subfigure}[b]{0.75\textwidth}
+        \includegraphics[width=\textwidth]{latex/images/ft_def_comp/1h10r.png}
+        \caption{1 Hoax 10 Real Setting}
+        \label{fig:1h10r}
+    \end{subfigure}
+    \vspace{1ex} 
+    \begin{subfigure}[b]{0.75\textwidth}
+        \includegraphics[width=\textwidth]{latex/images/ft_def_comp/1h100r.png}
+        \caption{1 Hoax 100 Real Setting}
+        \label{fig:1h100r}
+    \end{subfigure}
+
+    \caption{Performance (F1 on the positive class - \textit{hoax}) at different degrees of data imbalance}
+    \label{fig:all_imbalanced_comparison}
+\end{figure*}
+
+
+
+\begin{figure*}[!h]
+    \centering
+    \begin{subfigure}[b]{0.7\textwidth}
+        \includegraphics[width=\textwidth]{latex/images/ft_def_comp/defs.png}
+        \caption{Comparison of Definition settings}
+        \label{fig:defs_comparison}
+    \end{subfigure}
+    \vspace{4ex}
+
+    \begin{subfigure}[b]{0.7\textwidth}
+        \includegraphics[width=\textwidth]{latex/images/ft_def_comp/fulltexts.png}
+        \caption{Comparison of Fulltext settings}
+        \label{fig:ft_comparison}
+    \end{subfigure}
+
+    \caption{F1 on positive class performance after exposing models to either the full text (Fulltext setting) and only the definition (Definition setting).}
+    \label{fig:all_setting_comparison}
+\end{figure*}
+\end{comment}
+\begin{comment}
+\begin{figure*}[!h]
+        \centering
+        \includegraphics[width=1.0\textwidth]{images/all_comp.png}
+        \caption{F1 on positive class performance after exposing models to either the full text (Fulltext setting) and only the definition (Definition setting).}
+        \label{fig:all_setting_comparison}
+\end{figure*}
+\end{comment}
+
+
+\section{Results}
+
+Our experiments are aimed to explore the impact of data imbalance and content length. In both cases, we compare several classifiers and analyze whether model size (in number of parameters) is correlated with performance. In terms of evaluation metrics, all results we report are F1 on the positive class (hoax). In definition-only setting, we find that models evaluated on datasets that are relatively balanced (2 Real articles for every hoax) show a stable performance, but they degrade drastically as the imbalance increases. In terms of robustness, RoBERTa is the most consistent, with an F1 of around 0.6 for all three settings, whereas Albert models perform poorly (exhibiting, however, some interesting behaviours, which we will discuss further). For the full text setting, we find that Longformer models performs well, with an F1 of 0.8. Surprisingly, the largest model we evaluated (T5-large) is not the best performing model, although this could point to under-fitting, the dataset potentially being too small for a model this size to train properly. Another interesting behaviour of T5-large is that in the 1 Hoax vs 2 Real setting, it shows exactly the same performance, whether seeing a definition or the full text. On the other side of the spectrum, we find that Albert models are the ones showing the highest improvement when going from definition to full text. This is interesting, as it shows a small model may miss nuances in definitions but can still compete with, or even outperform, larger models.
+
+
+\begin{table*}[]
+\centering
+\resizebox{\textwidth}{!}{\begin{tabular}{lccccccc}
+\hline
+\multicolumn{1}{c}{\textbf{}} & \textbf{}                               & \multicolumn{3}{c}{\textbf{Definition}}                                                                                                  & \multicolumn{3}{c}{\textbf{Fulltext}}                                                                                                   \\ \hline
+\textbf{Model}                & \multicolumn{1}{l}{\textbf{Model Size}} & \multicolumn{1}{l}{\textbf{1 Hoax 2 Real}} & \multicolumn{1}{l}{\textbf{1 Hoax 10 Real}} & \multicolumn{1}{l}{\textbf{1 Hoax 100 Real}} & \multicolumn{1}{l}{\textbf{1 Hoax 2 Real}} & \multicolumn{1}{l}{\textbf{1 Hoax 10 Real}} & \multicolumn{1}{l}{\textbf{1 Hoax 100 Real}} \\ \hline
+Albert-base-v2                & 12M                                     & 0.23                                       & 0.17                                        & \multicolumn{1}{c}{0.06}                     & 0.67                                       & 0.47                                        & 0.11                                         \\
+Albert-large-v2               & 18M                                     & 0.28                                       & 0.3                                         & \multicolumn{1}{c}{0.15}                     & 0.72                                       & 0.63                                        & 0.3                                          \\
+BERT-base                     & 110M                                    & 0.42                                       & 0.3                                         & \multicolumn{1}{c}{0.14}                     & 0.55                                       & 0.57                                        & 0.32                                         \\
+RoBERTa Base                  & 123M                                    & 0.57                                       & 0.59                                        & \multicolumn{1}{c}{0.53}                     & 0.82                                       & 0.75                                        & 0.63                                         \\
+Longformer-base               & 149M                                    & 0.43                                       & 0.35                                        & \multicolumn{1}{c}{0.54}                     & 0.8                                        & 0.78                                        & 0.67                                         \\
+T5-Base                       & 220M                                    & 0.48                                       & 0.25                                        & \multicolumn{1}{c}{0.14}                     & 0.51                                       & 0.27                                        & 0.23                                         \\
+BERT-large                    & 340M                                    & 0.43                                       & 0.36                                        & \multicolumn{1}{c}{0.17}                     & 0.61                                       & 0.64                                        & 0.33                                         \\
+RoBERTa-large                 & 354M                                    & 0.58                                       & 0.63                                        & \multicolumn{1}{c}{0.62}                     & 0.84                                       & 0.81                                        & 0.79                                         \\
+T5-large                      & 770M                                    & 0.54                                       & 0.32                                        & \multicolumn{1}{c}{0.13}                     & 0.54                                       & 0.43                                        & 0.37                                         \\ \hline
+\end{tabular}}
+\caption{F1 on the positive class - \textit{hoax} at different degrees of data imbalance for Definition and Fulltext Settings}
+\label{tab:all_setting_comparison}
+\end{table*}
+
+
+A perhaps not too surprising observation is that all models improve after being exposed to more text, as seen in Table \ref{tab:all_setting_comparison}, increasing their F1 about 20\Moreover, in terms of absolute performance, RoBERTa models perform decently, although significantly below their full text settings. It is interesting to note that Longformer base yields much better results in the hardest setting (1 Hoax vs 100 Real) when exposed only to definitions. This is indeed a surprising and counter intuitive result that deserves future investigation.
+\coling{
+\subsection{Ablation: Effect of Definitions on Classifying Hoaxes}
+We run a data ablation test on the full-text split of the dataset to find the impact of definition sentences. To this end, we remove the first sentence of each article, and replicate the ``full text'' classification experiment, focusing on RoBERTa-Large, the most consistent model. The results of this ablation experiment are shown in Table \ref{tab:ablation},suggesting that F1 goes down about 2\}
+\begin{comment}
+\begin{table}[]
+\resizebox{\columnwidth}{!}{\begin{tabular}{|lll|ll|ll|ll|}
+\hline
+                                    &                                          &          & \multicolumn{2}{l|}{Precision}   & \multicolumn{2}{l|}{Recall}      & \multicolumn{2}{l|}{F1}          \\ \hline
+\multicolumn{1}{|l|}{Model}         & \multicolumn{1}{l|}{Setting}             & Accuracy & \multicolumn{1}{l|}{0}    & 1    & \multicolumn{1}{l|}{0}    & 1    & \multicolumn{1}{l|}{0}    & 1    \\ \hline
+\multicolumn{1}{|l|}{RoBERTaL} & \multicolumn{1}{l|}{Ft 1:2} & 0.88     & \multicolumn{1}{l|}{0.9}  & 0.83 & \multicolumn{1}{l|}{0.92} & 0.8  & \multicolumn{1}{l|}{0.91} & 0.82 \\ \hline
+\multicolumn{1}{|l|}{RoBERTaL} & \multicolumn{1}{l|}{Ft 1:10} & 0.96     & \multicolumn{1}{l|}{0.97} & 0.82 & \multicolumn{1}{l|}{0.98} & 0.71 & \multicolumn{1}{l|}{0.97} & 0.76 \\ \hline
+\multicolumn{1}{|l|}{RoBERTaL} & \multicolumn{1}{l|}{Ft 1:100} & 0.99       & \multicolumn{1}{l|}{1.0}    & 0.67    & \multicolumn{1}{l|}{1.0}    & 0.51    & \multicolumn{1}{l|}{1.0}    & 0.58    \\ \hline
+\end{tabular}}
+\caption{Performance of RoBERTa-Large on articles without definition sentence}
+\label{tab:ablation}
+\end{table}
+\end{comment}
+
+
+\begin{table}[]
+\centering
+\resizebox{\columnwidth}{!}{\begin{tabular}{ccccc}
+\hline
+Model    & Setting  & Precision & Recall & F1   \\ \hline
+RoBERTaL & Ft 1:2   & 0.83      & 0.8    & 0.82 \\
+RoBERTaL & Ft 1:10  & 0.82      & 0.71   & 0.76 \\
+RoBERTaL & Ft 1:100 & 0.67      & 0.51   & 0.58 \\ \hline
+\end{tabular}}
+\caption{Performance of RoBERTa-Large on articles without definition sentence(with Fulltext Hoax:Real ratio in Settings column))}
+\label{tab:ablation}
+\end{table}
+
+
+
+
+\section{Conclusion and Future Work}
+
+We have introduced \textsc{HoaxPedia}, a dataset containing hoax articles extracted from Wikipedia, from a number of sources, from official lists of hoaxes, existing datasets and Web Archive. We paired these hoax articles with similar real articles, and after analyzing their main properties (concluding they are written with very similar style and content), we report the results of a number of binary classification experiments, where we explore the impact of (1) positive to negative ratio; and (2) going from the whole article to only the definition. This is different from previous works in that we have exclusively looked at the content of these hoax articles, rather than metadata such as traffic or longevity. For the future, we would like to further refine what are the criteria used by Wikipedia editors to detect hoax articles, and turn those insights into a ML model, and explore other types of non-obvious online vandalism.
+
+
+\section{Ethics Statement}
+
+This paper is in the area of online vandalism and disinformation detection, hence a sensitive topic. All data and code will be made publicly available to contribute to the advancement of the field. However, we acknowledge that deceitful content can be also used with malicious intents, and we will make it clear in any associated documentation that any dataset or model released as a result of this paper should be used for ensuring a more transparent and trustworthy Internet.
+
+\bibliography{custom}
+
+\appendix
+
+\appendix
+\section{Appendix: Dataset Details}
+\label{app:dataset_details}
+We release our dataset in 3 settings as mentioned in Section \ref{expt}. The settings with data splits and their corresponding sizes are mentioned in Table \ref{tab:dataset_details}.
+
+\begin{table}[]
+\resizebox{\columnwidth}{!}{\begin{tabular}{llllll}
+\hline
+                              &                             &                & \multicolumn{3}{l}{\textbf{Number of Instances}}   \\ \hline
+\textbf{Dataset Setting}      & \textbf{Dataset Type}       & \textbf{Split} & \textbf{Non-hoax} & \textbf{Hoax} & \textbf{Total} \\ \hline
+\multirow{2}{*}{1Hoax2Real}   & \multirow{2}{*}{Definition} & Train          & 426               & 206           & 632            \\ \cline{3-6} 
+                              &                             & Test           & 179               & 93            & 272            \\ \hline
+\multirow{2}{*}{1Hoax2Real}   & \multirow{2}{*}{Full Text}  & Train          & 456               & 232           & 688            \\ \cline{3-6} 
+                              &                             & Test           & 200               & 96            & 296            \\ \hline
+\multirow{2}{*}{1Hoax10Real}  & \multirow{2}{*}{Definition} & Train          & 2225              & 203           & 2428           \\ \cline{3-6} 
+                              &                             & Test           & 940               & 104           & 1044           \\ \hline
+\multirow{2}{*}{1Hoax10Real}  & \multirow{2}{*}{Full Text}  & Train          & 2306              & 218           & 2524           \\ \cline{3-6} 
+                              &                             & Test           & 973               & 110           & 1083           \\ \hline
+\multirow{2}{*}{1Hoax100Real} & \multirow{2}{*}{Definition} & Train          & 20419             & 217           & 20636          \\ \cline{3-6} 
+                              &                             & Test           & 8761              & 82            & 8843           \\ \hline
+\multirow{2}{*}{1Hoax100Real} & \multirow{2}{*}{Full Text}  & Train          & 22274             & 222           & 22496          \\ \cline{3-6} 
+                              &                             & Test           & 9534              & 106           & 9640           \\ \hline
+\end{tabular}}
+\caption{Dataset details in different settings and splits}
+\label{tab:dataset_details}
+\end{table}
+
+\section{Appendix: Training Details}
+\label{app:training_details}
+We train our models with the configuration given below. We use one NVIDIA RTX4090, one NVIDIA V100 and one NVIDIA A100 GPU to train the models.
+\begin{itemize}
+    \item Learning rate: 2e-06
+    \item Batch size: 4 (for Fulltext experiments) and 8 (For Definition experiments)
+    \item Epochs: 30
+    \item Loss Function: Weighted Cross Entropy Loss
+    \item Gradient Accumulation Steps: 4
+    \item Warm-up steps: 100
+\end{itemize}
+
+
+\end{document}

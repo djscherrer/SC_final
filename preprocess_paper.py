@@ -1,5 +1,10 @@
 import re
 import os
+import tiktoken
+
+GPT_MAX_TOKENS = 16000
+
+enc = tiktoken.encoding_for_model("gpt-3.5-turbo")
 
 # Not used, but may be useful to check whether all affiliations are removed
 def find_affiliations(text):
@@ -76,6 +81,11 @@ def preprocess(tex_file, keyword_affiliation = '$$_affiliation_$$'):
     tex_source = prepend_title(tex_source, title)
     tex_source = prepend_affiliation(tex_source, keyword_affiliation)
     tex_source = prepend_begin_document(tex_source)
+
+    token_length = len(enc.encode(tex_source))
+    if token_length > GPT_MAX_TOKENS:
+        print(f"Preprocessed text is too long: {token_length} tokens")
+        return False
 
     with open(tex_file, 'w') as f:
         f.write(tex_source)
