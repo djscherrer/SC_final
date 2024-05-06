@@ -1,0 +1,891 @@
+\begin{document}
+\affiliation{$$_affiliation_$$}
+\title{On the rank of the double cohomology of moment-angle complexes}
+\begin{abstract}
+    In \cite{LPSS-2023}, the authors construct a cochain complex
+    $C\!H^*(\ZZ_{\K})$ on the cohomology of a moment-angle complex $\ZZ_{\K}$
+    and call the resulting cohomology the double cohomology,
+    $H\!H^*(\ZZ_{\K})$. In this paper, we study the change of
+    rank in double cohomology after gluing an $n$-simplex to
+    a simplicial complex $\K$ in certain conditions. As an application,
+    we give a positive answer to an open problem in \cite{LPSS-2023}:
+    For any even integer $r$, there always
+    exists a simlicial complex $\K$ such that 
+    $\opn{rank} H\!H^*(\ZZ_{\K})=r$.
+\end{abstract}
+\maketitle
+
+
+\section{Introduction}
+
+The motivation for defining $H\!H^*(\ZZ_{\K})$ is from persistent cohomology
+$P\!H^*(-)$. For a finite pseudometric space $S$, 
+an important property of $P\!H^*(S)$ is stability. In other words, perturbing $S$ slightly will not change $P\!H^*(S)$ much. 
+In \cite{BLPSS-2024}, the authors show this 
+stability holds for the associated family 
+$\{H\!H^*(\ZZ_{\K(t)})\}_{t\ge 0}$. It also provides a new
+approach for topological data analysis
+via bigraded persistent cohomology of the
+corresponding moment-angle complexes.
+
+Let $\K$ be a simplicial complex on the set $[m]=\{1,2,\cdots,m\}$
+and $\ZZ_{\K}$ be the associated moment-angle complex. The cohomology 
+$H^*(\ZZ_{\K})$ can be computed as a direct sum 
+$\bigoplus_{I\subset [m]} \widetilde{H}^*(\K_I)$
+of the reduced simplicial cohomology of full subcomplexes in $\K$.
+
+In \cite{LPSS-2023}, the authors construct a cochain complex structure
+$C\!H^*(\ZZ_{\K})$ on $H^*(\ZZ_{\K})$ and define the double cohomology
+$H\!H^*(\ZZ_{\K})$ to be its cohomology. Then they give some properties 
+of double cohomology and compute many examples. It is noted that
+these examples all satisfy $\opn{rank} H\!H^*(\ZZ_{\K})=2^n$ for some
+$n\ge 0$. So the authors propose a problem \cite[Question 8.9]{LPSS-2023}: Let $r$ be a positive even integer different from a power of two. Does there
+exist a simplicial complex $\K$ such that 
+$\opn{rank} H\!H^*(\ZZ_{\K})=r$? 
+
+Recently, \cite{Han-2023} gives an example such that $\opn{rank} H\!H^*(\ZZ_{\K})=6$,
+which provides a solution to this problem for $r=6$.
+By taking joins, we can also get the 
+example for any $r=2^{s+t}3^t$ with $s,t\ge 0$.
+For general even $r$, this question is solved in Theorem \ref{thm: complex with any even rank}.
+
+Moreover, let $\K'=\K\cup_{\sigma} \Delta^n$
+be a simplicial complex obtained from a nonempty
+simplicial complex $\K$ by gluing an $n$-simplex along a proper, possibly empty, face $\sigma\in \K$.
+Then $\opn{rank} H\!H^*(\ZZ_{\K'})=1$ or $2$ \cite[Theorem 6.7]{LPSS-2023}.
+It seems that there is no explicit relationship between $\opn{rank} H\!H^*(\ZZ_{\K'})$ and $\opn{rank} H\!H^*(\ZZ_{\K})$. However, when we glue
+an $n$-simplex along its boundary to a special class of simplicial complex,
+these two rank have explicit realtionship. In this paper, we develop 
+a new method to determine this relationship.
+Our main results are as follows.
+
+\begin{thm}
+    \label{thm: change of rank}
+    Let $\Delta^n$ be the $n$-simplex on $[n+1]$ and $\K$ be a simplicial complex on $[m]$ with $m\ge n+2\ge 3$. Suppose the following conditions hold:
+    \begin{enumerate}
+    \item 
+    $[n+1]\not\in \K$.
+    \item 
+    For any $J=\{1,\cdots,n+1,j\}$ with $n+2\le j\le m$ and $1\le i\le n+1$,
+    $J\!\setminus\! \{i\}\in \K$.
+    \item 
+    For any $J=\{1,\cdots,n+1,j,k\}$ with $n+2\le j<k\le m$, 
+    $\opn{rank} \widetilde{H}^n(\K_J)\le 1$.
+    \item 
+    For any $J=\{1,\cdots,n+1,j,k\}$ with $n+2\le j<k\le m$,
+    either $J\!\setminus\! \{i\}\in\K$ for all $1\le i\le n+1$, 
+    or $J\!\setminus\! \{i\}\not\in\K$ for all $1\le i\le n+1$.
+    \end{enumerate}
+    Let $\lambda_{[n+1]}\K=\K\cup_{\partial\Delta^n}\Delta^n
+    =\K\cup [n+1]$. Then we have
+    \begin{enumerate}
+    \item 
+    $\opn{rank} H\!H^*(\ZZ_{\lambda_{[n+1]}\K})=\opn{rank} H\!H^*(\ZZ_{\K})-2$, if there exists some $J=\{1,\cdots,$ $n+1,j,k\}$ with $n+2\le j<k\le m$ such that $\opn{rank} \widetilde{H}^n(\K_J)=1$.
+    \item 
+    $\opn{rank} H\!H^*(\ZZ_{\lambda_{[n+1]}\K})=\opn{rank} H\!H^*(\ZZ_{\K})$,
+    otherwise.
+    \end{enumerate}
+\end{thm}
+
+Based on Theorem \ref{thm: change of rank}, for any even $r$, we can construct the simplicial complex $\K$ such that $\opn{rank} H\!H^*(\ZZ_{\K})=r$,
+which give a solution to \cite[Question 8.9]{LPSS-2023}.
+
+\begin{thm}
+    \label{thm: complex with any even rank}
+    There exist a family of simplicial complexes $\{\K_{2r}:r\ge 1\}$ such
+    that $\opn{rank} H\!H^*(\ZZ_{\K_{2r}})=2r$.
+\end{thm}
+
+
+
+\subsection*{Organization of the paper} 
+In Section \ref{sec: preliminaries}, we introduce the definition of 
+double cohomology and give several useful lemmas. In Section
+\ref{sec: The proof of Theorem 1}, we complete the proof
+of Theorem \ref{thm: change of rank}. In Section 
+\ref{sec: the proof of thm 2}, with the aid of Theorem \ref{thm: change of rank} when $n=1$, we complete the proof of Theorem
+\ref{thm: complex with any even rank}.
+
+
+\section{Preliminaries}
+\label{sec: preliminaries}
+
+Let $\K$ be a simplicial complex on the set $[m]=\{1,\cdots,m\}$.
+A one-element simplex $\{i\}\in\K$
+is called a vertex of $\K$.
+We also assume that $\varnothing\in\K$
+and $\{i\}\in\K$ for all $i\in [m]$.
+
+We use $\opn{cat}(\K)$ to denote the face category of $\K$, with objects
+$I\in\K$ and morphisms $I\subset J$.
+For each simplex $I\in\K$, 
+we have the following topological space
+$$(D^2,S^1)^I:=\{ (z_1,\cdots,z_m)\in (D^2)^m:|z_j|=1 \text{ if } j\not\in
+I\}\subset (D^2)^m.$$
+Then $(D^2,S^1)^I$ is a natural subspace of $(D^2,S^1)^J$ if $I\subset J$.
+Now we have a diagram 
+$$\D_{\K}: \opn{cat(\K)}\to \opn{Topological\ spaces},$$
+which mapping $I\in\K$ to $(D^2,S^1)^I$.
+
+\begin{defn}[\cite{BPbook-2015}, Chapter 4]
+    \label{def: moment angle complex}
+    The moment-angle complex corresponding to $\K$ is defined by
+    $$\ZZ_{\K}:= \opn{colimit} \D_{\K} =\bigcup_{I\in\K} (D^2,S^1)^I
+    \subset (D^2)^m.$$
+\end{defn}
+
+For each simplicial complex $\K$, let $\I_{\K}$ be the ideal of $\Z[v_1,\cdots,v_m]$ generated by 
+monomials $\prod_{i\in I} v_i$ for which $I\subset [m]$ is not
+a simplex of $\K$. Then we define the face ring of $\K$ by
+$$\Z[\K]:=\Z[v_1,\cdots,v_m]/\I_{\K}.$$
+
+There are several equivalent descriptions of the cohomology ring
+$H^*(\ZZ_{\K})$.
+
+\begin{prop}[\cite{BBP-2004}, \cite{BT-2000}]
+    \label{prop: cohomology ring of Zk}
+    There are isomorphisms of bigraded commutative algebras
+    \begin{equation*}
+    \begin{split}
+        H^*(\ZZ_{\K})\cong & \opn{Tor}_{\Z[v_1,\cdots,v_m]}(\Z[\K],\Z)\\
+        \cong & H(\Lambda[u_1,\cdots,u_m]\otimes \Z[\K],d)\\
+        \cong & \bigoplus_{I\subset [m]} \widetilde{H}^*(\K_I).
+    \end{split} 
+    \end{equation*}
+    The differential $d$ in second isomorphism is determined by
+    $du_i=v_i, dv_i=0$. 
+    In the last isomorphism, $\widetilde{H}^*(\K_I)$
+    denotes the reduced simplicial cohomology of the full subcomplex
+    $\K_I\subset \K$ (the restriction of $\K$ to $I$).
+\end{prop}
+\begin{rem}
+    In conventions, $\widetilde{H}^*(\K_{\varnothing})=\widetilde{H}^{-1}(\K_{\varnothing})=\Z$.
+    The last isomorphism is comes from Hochster’s theorem describing 
+    $\opn{Tor}_{\Z[v_1,\cdots,v_m]}(\Z[\K],\Z)$
+    as a sum of the cohomologies of full subcomplexes. In fact,
+    this isomorphism is the sum of
+    \begin{equation*}
+        H^p(\ZZ_{\K})\cong \bigoplus_{I\subset [m]} 
+        \widetilde{H}^{p-|I|-1}(\K_I).
+    \end{equation*}
+\end{rem}
+
+Now we give the bigraded components of $H^*(\ZZ_{\K})$ by
+$$H^{-k,2l}(\ZZ_{\K})\cong \bigoplus_{I\subset [m]:|I|=l} 
+        \widetilde{H}^{l-k-1}(\K_I),$$
+and thus 
+$$H^p(\ZZ_{\K})= \bigoplus_{-k+2l=p} H^{-k,2l}(\ZZ_{\K}).$$
+
+
+\subsection{Double cohomology}
+Given $i\in I$, the conclusion $\K_{I\setminus \{i\}}\hookrightarrow \K_I$
+induces the homomorphism
+$$\psi_{p;i,I}: \widetilde{H}^p(\K_I)\to
+\widetilde{H}^p(\K_{I\setminus \{i\}}).$$
+
+Then for a fixed $I\subset [m]$, we define
+\begin{equation}
+    \label{equ: def of dp}
+    d_p'=(-1)^{p+1} \sum_{i\in I} \varepsilon(i,I) \psi_{p;i,I}:
+    \widetilde{H}^p(\K_I)\to \bigoplus_{i\in I} 
+    \widetilde{H}^p(\K_{I\setminus \{i\}}),
+\end{equation}
+where 
+$$\varepsilon(j,I)=(-1)^{\#\{i\in I:i<j\}}.$$
+
+Now we define $d':H^*(\ZZ_{\K})\to H^*(\ZZ_{\K})$ using the 
+decomposition given in Proposition 
+\ref{prop: cohomology ring of Zk}, which acts on the bigraded components of $H^*(\ZZ_{\K})$ as 
+$$d': H^{-k,2l}(\ZZ_{\K})\to H^{-k+1,2l-2}(\ZZ_{\K}).$$
+
+\begin{lem}[\cite{LPSS-2023}]
+    \label{lem: d'd'=0}
+    $(d')^2=0$.
+\end{lem}
+Therefore we have a cochain complex 
+$$C\!H^*(\ZZ_{\K}):=(H^*(\ZZ_{\K}),d')=
+\bigoplus_{p\ge -1}\ (\bigoplus_{I\subset [m]} \widetilde{H}^p(\K_I),d'_p).$$
+
+
+\begin{defn}
+    \label{def:double cohomology}
+    The bigraded double cohomology of $\ZZ_{\K}$ is defined by
+    $$H\!H^*(\ZZ_{\K})=H(H^*(\ZZ_{\K}),d').$$
+\end{defn}
+\begin{rem}
+    The bigraded double cohomology can also be defined from the Koszul
+    algebra (the second isomorphism in Proposition \ref{prop: cohomology ring of Zk}). For more details, we refer to \cite[Theorem 4.4]{LPSS-2023}.
+\end{rem}
+
+For the rank of the bigraded double cohomology, we have
+\begin{prop}[\cite{LPSS-2023}, Corollary 4.6]
+    \label{prop: euler char is 0}
+    Assume the simplicial complex $\K$ is not a simplex. Then the Euler characteristic of 
+    $H\!H^*(\ZZ_{\K})$ is zero. In particular, $\opn{rank} H\!H^*(\ZZ_{\K})$
+    is even. 
+\end{prop}
+
+
+
+For two simplicial complexes $\K$ and $\LL$, let $\K*\LL$ denote
+their simplicial join. Then we have
+\begin{prop}[\cite{LPSS-2023}, Theorem 6.3]
+    \label{prop: simplicial join}
+    If either $H^*(\ZZ_{\K})$ or $H^*(\ZZ_{\LL})$ is
+    projective over the coefficients, then there is an 
+    isomorphism of chain complexes
+    $$C\!H^*(\ZZ_{\K*\LL})\cong C\!H^*(\ZZ_{\K})\otimes
+    C\!H^*(\ZZ_{\LL}).$$
+    In particular, for field coefficients, we have 
+    \begin{equation*}
+        \begin{split}
+            H\!H^*(\ZZ_{\K*\LL})\cong &\  H\!H^*(\ZZ_{\K})\otimes
+    H\!H^*(\ZZ_{\LL}),\\
+    \opn{rank} H\!H^*(\ZZ_{\K*\LL})= &\  \opn{rank} H\!H^*(\ZZ_{\K})
+    \opn{rank} H\!H^*(\ZZ_{\LL}).\\
+        \end{split}
+    \end{equation*}
+\end{prop}
+
+However, for the wedge of simplicial complex, the double cohomology 
+acts differently with generalised cohomology theory.
+
+\begin{prop}[\cite{Ruiz-2023}]
+    \label{prop: double coho of wedge}
+    For any wedge decomposable simplicial complex $\K$, we have
+    $H\!H^*(\ZZ_{\K})\cong \Z\oplus\Z$
+    in bidegrees $(0,0)$ and $(-1,4)$. 
+\end{prop}
+
+At the end of this section, we prove a useful lemma.
+\begin{lem}
+    \label{lem: dim ker}
+    Let $\KK$ be a field (say $\R$ or $\C$).
+    Given three complex $(A_n,d'_n)_{n\ge 0}$, $(B_n,d''_n)_{n\ge 0}$
+    and $(C_n,d_n)_{n\ge 0}$
+    over $\KK$. Suppose the following conditions hold:
+    \begin{enumerate}
+        \item 
+        For any $n\ge 0$, $\opn{rank} A_n$ and $\opn{rank} B_n$ are finite.
+        \item 
+        The complex $(B_n,d''_n)_{n\ge 0}$ is exact.
+        \item 
+         $C_n=A_n\oplus B_n$.
+        \item 
+        $d_n|_{B_{n+1}}=d''_n$, $\pi_{1,n} d_n|_{A_{n+1}}=d'_n$,
+        where $\pi_{1,n}$ denotes the projective map
+        $A_n\oplus B_n\to A_n$.
+    \end{enumerate}
+    Then for $k\ge 1$, we have
+    \begin{enumerate}
+        \item 
+        $\opn{rank} \ker d_k=\opn{rank} \ker d'_k+\opn{rank} \ker d''_k$.
+        \item 
+        $\opn{rank} \opn{Im} d_k=\opn{rank} \opn{Im} d'_k+
+        \opn{rank} \opn{Im} d''_k$.
+    \end{enumerate}
+\end{lem}
+
+\begin{proof}
+    For $k\ge 1$, we consider the following map
+    $$\cdots\to A_{k+2}\oplus B_{k+2}\xrightarrow{d_{k+1}}
+    A_{k+1}\oplus B_{k+1}\xrightarrow{d_k} 
+    A_k\oplus B_k\xrightarrow{d_{k-1}} 
+    A_{k-1}\oplus B_{k-1}\to\cdots$$
+
+(1) Assume $\opn{rank} \ker d'_k=m$ and $\ker d'_k$ is spanned by 
+$\{x_i\in A_{k+1}:1\le i\le m\}$.
+For any $1\le i\le m$, $d_k x_i\in B_k$ by conditions.
+Then the exactness
+of $B_n$ and
+$$d''_{k-1}d_k x_i=d_{k-1}d_k x_i=0$$
+show that for some $y_i\in B_{k+1}$, we have
+$$d_kx_i=d''_ky_i=d_ky_i.$$
+
+Suppose $d_k(x+y)=0$ for some $x\in A_{k+1}, y\in B_{k+1}$. 
+Then $d'_kx=0$ and
+we can write $x=\sum_{i=1}^m c_i x_i$ with $c_i\in \KK$. Now
+$$x+y=\sum_{i=1}^m c_i (x_i-y_i)+\sum_{i=1}^m c_i y_i+y,$$
+which shows $d_k(x+y)=d''_k(\sum_{i=1}^m c_i y_i+y)=0$. Thus
+\begin{equation*}
+    \begin{split}
+        \ker d_k\subset &\  \KK\{x_i-y_i:1\le i\le m\}+\ker d''_k\\
+        = &\  \KK\{x_i-y_i:1\le i\le m\}\oplus\ker d''_k.
+    \end{split}
+\end{equation*}
+Clearly, $\KK\{x_i-y_i:1\le i\le m\}\oplus\ker d''_k\subset \ker d_k$.
+Hence we have
+$$\opn{rank} \ker d_k=\opn{rank} \ker d'_k+\opn{rank} \ker d''_k.$$
+
+(2) Assume $\opn{rank} \opn{Im} d'_k=s$ and $\opn{Im} d'_k$ is spanned by 
+$\{z_i\in A_{k}:1\le i\le s\}$, with $z_i=d'_kz'_i$ for some $z'_i\in 
+A_{k+1}$.
+
+Given $x\in A_{k+1}, y\in B_{k+1}$. We can write $d'_kx=\sum_{i=1}^s 
+b_iz_i$ with $b_i\in \KK$.
+Now $d'_k(x-\sum_{i=1}^s b_iz'_i)=0$ shows 
+$$d_k(x-\sum_{i=1}^s b_iz'_i)\in B_k.$$
+Then the exactness
+of $B_n$ and
+$$d''_{k-1}d_k(x-\sum_{i=1}^s b_iz'_i)
+=d_{k-1}d_k(x-\sum_{i=1}^s b_iz'_i)=0$$
+show that for some $w\in B_{k+1}$,
+$$d_k(x-\sum_{i=1}^s b_iz'_i)=d''_kw=d_kw.$$
+Thus
+\begin{equation*}
+    \begin{split}
+        d_k(x+y)= & \ d_k(\sum_{i=1}^s b_iz'_i)+d''_k(w+y)\\
+        = & \ \sum_{i=1}^s b_i(z_i+\pi_{2,k}d_kz'_i)+d''_k(w+y),
+    \end{split}
+\end{equation*}
+where $\pi_{2,k}$ denotes the projective map $A_k\oplus B_k\to B_k$.
+The above equation shows
+\begin{equation*}
+    \begin{split}
+        \opn{Im} d_k = & \ \KK\{z_i+\pi_{2,k}d_kz'_i:1\le i\le s\}+
+        \opn{Im} d''_k\\
+        = & \ \KK\{z_i+\pi_{2,k}d_kz'_i:1\le i\le s\}\oplus
+        \opn{Im} d''_k.
+    \end{split}
+\end{equation*}
+Hence
+$$\opn{rank} \opn{Im} d_k=\opn{rank} \opn{Im} d'_k+
+\opn{rank} \opn{Im} d''_k.$$
+\end{proof}
+\begin{rem}
+    This lemma remains valid after removing the condition (1). The proof
+    is similar.
+\end{rem}
+
+
+\section{The proof of Theorem \ref{thm: change of rank}}
+\label{sec: The proof of Theorem 1}
+\subsection*{Notations}
+From now on, we set the coefficient to be $\R$. In this section, we
+assume the conditions of Theorem \ref{thm: change of rank} hold. We
+also use $\lambda\K$ to denote $\lambda_{[n+1]}\K$.
+
+
+Clearly, we have following lemma.
+\begin{lem}
+    \label{lem: lamda Kj and Kj}
+    For any $J\subset [m]$, we have
+    \begin{enumerate}
+        \item 
+        If there exists some $i\in [n+1]$ such that $i\not\in J$,
+        then $(\lambda\K)_J=\K_J$.
+        \item 
+        If $[n+1]\subset J$, then $(\lambda\K)_J=\K_J\cup [n+1]$.
+    \end{enumerate}
+\end{lem}
+
+Based on Lemma \ref{lem: lamda Kj and Kj}, we can prove
+\begin{lem}
+    \label{lem: H*lamda Kj and H*Kj}
+    For any $J\subset [m]$, we have
+    \begin{enumerate}
+        \item 
+        $\widetilde{H}^s((\lambda\K)_J)\cong 
+        \widetilde{H}^s(\K_J)$, for $s\not = n-1,n$.
+        \item 
+        $\widetilde{H}^*((\lambda\K)_J)\cong
+        \widetilde{H}^*(\K_J)$, for $[n+1]\not\subset J$.
+        \item 
+        $\widetilde{H}^n((\lambda\K)_{J})=
+        \widetilde{H}^n(\K_J)=\widetilde{H}^{n-1}((\lambda
+        \K)_{J})=0$, 
+        $\widetilde{H}^{n-1}(\K_J)=\R$, for $J=[n+1]$.
+        \item 
+        $\widetilde{H}^n((\lambda\K)_{J})\cong
+        \widetilde{H}^n(\K_J)\oplus\R$, $\widetilde{H}^{n-1}((\lambda\K)_{J})\cong
+        \widetilde{H}^{n-1}(\K_J)$, for $[n+1]\subset J$
+        and $[n+1]\not = J$.
+    \end{enumerate}
+\end{lem}
+
+\begin{proof}
+The conclusion for $[n+1]\not\subset J$ can be deduced immediately
+    from Lemma \ref{lem: lamda Kj and Kj}.
+
+For $J=[n+1]$, the conditions of Theorem \ref{thm: change of rank} shows
+$$\K_J=\partial\Delta^n \text{ and } (\lambda\K)_{J}=\Delta^n.$$
+
+For $[n+1]\subset J$ and $[n+1]\not = J$, there exists some $n+2\le j\le m$
+such that
+$$\{1,\cdots,\widehat{i},\cdots,n+1\}\cup \{j\}\in \K, \text{ for any }
+1\le i\le n+1.$$
+In other words, $\partial \Delta^n$ is contractible in $\K_J$.
+Thus $(\lambda\K)_{J}\simeq \K_J\vee S^n$.
+\end{proof}
+
+Thus we have
+\begin{cor}
+    \label{cor: rank H*}
+    For $s\not =n-1,n$,
+    $$\opn{rank} H\!H^s(\ZZ_{\lambda\K})=
+    \opn{rank} H\!H^s(\ZZ_{\K}).$$
+\end{cor}
+
+Now we claim that
+\begin{prop}
+\label{prop: rank H n-1}
+    $\opn{rank} H\!H^{n-1}(\ZZ_{\lambda\K})=
+    \opn{rank} H\!H^{n-1}(\ZZ_{\K})-1.$
+\end{prop}
+
+\begin{proof}
+By Lemma \ref{lem: d'd'=0}, $\widetilde{H}^{n-1}((\lambda\K)_J)
+\cong \widetilde{H}^{n-1}(\K_J)$ if $J\not =[n+1]$ and
+$$\widetilde{H}^{n-1}((\lambda\K)_{[n+1]})=0,\ 
+\widetilde{H}^{n-1}(\K_{[n+1]})\cong\R_{[n+1]}.$$
+Now the cochain complex $C\!H^*(\ZZ_{\K})$ in dimension $n-1$ are
+$$(\bigoplus_{J\subset [m]}\widetilde{H}^{n-1}(\K_J),d'_{\K})
+=(\bigoplus_{J\subset [m]}\widetilde{H}^{n-1}((\lambda\K)_J)\bigoplus \R_{[n+1]},d'_{\K}),$$
+which satisfy $\pi_1 d'_{\K}=d'_{\lambda\K}$. Here $\pi_1$ denotes
+the projective map 
+$$\bigoplus_{J\subset [m]}\widetilde{H}^{n-1}((\lambda
+\K)_J)\bigoplus \R_{[n+1]}\to \bigoplus_{J\subset [m]}\widetilde{H}^{n-1}((\lambda\K)_J).$$
+
+For any $J\subset [m]$ with $[n+1]\subset J$ and $|J|=n+2$, the conditions
+of Theorem \ref{thm: change of rank} show that $\K_J$ is contractible and thus $\widetilde{H}^{n-1}(\K_J)=0$. Similarly, for $J\subset [n+1]$ with $|J|=n$, $\widetilde{H}^{n-1}(\K_J)=0$. Then the following two homomorphisms
+are trivial
+$$\bigoplus_{J\subset [m]:|J|=n+2}\widetilde{H}^{n-1}(\K_J)
+\to \widetilde{H}^{n-1}(\K_{[n+1]})\to
+\bigoplus_{J\subset [m]:|J|=n}\widetilde{H}^{n-1}(\K_J).$$
+Now we have
+$$(\bigoplus_{J\subset [m]}\widetilde{H}^{n-1}(\K_J),d'_{\K})
+=(\bigoplus_{J\subset [m]}\widetilde{H}^{n-1}((\lambda\K)_J),
+d'_{\lambda\K})
+\bigoplus\R_{[n+1]},$$
+which implies the result.
+    
+\end{proof}
+
+By Corollary \ref{cor: rank H*} and Proposition \ref{prop: rank H n-1}, in
+order to prove Theorem \ref{thm: change of rank}, it suffices to prove that
+\begin{prop}
+    \label{prop: rank H n}
+(1) $\opn{rank} H\!H^n(\ZZ_{\lambda\K})=\opn{rank} H\!H^n
+(\ZZ_{\K})-1$, if there exists some $J=\{1,\cdots,n+1,$ $j,k\}$ with $n+2\le j<k\le m$ such that $\opn{rank} \widetilde{H}^n(\K_J)=1$.
+    
+(2) $\opn{rank} H\!H^n(\ZZ_{\lambda\K})=\opn{rank} H\!H^n
+(\ZZ_{\K})+1$, otherwise.
+\end{prop}
+
+\begin{proof}
+By Lemma \ref{lem: H*lamda Kj and H*Kj}, for $J\subset [m]$,
+\begin{equation*}
+    \begin{split}
+        \widetilde{H}^n((\lambda\K)_{J})\cong
+        \begin{cases}
+        \widetilde{H}^n(\K_J)\oplus\R, & \text{ if }
+        [n+1]\subset J \text{ and } J\not =[n+1],\\
+        \widetilde{H}^n(\K_J), & \text{ otherwise}.
+        \end{cases}
+    \end{split}
+\end{equation*}
+We choose a nonzero element $\alpha_{[m]}\in \widetilde{H}^n((\lambda\K)_{[m]})$ such that
+$\alpha_{[m]}$ is in the kernel of $\widetilde{H}^n((\lambda
+\K)_{[m]})\to \widetilde{H}^n(\K_{[m]})$,
+which is induced by the inclusion. For example, we can choose
+$\alpha_{[m]}=\sum_{i=n+2}^m (\partial\{1,\cdots,n+1,i\})^*$, where 
+$(\partial\{1,\cdots,n+1,i\})^*$ denotes the dual of 
+$\partial\{1,\cdots,n+1,i\}$.
+
+For any $J\subset [m]$, let $\alpha_J$
+be the image of $\alpha_{[m]}$ in the homomorphism 
+$$\widetilde{H}^n((\lambda\K)_{[m]})\to \widetilde{H}^n((\lambda
+\K)_J)$$
+induced by inclusion. The commutative diagram
+$$\xymatrix{
+& \widetilde{H}^n((\lambda\K)_{[m]})\ar@{->}[d] \ar@{->}[r]
+& \widetilde{H}^n((\lambda\K)_J)\ar@{->}[d]\\
+& \widetilde{H}^n(\K_{[m]})\ar@{->}[r]
+& \widetilde{H}^n(\K_J)\\
+}$$
+shows $\alpha_J\in \ker (\widetilde{H}^n((\lambda\K)_J)\to \widetilde{H}^n(\K_J))$.
+
+For $J\subset [m]$ with $[n+1]\subset J$, $J\not =[n+1]$, 
+the conditions of Theorem \ref{thm: change of rank} imply
+$\alpha_J\in \widetilde{H}^n((\lambda\K)_J)$ is nonzero.
+The fact $(\lambda\K)_J\simeq \K_J\vee S^n$ shows the homomorphism
+$\widetilde{H}^n((\lambda\K)_J)\to \widetilde{H}^n(\K_J)$
+induced by inclusion
+is surjective and the kernel is $\R[\alpha_J]$.
+Thus the inclusion induced an isomorphism
+$$\widetilde{H}^n((\lambda\K)_J)/\R[\alpha_J]\cong
+\widetilde{H}^n(\K_J).$$
+
+
+For other $J\subset [m]$, by
+Lemma \ref{lem: d'd'=0}, the inclusion induces an isomorphism 
+$$\widetilde{H}^n((\lambda\K)_J)\cong \widetilde{H}^n(\K_J),$$
+which shows $\alpha_J=0$.
+
+Let 
+$$A_k=\bigoplus_{J\subset [m]:|J|=k} \widetilde{H}^n((\lambda\K)_J)/\R[\alpha_J],\ 
+B_k=\bigoplus_{J\subset [m]:|J|=k} \R[\alpha_J].$$
+Then the cochain complex $(\bigoplus_{J\subset [m]} \widetilde{H}^n((\lambda\K)_J),d'_{\lambda\K})$ satisfies
+\begin{enumerate}
+    \item 
+    $\bigoplus_{J\subset [m]:|J|=k} \widetilde{H}^n((\lambda\K)_J)
+    = A_k\oplus B_k$.
+    \item 
+    $(A_k,\pi_{1,k}d'_{\lambda\K,{k-1}})\cong (\bigoplus_{J\subset [m]:|J|=k} \widetilde{H}^n(\K_J),d'_{\K,{k-1}})$, which is induced by inclusion. 
+    Here $\pi_{1,k}$ denotes the projective map: $A_k\oplus B_k\to A_k$.
+\end{enumerate}
+
+For $J\subset [m]$ with $[n+1]\subset J$, $J\not =[n+1]$, we can write
+$$J=\{1,\cdots,n+1,i_1,\cdots,i_j\},$$
+with some $j\ge 1$ and $n+2\le i_1< \cdots < i_j\le m$.
+Then \eqref{equ: def of dp} shows 
+\begin{equation}
+\label{eq: d alpha}
+d'_{\lambda\K}(\alpha_J)=
+\sum_{k=1}^j (-1)^k \alpha_{J\setminus \{i_k\}}.    
+\end{equation}
+
+
+Consider the simplex $\Delta^{m-n-2}$ on $[m-n-1]$.
+For $j\ge 0$, its group of $j$-chains $C_j(\Delta^{m-n-2})$ is spanned by
+all $\{i_1,\cdots,i_{j+1}\}$ with $1\le i_1<\cdots <i_{j+1}\le m-n-1$.
+The boundary operator 
+$\partial_j:C_{j+1}(\Delta^{m-n-2})\to C_{j}(\Delta^{m-n-2})$
+is defined by
+$$\partial_j \{i_1,\cdots,i_{j+2}\}
+=\sum_{k=1}^{j+2} (-1)^{k-1} \{i_1,\cdots,i_{j+2}\}
+\!\setminus\! \{i_k\}.$$
+The fact $H^*(\Delta^{m-n-2})=H^0(\Delta^{m-n-2})=\R$ shows 
+$\ker \partial_j=\opn{Im} \partial_{j+1}$ for $j\ge 0$
+and $C_0(\Delta^{m-n-2})/\opn{Im} \partial_0=\R$.
+
+For $k\ge n+2$,
+the complexes $(B_k,d'_{\lambda\K,k-1}|_{B_k})$, 
+$(C_{k-n-2}(\Delta^{m-n-2}),\partial_{k-n-3})$ are isomorphic.
+Thus by Lemma \ref{lem: dim ker}, for $k\ge n+3$,
+\begin{equation}
+\label{eq: rank ker Im for k>=n+3}
+    \begin{split}
+        \opn{rank}\ker d'_{\lambda\K,k}= &\ 
+        \opn{rank}\ker d'_{\K,k}+
+        \opn{rank}\ker \partial_{k-n-2},\\
+        \opn{rank}\opn{Im} d'_{\lambda\K,k}= &\ 
+        \opn{rank}\opn{Im} d'_{\K,k}+
+        \opn{rank}\opn{Im} \partial_{k-n-2}.\\ 
+    \end{split}
+\end{equation}
+Then for $k\ge n+3$, we have
+\begin{equation}
+    \label{eq: k>=n+4}
+    \opn{rank}(\ker d'_{\lambda\K,k}/
+    \opn{Im} d'_{\lambda\K,k+1})
+    = \opn{rank}(\ker d'_{\K,k}/
+    \opn{Im} d'_{\K,k+1}).
+\end{equation}
+Note that $B_k=0$ when $k\le n+1$. Thus for $k\le n$, \eqref{eq: k>=n+4}
+is also valid.
+
+Now we write 
+$$\bigoplus_{J\subset [m]:|J|=n+3} \widetilde{H}^n(\K_J)=C\bigoplus D,$$
+where
+$$C=\bigoplus_{\substack{J\subset [m]:|J|=n+3\\ [n+1]\subset J}} \widetilde{H}^n(\K_J),\ 
+D=\bigoplus_{\substack{J\subset [m]:|J|=n+3\\ [n+1]\not\subset J}} \widetilde{H}^n(\K_J).$$
+
+We claim that $d'_{\K,n+2}|_C=0$. 
+
+In fact, given $|J|=n+3$, $[n+1]\subset J$. If $J\!\setminus\! \{i\}\in \K$ for all $1\le i\le n+1$, then for any $j\in J$, $\K_{J\!\setminus\! \{j\}}$
+is contractible and the claim is trivial. 
+
+If $J\!\setminus\! \{i\}\not\in \K$ for all $1\le i\le n+1$,
+then for any $j\in J$,
+the conditions of Theorem \ref{thm: change of rank}
+imply $\K_J\simeq \K_{J\setminus \{j\}}\vee S^n\vee \{\text{other spheres which may be empty}\}$. Then
+$$\opn{rank} \widetilde{H}^n(\K_{J\setminus \{j\}})\le
+\opn{rank} \widetilde{H}^n(\K_J)-1\le 0,$$
+which shows $\widetilde{H}^n(\K_{J\setminus \{j\}})=0$.
+
+
+Now we can write
+$$\bigoplus_{J\subset [m]:|J|=n+3}
+\widetilde{H}^n((\lambda\K)_J)=C'\bigoplus D'\bigoplus B_{n+3},$$
+where
+$$C'=\bigoplus_{\substack{J\subset [m]:|J|=n+3\\ [n+1]\subset J}} \widetilde{H}^n((\lambda\K)_J)/\R[\alpha_J],$$
+$$D'=\bigoplus_{\substack{J\subset [m]:|J|=n+3\\ [n+1]\not\subset J}} \widetilde{H}^n((\lambda\K)_J)/\R[\alpha_J].$$
+Above claim shows $d'_{\lambda\K,n+2}(C')\subset B_{n+2}$.
+By the definition of $B_{n+2}$, we have $d'_{\lambda
+\K,n+2}(D')\subset A_{n+2}$.
+
+Hence we have
+\begin{equation*}
+    \begin{split}
+        \ker d'_{\K,n+2}= &\ C\bigoplus \ker d'_{\K,n+2}|_D,\\
+        \ker d'_{\lambda\K,n+2} = &\ \ker d'_{\lambda\K,n+2}|_{D'}\bigoplus
+        \ker d'_{\lambda\K,n+2}|_{C'\oplus B_{n+3}}\\
+        \cong &\ \ker d'_{\K,n+2}|_D\bigoplus
+        \ker d'_{\lambda\K,n+2}|_{C'\oplus B_{n+3}},
+    \end{split}
+\end{equation*}
+and 
+\begin{equation*}
+    \begin{split}
+        \opn{Im} d'_{\K,n+2}= &\ \opn{Im} d'_{\K,n+2}|_D,\\
+        \opn{Im} d'_{\lambda\K,n+2} = &\ \opn{Im} d'_{\lambda\K,n+2}|_{D'}\bigoplus
+        \opn{Im} d'_{\lambda\K,n+2}|_{C'\oplus B_{n+3}}\\
+        \cong &\ \opn{Im} d'_{\K,n+2}|_D\bigoplus
+        \opn{Im} d'_{\lambda\K,n+2}|_{C'\oplus B_{n+3}}.
+    \end{split}
+\end{equation*}
+
+Now we divide two cases.
+
+(1) Assume there exists some $J_0=\{1,\cdots,n+1,$ $j,k\}$ with $n+2\le j<k\le m$ such that $\opn{rank} \widetilde{H}^n(\K_{J_0})=1$.
+Then $d'_{\lambda\K,n+2}|_{C'}\subset B_{n+2}$ implies
+$$d'_{\lambda\K,n+2}
+(\widetilde{H}^n((\lambda\K)_{J_0}))
+\subset \R\{\alpha_{J_0\setminus\{j\}}\}\bigoplus \R\{\alpha_{J_0\setminus\{k\}}\}.$$
+
+
+Now we claim $d'_{\lambda\K,n+2}(C'\oplus B_{n+3})=B_{n+2}$. 
+Note that
+$$B_{n+2}/d'_{\lambda\K,n+2}(B_{n+3})
+\cong C_0(\Delta^{m-n-2})/\opn{Im} \partial_0=\R.$$
+
+
+Since by the conditions of Theorem \ref{thm: change of rank}, we can write
+\begin{equation*}
+    \begin{split}
+        \widetilde{H}^n((\lambda\K)_{J_0})= & \
+        \R \{ \partial(J_0\!\setminus\!\{j\})^*\} \bigoplus
+        \R \{ \partial(J_0\!\setminus\!\{k\})^*\},\\
+        \widetilde{H}^n((\lambda\K)_{J_0\setminus \{j\}})= & \
+        \R \{ \partial(J_0\!\setminus\!\{j\})^*\},\\
+        \widetilde{H}^n((\lambda\K)_{J_0\setminus \{k\}})= & \
+        \R \{ \partial(J_0\!\setminus\!\{k\})^*\},\\
+    \end{split}
+\end{equation*}
+where $\partial(J_0\!\setminus\!\{j\})^*,\partial(J_0\!\setminus\!\{k\})^*$ denote
+the dual of $\partial(J_0\!\setminus\!\{j\}),\partial(J_0\!\setminus\!\{k\})$.
+Thus the inclusion induce an isomorphism
+$$\widetilde{H}^n((\lambda\K)_{J_0})
+\cong \widetilde{H}^n((\lambda\K)_{J_0\setminus\{j\}})
+\bigoplus \widetilde{H}^n((\lambda\K)_{J_0\setminus\{k\}})$$
+
+Now we choose a nonzero element $\beta\in \widetilde{H}^n(\K_{J_0})$
+and let $\beta'$ to be a preimage of $\beta$ under the epimorphism
+$$\widetilde{H}^n((\lambda\K)_{J_0})
+\to \widetilde{H}^n(\K_{J_0}),$$
+which is induced by inclusion. From the definition of $\alpha_{J_0}$,
+we have
+\begin{equation*}
+    \begin{split}
+        \widetilde{H}^n((\lambda\K)_{J_0})= &\
+        \R\{\alpha_{J_0}\}\bigoplus \R\{\beta'\},\\
+        \widetilde{H}^n((\lambda\K)_{J_0\setminus\{j\}})= &\
+        \R\{\alpha_{J_0\setminus\{j\}}\},\\
+        \widetilde{H}^n((\lambda\K)_{J_0\setminus\{k\}})= &\
+        \R\{\alpha_{J_0\setminus\{k\}}\}.\\
+    \end{split}
+\end{equation*}
+Thus $d'_{\lambda\K,n+2}(\alpha_{J_0})$ and $d'_{\lambda\K,n+2}(\beta')$ are linearly independent.
+Note that \eqref{eq: d alpha} shows for any element in
+$d'_{\lambda\K,n+2}(B_{n+3})$,
+the sum of coefficients is $0$.
+Thus for some $a,b\in \R$ with $a+b\not=0$,
+$$d'_{\lambda\K,n+2}(\beta')=a\alpha_{J_0\setminus\{j\}}+
+b\alpha_{J_0\setminus\{k\}}\not\in d'_{\lambda\K,n+2}(B_{n+3}),$$
+which shows the claim.
+
+Now we have
+\begin{equation*}
+    \begin{split}
+        & \ \opn{rank} \ker d'_{\lambda\K,n+2}\\
+        = & \  \opn{rank} \ker d'_{\K,n+2}|_D
+        + \opn{rank} \ker d'_{\lambda\K,n+2}|_{C'\oplus B_{n+3}}\\
+        = & \  \opn{rank} \ker d'_{\K,n+2}|_D
+        + \opn{rank} C' + \opn{rank} B_{n+3} - \opn{rank} B_{n+2}\\
+        = & \  \opn{rank} \ker d'_{\K,n+2}|_D
+        + \opn{rank} C + \opn{rank} C_1(\Delta^{m-n-2})
+        -\opn{rank} C_0(\Delta^{m-n-2})\\
+        = & \  \opn{rank} \ker d'_{\K,n+2}+
+        \opn{rank} \ker \partial_0 +\opn{rank} \opn{Im} \partial_0
+        -(\opn{rank} \opn{Im} \partial_0+1)\\
+        = & \ \opn{rank} \ker d'_{\K,n+2}+
+        \opn{rank} \ker \partial_0-1,
+    \end{split}
+\end{equation*}
+and by \eqref{eq: rank ker Im for k>=n+3},
+$$\opn{rank} \opn{Im} d'_{\lambda\K,n+3}
+= \opn{rank} \opn{Im} d'_{\K,n+3} + \opn{rank} \opn{Im} \partial_1.$$
+Hence,
+
+\begin{equation}
+\label{eq: rank n+2 1 case}
+    \begin{split}
+         & \ \opn{rank} (\ker d'_{\lambda\K,n+2}/\opn{Im} d'_{\lambda\K,n+3})\\
+        = & \ \opn{rank} \ker d'_{\lambda\K,n+2}-
+        \opn{rank} \opn{Im} d'_{\lambda\K,n+3}\\
+        = & \ \opn{rank} (\ker d'_{\K,n+2}/\opn{Im} d'_{\K,n+3})-1.
+    \end{split}
+\end{equation}
+
+Since $B_{n+1}=0$, we also have
+\begin{equation}
+\label{eq: rank n+1 1 case}
+    \begin{split}
+         & \ \opn{rank} (\ker d'_{\lambda\K,n+1}/\opn{Im} d'_{\lambda\K,n+2})\\
+        = & \ \opn{rank} \ker d'_{\lambda\K,n+1}-
+        \opn{rank} \opn{Im} d'_{\lambda\K,n+2}\\
+        = & \ \opn{rank} \ker d'_{\K,n+1}+\opn{rank} B_{n+2}-
+        (\opn{rank} \opn{Im} d'_{\K,n+2}|_D+
+        \opn{rank} B_{n+2})\\
+        = & \ \opn{rank} (\ker d'_{\K,n+1}/\opn{Im} d'_{\K,n+2}).
+    \end{split}
+\end{equation}
+By \eqref{eq: rank ker Im for k>=n+3}, \eqref{eq: rank n+1 1 case}
+and \eqref{eq: rank n+2 1 case}, we have
+$$\opn{rank} H\!H^n(\ZZ_{\lambda\K})=\opn{rank} H\!H^n
+(\ZZ_{\K})-1.$$
+
+(2) Assume $\widetilde{H}^n(\K_J)=0$ 
+for any $J\subset [m]$ with $[n+1]\subset J,|J|=n+3$.
+Then $C=C'=0$ and we have
+\begin{equation*}
+    \begin{split}
+        & \ \opn{rank} \ker d'_{\lambda\K,n+2}\\
+        = & \  \opn{rank} \ker d'_{\K,n+2}|_D
+        + \opn{rank} \ker d'_{\lambda\K,n+2}|_{B_{n+3}}\\
+        = & \  \opn{rank} \ker d'_{\K,n+2}
+        + \opn{rank} \ker \partial_0.\\
+    \end{split}
+\end{equation*}
+Then we have
+\begin{equation}
+    \label{eq: rank ker Im 2 case 1}
+    \begin{split}
+        & \ \opn{rank} (\ker d'_{\lambda\K,n+2}/\opn{Im} d'_{\lambda\K,n+3})\\
+        = & \ \opn{rank} \ker d'_{\K,n+2}
+         + \opn{rank} \ker \partial_0
+         - ( \opn{rank} \opn{Im} d'_{\K,n+3} + \opn{rank} \opn{Im} \partial_1 )\\
+         = & \ \opn{rank} (\ker d'_{\K,n+2}/\opn{Im} d'_{\K,n+3}).\\
+    \end{split}
+\end{equation}
+
+Since $B_{n+1}=0$, we have
+\begin{equation}
+    \label{eq: rank ker Im 2 case 2}
+    \begin{split}
+         & \ \opn{rank} (\ker d'_{\lambda\K,n+1}/\opn{Im} d'_{\lambda\K,n+2})\\
+        = & \ \opn{rank} \ker d'_{\lambda\K,n+1}-
+        \opn{rank} \opn{Im} d'_{\lambda\K,n+2}\\
+        = & \ \opn{rank} \ker d'_{\K,n+1}+\opn{rank} B_{n+2}
+        -
+        (\opn{rank} \opn{Im} d'_{\K,n+2}|_D+
+        \opn{rank} \opn{Im}
+        d'_{\lambda\K,n+2}|_{B_{n+3}})\\
+        = & \ \opn{rank} \ker d'_{\K,n+1}+\opn{rank} C_0(\Delta^{m-n-2})-
+        (\opn{rank} \opn{Im} d'_{\K,n+2}|_D+
+        \opn{rank}\opn{Im}\partial_0)\\
+        = & \ \opn{rank} (\ker d'_{\K,n+1}/\opn{Im} d'_{\K,n+2})+1.
+    \end{split}
+\end{equation}
+By \eqref{eq: k>=n+4}, \eqref{eq: rank ker Im 2 case 1} and \eqref{eq: rank ker Im 2 case 2}, we have
+$$\opn{rank} H\!H^n(\ZZ_{\lambda\K})=\opn{rank} H\!H^n
+(\ZZ_{\K})+1.$$
+
+\end{proof}
+
+
+\section{The proof of Theorem \ref{thm: complex with any even rank}}
+\label{sec: the proof of thm 2}
+In Theorem \ref{thm: change of rank}, let $n=1$ and we have
+\begin{prop}
+    \label{prop: the change of rank n=1}
+    Let $\Delta^1$ be the $1$-simplex on $[2]$ and $\K$ be a simplicial complex on $[m]$ with $m\ge 3$. Suppose the following conditions hold:
+    \begin{enumerate}
+    \item 
+    $[2]\not\in \K$.
+    \item 
+    For any 
+    $3\le j\le m$, 
+    $\{1,j\}, \{2,j\}\in \K$. 
+    \item 
+    For any $J=\{1,2,j,k\}$ with $3\le j<k\le m$, 
+    $\opn{rank} \widetilde{H}^1(\K_J)\le 1$.
+    \item 
+    For any $J=\{1,2,j,k\}$ with $3\le j<k\le m$, 
+    either $J\!\setminus\! \{1\},J\!\setminus\! \{2\}\in\K$,
+    or $J\!\setminus\! \{1\},J\!\setminus\! \{2\}\not\in\K$.
+    \end{enumerate}
+    Let $\lambda_{[2]}\K=\K\cup [2]$. If there exists some $J=\{1,2,j,k\}$ with $3\le j<k\le m$ such that $\opn{rank} \widetilde{H}^1(\K_J)=1$,
+    then we have
+    $$\opn{rank} H\!H^*(\ZZ_{\lambda_{[2]}\K})=\opn{rank} H\!H^*(\ZZ_{\K})-2.$$
+\end{prop}
+Now we begin the proof of Theorem \ref{thm: complex with any even rank}.
+\begin{proof}[Proof of Theorem \ref{thm: complex with any even rank}]
+    It suffices to construct a family of simplicial complexes
+$\{\K_{2r}:r\ge 1\}$ such that the following two conditions hold for any
+$r$:
+\begin{enumerate}
+    \item 
+    $\opn{rank} H\!H^*(\ZZ_{\K_{2r}})=2r$.
+    \item 
+    There  exist two vertices of $\K_{2r}$, say $x_{2r},y_{2r}$, such
+    that $\{x_{2r},y_{2r}\}\not\in \K_{2r}$.
+\end{enumerate}
+
+Let $\K_4=\{\{1\},\{2\},\{3\},\{4\},\{1,2\},\{2,3\},\{3,4\},\{1,4\}\}$ be the square. Then \cite[Example 6.4]{LPSS-2023} shows
+$\opn{rank} H\!H^*(\ZZ_{\K_4})=4$. Let $x_4=1,y_4=3$.
+
+Note that $\K_4\simeq S^1$. By Proposition \ref{prop: the change of rank n=1}, $\opn{rank} H\!H^*(\ZZ_{\lambda_{\{1,3\}}\K_4})=2$. Now
+we let $\K_2=\lambda_{\{1,3\}}\K_4=\K_4\cup \{1,3\}$ and
+$x_2=2,y_2=4$.
+
+For $2r\ge 6$, suppose we have constructed the simplicial complexes $\K_{2t}$
+for $1\le t\le r-1$ such that above two conditions hold.
+Then we divide two cases to construct $\K_{2r}$.
+
+(1) Assume $r$ is even. Note that $\opn{rank} H\!H^*(\{A,B\})=2$
+by \cite[Theorem 6.5]{LPSS-2023}.
+Let $\K_{2r}=\K_r*\{A,B\}$. Then by Proposition \ref{prop: simplicial join}, 
+$$\opn{rank} H\!H^*(\K_{2r})=2\opn{rank} H\!H^*(\K_r)=2r.$$
+Let $x_{2r}=A,y_{2r}=B$ and thus $\{x_{2r},y_{2r}\}\not\in \K_{2r}$.
+
+(2) Assume $r$ is odd.
+Let $\K_{2r}=\lambda_{\{A,B\}}(\K_{r+1}*\{A,B\})$.
+We denote $\LL=\K_{r+1}*\{A,B\}$. 
+
+For any two vertices $a,b$ of $\K_{r+1}$,
+by the definition
+of simplicial join, if $\{a,b\}\not\in \K_{r+1}$, then $\LL_{\{a,b,A,B\}}$
+is a square. If $\{a,b\}\in \K_{r+1}$, then $\LL_{\{a,b,A,B\}}$
+is contractible and $\{a,b,A\},\{a,b,B\}\in \LL_{\{a,b,A,B\}}$.
+Thus we have
+\begin{equation*}
+    \begin{split}
+        \LL_{\{a,b,A,B\}}\simeq
+        \begin{cases}
+            S^1, & \text{ if } \{a,b\}\not\in \K_{r+1},\\
+            pt, & \text{ if } \{a,b\}\in \K_{r+1}.
+        \end{cases}
+    \end{split}
+\end{equation*}
+In particular, $\LL_{\{x_{r+1},y_{r+1},A,B\}}\simeq S^1$. Thus
+by Proposition \ref{prop: the change of rank n=1},
+$$\opn{rank} H\!H^*(\K_{2r})=2\opn{rank} H\!H^*(\K_{r+1})-2=2r.$$
+Let $x_{2r}=x_{r+1},y_{2r}=y_{r+1}$. Then 
+$\{x_{r+1},y_{r+1}\}\not\in \K_{r+1}$ implies
+$\{x_{2r},y_{2r}\}\not\in \K_{2r}$.
+
+
+\end{proof}
+
+
+
+
+
+
+
+\bibliographystyle{plain}
+\bibliography{Ref}
+
+\end{document}

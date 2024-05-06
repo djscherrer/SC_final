@@ -1,0 +1,407 @@
+\begin{document}
+\affiliation{$$_affiliation_$$}
+\title{When Can We Use Two-Way Fixed-Effects (TWFE): A Comparison of TWFE and Novel Dynamic Difference-in-Differences Estimators}
+\maketitle
+
+
+
+\begin{abstract}
+
+The conventional Two-Way Fixed-Effects (TWFE) estimator has come under scrutiny lately. Recent literature has revealed potential shortcomings of TWFE when the treatment effects are heterogeneous. Scholars have developed new advanced dynamic Difference-in-Differences (DiD) estimators to tackle these potential shortcomings. However, confusion remains in applied research as to when the conventional TWFE is biased and what issues the novel estimators can and cannot address. In this study, we first provide an intuitive explanation of the problems of TWFE and elucidate the key features of the novel alternative DiD estimators. We then systematically demonstrate the conditions under which the conventional TWFE is inconsistent. We employ Monte Carlo simulations to assess the performance of dynamic DiD estimators under violations of key assumptions, which likely happens in applied cases. While the new dynamic DiD estimators offer notable advantages in capturing heterogeneous treatment effects, we show that the conventional TWFE performs generally well if the model specifies an event-time function. All estimators are equally sensitive to violations of the parallel trends assumption, anticipation effects or violations of time-varying exogeneity. Despite their advantages, the new dynamic DiD estimators tackle a very specific problem and they do not serve as a universal remedy for violations of the most critical assumptions. We finally derive, based on our simulations, recommendations for how and when to use TWFE and the new DiD estimators in applied research.
+
+\bigskip\noindent\textbf{Keywords:} Difference-in-Differences; Monte Carlo Simulation; Two-Way Fixed-Effects; Dynamic Treatment Effects; Treatment Effect Heterogeneity; Parallel-Trends
+
+\end{abstract}
+
+
+\vfill
+\begin{footnotesize}
+Acknowledgements: An earlier version of this study was presented at the UCL Centre for Quantitative Social Science Away Day. We particularly thank Alex Bryson, Lorraine Dearden, Hedvig Horvath, and Burak Sonmez for their comments. We are very grateful to Alex Bryson and Fabian Kratz for their valuable comments on an earlier version of this paper.  A replication package with the simulation and analysis code is available on the author's \href{https://github.com/ruettenauer/did_sim}{Github repository}.
+\end{footnotesize}
+
+
+
+\thispagestyle{empty}
+\clearpage
+\onehalfspacing
+
+
+\section{Introduction}
+
+Researchers in the social sciences are often interested in causal questions. To estimate causal effects, they frequently rely on the difference in the outcome before and after a treatment, and compare this difference to the difference that happened in the same period for some control units which have not received the treatment. This is called a difference-in-differences (DiD) analysis. DiD estimators are one of the most useful tools for social scientists \cite{Angrist.2015, Huntington-Klein.2021}. Because DiD effectively compares within-unit changes over time across treated and untreated units, it potentially provides strong leverage to account for measured and unmeasured unit-specific factors which are time-constant \cite{Wooldridge.2010}. 
+
+Difference-in-differences designs are typically implemented within a Two-Way Fixed Effects (TWFE) regression specification. In the canonical 2$\times$2 DiD design with two groups (treatment and control) and two periods (before and after), the TWFE can be represented as:  
+
+\begin{equation}
+\label{eqn:twfe}
+y_{it} = \beta_{TWFE} D_{it} + \alpha_i + \zeta_t + \beta x_{ij} + \epsilon_{it}
+\end{equation}
+
+\noindent in which the outcome $y_{it}$ is regressed on unit fixed effects $\alpha_i$ (i.e. dichotomous indicators for each unit), time fixed effects $\zeta_t$ (i.e. dichotomous indicators for each time period), and potentially also on time varying covariates $x_{ij}$. $D_{it}$ is the binary treatment indicator which switches from 0 to 1 when the treatment is implemented for unit $i$. In the canonical  2$\times$2 DiD design with two groups and two periods, the term $\beta_{TWFE}$ in (\ref{eqn:twfe}) captures a highly intuitive estimand of an average treatment effect on the treated \cite[ATT,~][]{Wooldridge.2010}. That is, $\beta_{TWFE}$ provides the difference between the differences over time in the treatment and control groups:
+
+\begin{equation}
+\label{eqn:did}
+\beta_{TWFE} = \mathrm{E}(\Delta y_{T}) - \mathrm{E}(\Delta y_{C}) = [\mathrm{E}(y_{T}^{post}) - \mathrm{E}(y_{T}^{pre})] - [\mathrm{E}(y_{C}^{post}) - \mathrm{E}(y_{C}^{pre})].
+\end{equation}
+
+Under the important assumption of strict exogeneity, $\beta_{TWFE}$ provides a consistent estimate of the underlying average causal treatment effect on the treated. Because of its intuitive interpretation and its advantages in consistently estimating causal effects, TWFE has been popular in sociology and in the wider social sciences. In fact, in discussing the DiD framework, \textcite[][43]{Gangl.2010} notes that ``it is hard to overstate the gain in identifying power provided by the beautifully simple method of FE estimation over standard crosssectional estimators [and] the appeal of FE methods has only been growing over the past decade as panel data have increasingly become available". Indeed, TWFE has been extensively applied to a wide range of social science topics, such as the effect of various demographic events on labour market outcomes \cite{Bruderl.2019,Schechtl.2023,Struffolino.2023,Zoch.2023}, the impact of policy measures or political parties \cite{Currie.2023, Dochow.2021, Kneip.2009, Aksoy.2021}, or the influence of environmental shocks \cite{Currie.2015, Osberghaus.2022, Ruttenauer.2023a}.
+
+In the simple set-up with two time periods and two types of groups, TWFE works indeed well. However, when it is applied to a \emph{staggered} design -- whereby the treatment is rolled out over time across units, so that some units receive the treatment early, others late, yet others never -- it is not intuitive what the TWFE estimator captures. Hence, ``for staggered interventions, the basic TWFE estimator has come under considerable scrutiny lately" \cite[][33]{Wooldridge.2021}. The recent econometrics literature emphasizes the potential problems of the TWFE framework in such staggered designs \cite{Goodman-Bacon.2021, Callaway.2020, Sun.2021, Wooldridge.2021, DeChaisemartin.2020}. These problems are related to the finding that the $\beta_{TWFE}$ term in (\ref{eqn:twfe}) is in fact an unintuitively weighted average of several contrasts between groups that undergo different treatment trajectories \cite{Goodman-Bacon.2021}. Most importantly, this can lead to biased estimates when the treatment effect is heterogeneous across groups and over time. 
+
+To remedy the potential problems of TWFE in staggered designs, scholars have recently proposed new alternative estimators. There is a long list of dynamic DiD estimators which are robust to heterogeneous treatment effects. They include estimating multiple DiD contrasts and combining them in some form \cite{Callaway.2020, Sun.2021}, imputation based estimators which explicitly generate counterfactuals for treated units \cite{Borusyak.2023}, matrix completion methods that unite DiD designs and synthetic controls \cite{Athey.2021}, and an extended  version of TWFE with more flexible parametrization \cite{Wooldridge.2021}. There are useful reviews of the recent developments of DiD in the economics literature, which present a technical treatment of the available estimators and their assumptions \cite[e.g.,][]{Freedman.2023,Roth.2023}. 
+
+Against this background of the growing literature of new DiD estimators, a recent reanalysis of 37 published studies that relied on DiD showed that the simple TWFE and the novel DiD estimators often yielded effectively the same conclusions \cite{Chiu.2023}. The question then arises as to how serious the newly discovered shortcomings of TWFE are in applied research. Moreover, there seems to be confusion outside the econometrics literature over what the new DiD estimators can and cannot do. While these new estimators address a specific problem of heterogeneity in the treatment effect, there is some misunderstanding about the assumptions required for consistency of these new estimators, such as the well-known parallel trends assumption. It is also not yet clear how the dynamic estimators perform under violation of their assumptions. Such violations are likely to be the case in many applications. Overall, there is a pressing need in understanding how the various new estimators compare to each other and to TWFE in different settings.
+
+In this study we have the following objectives. The first is to introduce the recent staggered DiD literature to social scientists in an accessible way. To that end, we first present the conventional TWFE and its potential problems that are identified in the recent econometrics literature. We then present the newly available alternative estimators. Our second objective is to compare the TWFE with the alternative dynamic DiD estimators under a number of different scenarios using Monte Carlo simulations. In our simulations, we gradually introduce realistic deviations from the ideal set-up for which the estimators were designed. We then compare how resilient different estimators (including TWFE) are to those violations and which estimator is most robust to which violation. We thus identify the conditions under which the conventional TWFE can be used with minimal concern. Moreover, we provide insights on when to rely on which alternative estimators in applied research. Finally, our code to create the simulations and analyse the generated data with a range of DiD estimators are openly available in an accompanying replication package.\footnote{The code is available on the author's \href{https://github.com/ruettenauer/did_sim}{Github repository}} Researchers can inspect our code, modify it to apply any of the DiD estimators we use here for their own research questions, or indeed extend our simulations.
+
+\section{Two-Way Fixed Effects for staggered treatments}
+
+As mentioned above, in the canonical case of two periods and two groups, the TWFE in (\ref{eqn:twfe}) gives us a very intuitive quantity: the $2 \times 2$ DiD estimator. The $\beta_{TWFE}$ coefficient identifies the average treatment effect on the treated (ATT) under the strict exogeneity assumptions: $\mathrm{E}(\epsilon_{it}|x_{i1}, \ldots, x_{iT}, \alpha_i) = 0 ~ \mathrm{for}~ T = 1,2,\ldots,T$, and that idiosyncratic errors $\epsilon_{it}$ are uncorrelated to the covariates in each (past and future) period. This implies that parallel trends (without the intervention, the difference between the treated and untreated units remains constant over time) and no anticipation (the treated units does not react to the treatment before receiving the treatment) assumptions hold.
+
+When the treatment is assigned to units at varying time points -- so that some units are treated early, others in the middle, others late, yet others never -- we talk about a \emph{staggered} design. In staggered designs, \textcite{Goodman-Bacon.2021} shows that the $\beta_{TWFE}$ coefficient in (\ref{eqn:twfe}) represents effectively a weighted average of many $2 \times 2$ DiD estimators that compare the groups with particular treatment timings against each other. \textcite{Goodman-Bacon.2021} derives the exact weights of each of these $2 \times 2$ DiD estimators that collectively yield the $\beta_{TWFE}$ in (\ref{eqn:twfe}). These weights turn out to be proportional to the number of observations in each contrasting pair and the variance of the treatment indicator in each contrasting pair. A contrasting pair comprises a treatment group which received the treatment at a particular point in time and a possible control group which did not receive any treatment within the relevant time window. 
+
+An example of the multiple $2 \times 2$ DiDs that collectively form $\beta_{TWFE}$ are illustrated in Figure \ref{fig:Bacon}. The left-hand contrasts A and C in Figure \ref{fig:Bacon} involve the units treated at a specific time as the treatment group compared to the never-treated units as control. The contrast of early treated vs. never-treated is shown in panel A and the contrast of the late treated vs. never treated in panel C of Figure \ref{fig:Bacon}. In contrast B in Figure \ref{fig:Bacon}, the early treated group serving as the treatment group is compared to the late treated group before it receives the treatment (not-yet-treated) as the control group. Some of those contrasts receive higher weights in $\beta_{TWFE}$ because of the timing of treatment. There is no problem with those types of contrast. Finally, in panel D of Figure \ref{fig:Bacon} the late treated group is acting as the treatment group and the early treated as the control for the period \emph{after} the early treated have received the treatment (already-treated). It is this final contrast that is causing a problem in the conventional TWFE \cite{Goodman-Bacon.2021}. 
+
+In the stylized example of Figure \ref{fig:Bacon} panel D, the problem happens because the pre-post difference in the control group (already-treated) is \emph{larger} than the same difference in the treatment group (late-treated), as the treatment has caused a trend-breaking change in the already-treated (control) group. This causes a downward bias in $\beta_{TWFE}$. In our example, all three groups follow a parallel trend before experiencing treatment. However, the treatment brings the early-treated on a steep trajectory, and panel D uses this steep trajectory to estimate the time trend (the pre-post difference) in the control group.\footnote{This problem only occurs if the early-treated experience a dynamic (e.g. trend-breaking) treatment effect. In case of a single treatment following a step-function, the already-treated constitute a valid control group as their trajectory is perfectly parallel to the counterfactual trajectory (see Figure \ref{fig:step}).} In panel D, thus, we are using a group as the ``control group" that experiences an ongoing active treatment effect, which then confounds the estimated treatment effect for this contrast. Depending on the direction of the treatment effect and its pattern of time-specific heterogeneity, the bias could go in either direction and in the extreme cases can even change the sign of the treatment effect estimate \cite{Roth.2023}. Because of its potential problem in panel D in Figure \ref{fig:Bacon}, this comparison is sometimes called the ``forbidden comparison" \cite{Borusyak.2023} that may introduce bias in $\beta_{TWFE}$. 
+
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.8\linewidth]{DiD2.jpeg}
+  \caption{The four contrasting pairs of all 2-group DiD estimators that go into $\beta_{TWFE}$ in a TWFE regression with staggered treatment roll out, in this case with three groups: never-treated group, early-treated, and late-treated groups. Blue triangles are observations under treatment while red dots are untreated observations. Dashed horizontal lines show the counterfactual trajectory. Panel A) compares the early-treated to the never-treated, panel B) compares early-treated to the not-yet-treated observations of the late-treated, panel C) compares the late-treated to the never-treated, and panel D) compares the late-treated (as treatment group) to the already-treated of the early-treated (as control group).
+  }
+  \label{fig:Bacon}
+\end{figure}
+
+To summarise, the recent criticism of TWFE applies to the specific setting whereby the treatment effects are heterogeneous over time (or dynamic). In such settings where the treatment effect follows a dynamic event-time form, a conventional TWFE estimator with only a single treatment indicator ($0 =$ not treated, $1 =$ treated) and a single coefficient for this indicator will be biased, for it includes ``forbidden comparisons" . However, if the treatment effect is constant over time, then the TWFE estimator with a single treatment indicator identifies the (variance weighted) average treatment effect on the treated, even in staggered designs. Note, that when there is effect heterogeneity across units but the effects are constant over time -- e.g. a step-level jump in the outcome -- then the units that received the treatment in the middle of the time horizon may be over-represented in the $\beta_{TWFE}$ coefficient; however, the TWFE will be consistent. Overall, the shortcomings of TWFE are thus not about the estimator itself but about a misspecification of the functional form of the treatment effect \cite{Goodman-Bacon.2021, Wooldridge.2021}. As we will show below, if the dynamic nature of the treatment effect is correctly specified with a flexible event-time specification -- several dichotomous indicators that start counting from the onset of the treatment \cite{Ludwig.2021} -- then TWFE again recovers the time-specific ATT. 
+  
+
+\section{Dynamic DiD estimators}
+
+There is now a bewildering list of alternative estimators that tackle the above-mentioned issue \cite[for formal reviews see][]{Chiu.2023, Roth.2023}. In this study we will discuss and compare five alternatives to TWFE. We have selected these five because each of these five relies on a different approach to deal with the potential problem of TWFE. The first approach is to decompose the effect into several $2 \times 2$ DiDs, drop the ``forbidden comparisons" of early treated vs late treated groups, and combine all those separate estimates into a weighted average that summarises the treatment effect in a meaningful way. The estimators that we will consider under this approach are \textcite{Sun.2021} and \textcite{Callaway.2020}. The second approach ``imputes" with a regression model the missing counterfactuals for the treatment groups after receiving the treatment \cite{Borusyak.2023}. The third approach is similar to the second one, in that it also imputes missing counterfactuals. However, it uses a different approach to do so, namely the matrix completion method borrowed from computer science \cite{Athey.2021}. The fourth approach is fitting an extended version of TWFE (ETWFE) where treatment effects are allowed to vary across groups and over time by specifying appropriate interaction effects \cite{Wooldridge.2021}. Below we describe those approaches in further detail.
+
+
+
+\subsection{Disaggregation based estimators}
+
+This class of estimators first decompose the target estimate into several  $2 \times 2$ DiDs. The number of such contrasts depends on the exact nature of the treatment timing of each group. Those multiple contrasts can then be aggregated into a single value. 
+
+\textcite{Callaway.2020} define an ATT at time-point $t$ for a group which received the treatment for the first time in period $g$: $\delta_{g,t}$. This ATT depends both on $g$ and on $t$. Hence, each group that received the treatment at different times has their own time-specific effect -- so that the treatment effect for each group $g$ varies over time. For example, $\delta_{5,10}$ defines the average treatment effect at time point 10 for a group which received the treatment for the first time at $t=5$. They further define a group and time specific difference-in-differences as:
+
+\begin{equation}
+\label{eqn:callaway1}
+\delta_{g,t} = E(\Delta y_{g}) - E(\Delta y_{C}) = [E(y_{g}^{t}) - E(y_{g}^{g-1})] - [E(y_{C}^{t}) - E(y_{C}^{g-1})].
+\end{equation}
+
+Here, the term $[E(y_{g}^{t}) - E(y_{g}^{g-1})]$ captures the difference between the average value of the outcome at time $t$ after the treatment in group $g$ and the average value of the outcome at time $g - 1$ -- which is the period before the treatment. Note that, in principle, any pre-treatment period instead of $g - 1$ ($g - n \ \text{with} \ 1 \leq n < g$) can be selected as a reference to calculate a first difference. The term $[E(y_{C}^{t}) - E(y_{C}^{g-1})]$ captures the same difference but for an appropriately specified control group. \textcite{Callaway.2020} propose two alternative choices of control groups. The first is the never-treated units ($[E(y_{\infty}^{t}) - E(y_{\infty}^{g-1})]$), while the second is the not-yet-treated group ($[E(y_{g'}^{t}) - E(y_{g'}^{g-1})|g'>t]$). 
+
+Figure \ref{fig:Callaway} displays an example of possible $2 \times 2$ DiDs contrasts. The curved blue lines in the figure mark the first difference in $\delta_{g,t}$ (i.e. $[E(y_{g}^{t}) - E(y_{g}^{g-1})]$), and its difference with the corresponding difference in the control group go into the summary measure of the ATT (i.e. $\delta_{g,t}$). The first two contrasts in panel A and B are defined against the never-treated, while the last contrast in panel C is against the not-yet-treated. The key aspect of this class of estimators is that they drop any \emph{``forbidden"} contrast in which the already treated groups serve as the control group (i.e. panel D in Figure \ref{fig:Bacon}). 
+
+Note that the same method also gives group and period specific DiDs, but for pre-treatment periods. These DiDs are captured by the red curved lines in Figure \ref{fig:Callaway}. While these pre-treatment DiDs do not go into the summary ATT estimate, they could be used for example, to visually inspect signs of pre-treatment trend differences between the treated and control units. 
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.9\linewidth]{DiD.jpeg}
+  \caption{The three contrasting pairs with 28 single $2\times 2$ DiD estimates of group and time specific treatment effects $\delta_{g,t}$ used in \textcite{Callaway.2020}. The blue curved lines indicate the periods of each $2\times 2$ DiD estimates for the periods \textit{after} treatment. They make up any summary ATT measure. The red curved lines indicate time periods of each $2\times 2$ DiD estimates \textit{before} treatment. These do not go into the summary ATT measure but nevertheless show the DiD between the treatment and control groups before the treatment.}
+  \label{fig:Callaway}
+\end{figure}
+
+The group- and time-specific ATTs $\delta_{g,t}$ (usually, there are many of such contrasts) can be estimated in various ways such as conventional OLS, inverse probability weighting, or doubly robust estimators \cite{Callaway.2020}. Subsequently, the researcher can summarise those estimates into a single quantity. There are various ways to summarise those individual estimates. For example, one could take a weighted average by considering contrasts that involve only never-treated units as controls (e.g., contrast 1 and 2 in Figure \ref{fig:Callaway}). If the number of never-treated units is low, one could also include contrasts that involve as controls not-yet-treated periods of treated groups (e.g. contrast 3 in Figure \ref{fig:Callaway}). One could also obtain an ``event-study" type summary which will be an average of $\delta_{g,t=g+e}$ for some $e$ periods after the adoption of treatment across different groups. In all those summaries, the average can be weighted so that each group $g$ at time $t$ receives equal weight, or that $\delta_{g,t}$ may be weighted based on the relative frequency of each group $g$ in period $t$. 
+
+
+\textcite{Sun.2021} propose a very similar estimator. The main difference is that the \textcite{Sun.2021} estimator is regression-based akin to an event-study design. \textcite{Sun.2021} use a TWFE design with many interaction terms between relative treatment timing $e = t - g$ and treatment-timing groups $g$. In case there is no never-treated control group, \textcite{Sun.2021} propose to use the last-treated group as control, while \textcite{Callaway.2020} relies on the full set of not-yet-treated groups.
+Finally, there is another similar estimator proposed by \textcite{DeChaisemartin.2020}, which focuses on treatment reversal where treatment can switch on and off -- in contrast to an absorbing treatment process \cite[see also][]{Imai.2023}. Note that we do not include the  \textcite{DeChaisemartin.2020} estimator as it converges to the \textcite{Callaway.2020} estimator under staggered treatment adoption.
+
+
+
+\subsection{Model-based imputation}
+
+\textcite{Borusyak.2023} imputes a counterfactual for each treated observation. All person-periods of the treated group after treatment are handled as if their counterfactual entries (potential outcomes had they not been treated) were missing data to be imputed. The estimator first fits a ``control" TWFE using only observations that are never- and not-yet-treated. This control model is specified rather flexibly, potentially taking into account all pre-treatment or time-varying covariates that are not causally affected by the treatment, and possibly also interactions of those. In a second step, this control model is used to impute the counterfactual outcome for each treated unit $i$ for time $t$, i.e. $\hat{Y}_{i,t}(0)$. The difference between the observed outcome and this counterfactual gives the individual treatment effects $\delta_{i,t} = Y_{i,t} (1) - \hat{Y}_{i,t}(0)$. In a third and final step, these unit- and time-specific ATTs are aggregated as a weighted sum. 
+
+Formally, start with a flexible and general TWFE:
+
+\begin{equation}
+\label{eqn:borusyak}
+Y_{it} = A_{it}^{'}\lambda_i + X_{it}^{'}\delta + D_{it}^{'}(\Gamma_{it}^{'}\theta) + \epsilon_{it}  
+\end{equation}
+
+\noindent where $A_{it}^{'}$ contains a unit-indicator and potentially covariates unaffected by the treatment status, and $\lambda_i$ are unit-specific coefficients. $A_{it}^{'}\lambda_i$ thus contains unit FEs, but also potentially interactions of those FEs with other covariates. $X_{it}^{'}\delta$ includes period FEs and time-varying covariates. These time-varying covariates need to be strictly exogenous to the treatment to be included in the estimation. $(\Gamma_{it}^{'}\theta)$ specifies the functional form of the treatment effect, e.g. heterogeneity across time or across units. By default $(\Gamma_{it}^{'}\theta) = \textbf{I}$, which means that every unit-time combination receives their individual treatment effect (similar to $\delta_{g,t}$ in (\ref{eqn:callaway1})). The algorithm proceeds as follows \cite{Borusyak.2023}:
+
+\begin{enumerate}
+\item For every treated observation, estimate expected untreated potential outcomes $\hat Y_{it}(0)$ by a TWFE ($A_{it}^{'}\lambda_i + X_{it}^{'}\delta$) using data only from the never-treated and not-yet-treated observations. These are untreated units $D_{it}^{'}=0$, hence the term $D_{it}^{'}(\Gamma_{it}^{'}\theta)$ drops from (\ref{eqn:borusyak}). 
+\item For each treated observation, calculate $\hat\delta_{it} = Y_{it} - \hat{Y}_{it}(0)$. This is the estimated unit specific causal effect of treatment. 
+\item Estimate the target treatment effect by a weighted sum $\hat\delta = \sum_{it}w_{it}\hat\delta_{it}$.
+\end{enumerate}
+
+
+The \textcite{Borusyak.2023} algorithm uses all pre-treatment periods, also those further away, for imputation of the counterfactual. They also propose various forms of weights $w_{it}$ to calculate the target summary, for example for the overall ATT, $w_{it} = 1/N$ for all treated units. Alternatively, for event study analyses, these weights can easily be adjusted to estimate time-specific treatment effects $\delta_D(e)$.
+
+\subsection{Matrix completion}
+
+The matrix completion \cite{Athey.2021} comprises a class of estimators that builds on the same idea of imputing counterfactuals but borrows from the computer science literature which uses machine learning to predict missing cells in a matrix \cite[for a similar approach see][]{Xu.2017}. Similar to the model based imputation method discussed above, the matrix completion estimators use the observed cells in the matrix of control outcomes (which are the untreated periods) to impute the missing cells of the control outcome matrix for the treated periods. The matrix completion estimators are general in that they unify ``horizontal regression'' -- i.e. the typical difference-in-difference set-up -- and ``vertical regression'' -- i.e. the synthetic control when there are many untreated units and a single treated unit for which the potential control observations are missing.
+
+As above, we start with the potential outcome matrices $Y(0)$ and $Y(1)$ whereby the latter is observed when treatment units are treated $D_{it} = 1$ and the former is observed when units are not treated $D_{it} = 0$. That is,
+
+$$
+Y(0)=\left(
+\begin{array}{cccc}
+{\color{red} ?}   &  {\color{red} ?}  & \ldots &   \checkmark  \\
+\checkmark        &  \checkmark       & \ldots &   {\color{red} ?}  \\
+ \ldots           &  \ldots           & \ddots &   \ldots \\
+{\color{red} ?}   &  \checkmark       & \ldots &  {\color{red} ?}  \\
+\end{array}
+\right)\hskip1cm  Y(1)=\left(
+\begin{array}{cccc}
+\checkmark   &  \checkmark & \ldots & {\color{red} ?}     \\
+{\color{red} ?}        &  {\color{red} ?}        & \ldots &   \checkmark  \\
+ \ldots           &  \ldots           & \ddots &   \ldots \\
+\checkmark  &  {\color{red} ?}        & \ldots &  \checkmark  \\
+\end{array}
+\right)
+$$
+
+Estimating a causal effect of the treatment requires imputing the $Y(0)$ matrix. Imputing the $Y(1)$ matrix is not required for estimating the treatment effect, because for the treated groups we observe the realized outcomes and the difference between these realized outcomes and the $Y(0)$ matrix identifies the treatment effect. Imputing the $Y(0)$ matrix is called a matrix imputation problem in the computer science literature \cite{Athey.2021}. 
+
+In the single-treated-period data, or in a typical DiD setup, the two matrices are ``thin'' ($N \gg T$). That is, there is a substantial number of treated and control units while only the very last periods are missing in $Y(0)$ for the treated units. In such cases, the missing potential outcomes can be imputed by regressing the last missing periods outcomes on the lagged observed outcomes and use the estimated regression to predict the missing potential outcomes. Synthetic control methods are used in single-treated-unit data, whereby the matrices are ``fat''  ($T \gg N$). That is, there is a substantial number of periods observed for each unit and the potential control outcomes are missing for a single treated unit. In such cases, the potential control outcomes of the treated unit can be imputed by regressing the outcomes of the treated unit at a particular period on the observed outcomes of the untreated units for the same period via a ``vertical'' regression \cite{Abadie.2010}. Matrix completion generalizes these two set-ups and imputes the entire matrix. Take the following matrix of potential control outcomes:
+
+
+$$
+\mathbf Y_{N\times T}=\left(
+\begin{array}{cccccccccc}
+ {\color{red} ?} & {\color{red} ?} & {\color{red} ?} & \checkmark & {\color{red} ?}& \checkmark  & \dots  & {\color{red} ?}\\
+\checkmark & {\color{red} ?} & {\color{red} ?} & {\color{red} ?} & \checkmark & {\color{red} ?}   & \dots & \checkmark  \\
+{\color{red} ?}  & \checkmark & {\color{red} ?}  & {\color{red} ?} & {\color{red} ?} & {\color{red} ?} & \dots & {\color{red} ?}  \\
+ {\color{red} ?} & {\color{red} ?} & \checkmark & \checkmark & \checkmark & \checkmark  & \dots  & {\color{red} ?}\\
+\checkmark & \checkmark & {\color{red} ?} & {\color{red} ?} & \checkmark & {\color{red} ?}   & \dots & \checkmark  \\
+{\color{red} ?}  & \checkmark & {\color{red} ?}  & {\color{red} ?} & {\color{red} ?} & {\color{red} ?} & \dots & {\color{red} ?}  \\
+\vdots   &  \vdots & \vdots &\vdots   &  \vdots & \vdots &\ddots &\vdots \\
+{\color{red} ?}  & {\color{red} ?} & {\color{red} ?} & {\color{red} ?}& \checkmark & {\color{red} ?}   & \dots & {\color{red} ?}\\
+\end{array}
+\right)
+$$
+
+To impute the the missing values, define $\mathbf Y_{N\times T}$ as a function of a lower rank matrix $\mathbf L^{*}$ and measurement error $\epsilon$:
+\begin{equation}
+\label{eq:mc}
+\mathbf Y_{N\times T} = \mathbf L^{*} + \epsilon, \quad \rm{with} \quad  \mathbb{E}[\epsilon| \mathbf L^{*}] = 0
+\end{equation}
+
+One approach to estimate $\mathbf L^{*}$ would be via interactive fixed effects \cite{Xu.2017}. Matrix Completion \cite{Athey.2021} aims to estimate the matrix $\mathbf L_{N \times T}$ directly via a Nuclear Norm Minimization:
+
+\begin{equation}
+\label{eq:nuclear}
+\min_{L}\frac{1}{|\cal{O}|}
+\sum_{(i,t) \in \cal{O}} \left(Y_{it} -
+L_{it} \right)^2+\lambda_L \|L\|_*
+\end{equation}
+
+\noindent where $\cal{O}$ denote the set of pairs of indices corresponding to the observed entries (the entries with $D_{it} = 0$) and the regularization parameter $\lambda_L$ is selected through cross-validation. Here, $\lambda_L \|L\|_*$ regularises the estimator by penalising $\mathbf L^{*}$ with higher dimensions that has more parameters. Fixed effects are omitted from the regularisation process. \textcite{Athey.2021} describe the estimation algorithm and further details, including different ways of regularisation.
+
+\subsection{Extended two-way fixed effects}
+
+\textcite{Wooldridge.2021} argues that the identified problem in TWFE is not something inherent in TWFE, but rather a problem of the misspecified functional form. That is, if there is unit specific or time varying effects of the treatment, the TWFE should be specified in a way that captures those heterogeneous treatment effects. \textcite{Wooldridge.2021} attains this by an Extended TWFE (ETWFE). The ETWFE includes all possible interactions between the treatment indicator $D_{ij}$ and time fixed effects, treatment cohorts, and possibly all other covariates. A treatment cohort is defined similarly as in \textcite{Callaway.2020} whereby a cohort receives the treatment for the first time at $t = g$.  For each such group, a separate treatment effect, a separate set of time fixed effects, as well as separate effects of the covariates are estimated by including appropriate interaction terms in the TWFE set-up. Formally, ETWFE can be written as:
+
+\begin{equation}
+\label{eq:etwfe}
+y_{it} = \eta + \zeta_t + \bm X_i(\beta + \nu_t) + \sum_{j=g} \left( \alpha_g + \bm X_i \beta_g + \mathbf{1}\{t > g\}(\alpha_g \times \zeta_t + \Bar{\bm X_g}\beta_{gt})  \right)  + \epsilon_{it}.
+\end{equation}
+
+\noindent where $\eta$ is the global intercept, $\zeta_t$ are time fixed effects, $\bm X_i$ is the vector of pre-treatment covariates with $\beta$ and $\nu_t$ capturing time varying coefficients of the pre-treatment covariates. $\alpha_g$ denotes the treatment cohort group fixed effects. Similar to \textcite{Callaway.2020}, a treatment cohort group $g$ received the treatment at time $g$, $\mathbf{1}\{t > g\}$ takes a value of 1 if $t > g$ and 0 otherwise. $\Bar{\bm X_g}$ is the group mean centred pre-treatment covariates, and $\beta_{gt}$ corresponds to the interaction effect between group indicators and covariates. $\alpha_g \times \zeta_t$ are the interactions between cohort and time indicators, which are used to recover group- and time-specific treatment effects $\delta_{g,t}$. 
+
+ETWFE basically saturates the standard TWFE with all possible interaction effects with treatment cohorts. Because ETWFE includes all those interactions, the plain coefficients are not very informative. However, the coefficients can then be used to obtain \emph{marginal effects} which summarise the treatment effects as an average effect over all treatment cohorts where, for example, the covariates are kept at their means. We can also receive event-study type estimates of $\delta_D(e)$ where these averages are calculated for $e$ periods after the treatment. The approach of ETWFE \cite{Wooldridge.2021} remains within the TWFE framework but simply extends it with interaction effects that capture heterogeneous and time-varying treatment effects.
+
+
+\section{Monte Carlo Simulation}
+
+The discussion above shows that TWFE can be biased when the treatment effects are heterogenous over time. To understand the extent of the problem in TWFE, we will gradually introduce such heterogeneities in our simulation set-up. In trend-breaking treatments, the treatment induces a secular trend in the outcome, by causing an ever increasing or decreasing change. This scenario has originally been used to demonstrate the shortcomings of conventional TWFE \cite{Callaway.2020,Goodman-Bacon.2021}. In many social science applications, however, the treatment effect is rather short-lived. The effect often gradually builds up after the treatment and then fades out, resulting in an inverted-U shape of the treatment effect. Such short-lived effects are empirically observed in many social science domains, from the effects of life events on happiness \cite{Bernardi.2017, Kratz.2020a, Clark.2013} to the social impacts of environmental shocks \cite{Baccini.2021, ConteKeivabu.2022, Currie.2015}. When the treatment induces a time-constant, step-level shift TWFE is expected to give consistent non-problematic results. We thus present simulations based on three forms of time-heterogeneity corresponding to these three cases, namely step-level, inverted-U, and trend breaking. We have also studied alternative forms of time heterogeneity in our simulations, for example a step-level shift combined with a fading-out effect or a gradual fading-in effect which then stays constant. Those alternative functional forms produce qualitatively the same results as we present here (see Supplement \ref{suppl:fade-out}).
+
+
+All estimators rely on some key assumptions. The first is the assumption of \emph{parallel trends} in the potential outcomes, that is, the differences across units would remain constant had they not received the treatment. The second is that the units do not anticipate the treatment (i.e., \emph{no anticipation}), that is the treatment effect has a causal effect only when it is implemented, but not before. Third, there are \emph{no time-varying omitted confounders} of the treatment and the outcome. Those assumptions may be violated in real-life applications, thus it is important to study how resilient those various estimators are against violations. 
+
+Table \ref{tab:scenarios} summarises all those different scenarios we consider in our simulations. Set-up 1 is the most basic with time-constant step-level treatment effect. Set-ups 2 and 3 introduce time heterogeneity in treatment effects, respectively as trend breaking and inverted-U shaped. Set-ups 4, 5, 6 introduce violations of the exogeneity assumption, respectively bringing in anticipation, omitted confounders, and non-parallel trends.
+
+We focus on a selection of potential scenarios here which we believe are particularly informative. The key issue is time heterogeneity, violations of which is supposed to introduce bias in TWFE but should be addressed by its novel alternatives. Hence we present simulations that explore three forms of time heterogeneity (step-level, inverted-U, trend breaking). We introduce other violations, such as anticipation, a trended omitted variables, and non-parallel trends while keeping the inverted-U shaped dynamic treatment effects, as those seem common in many social science applications. The supplementary material presents results of other scenarios. The cases in Table \ref{tab:scenarios} are sufficient to draw an informative account. Those who are interested in alternative scenarios can build on our replication package to create such scenarios themselves. 
+
+\begin{table}
+\caption{Various scenarios implemented in the simulations.}
+\label{tab:scenarios}
+\resizebox{\linewidth}{!}{\begin{tabular}{cccccc}\toprule
+Set-up 	 					   & effect over time      & effect structure	 & anticipation  & trended omv & parallel trends \\\midrule 
+      1  & homogeneous        & step-level shift  	 & no 		   	& no  & yes \\
+      2  & heterogeneous      & trend breaking    	 & no 		   	& no  & yes \\
+      3  & heterogeneous      & inverted-U shaped 	 & no 			& no  & yes \\
+      4  & heterogeneous      & inverted-U shaped 	 & negative 	& no  & yes \\
+      5  & heterogeneous      & inverted-U shaped 	 & no 			& yes & yes \\ 
+      6  & heterogeneous      & inverted-U shaped 	 & no 			& no  & no
+      \\\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\subsection{Data Generating Process}
+
+We employ a Monte-Carlo simulation to compare the performance of the estimators across our scenarios. All simulations are based on $N = 500$ observations with $T=15$ time periods. We run each scenario with $R = 1000$ simulation runs, where we keep the starting seed constant across simulation set-ups. The data generating process is built as follows:
+
+
+\begin{equation} \label{eq:dgp1}
+y_{it} = \alpha_i + \theta_t + D_i*\rho_t + \sum_{g \neq 0}\mathbf{1}\{G_{it} = g\}\beta_g + Z_{it}\beta_z + \varepsilon_{it}
+\end{equation}
+
+where $\epsilon \sim \mathcal{N}(0, 0.2^{2})$ is a normally distributed idiosyncratic error term, $\alpha_i \sim \mathcal{N}(0, 1^{2})$ are normally distributed individual fixed effects, and $\theta_t$ and $\rho_t$ are time-fixed effects. For simplicity we use a linear time trend here. $D_i = \{0, 1\}$ is a binary indicator taking a value 1 if an individual is ever-treated (hence $D_i$ is time constant), and so for the never-treated $D_i=0$. $D_i*\rho_t$ thus indicates if the treated group experiences an additional time trend (non-parallel trends), independent of the treatment timing. $G_{it}$ defines the time relative to the treatment with $G_{it} = 1$ indicating the first time period after treatment, and $1\{\cdot\}$ is a binary indicator function. $Z_{it}$ is a cumulative random normal variable which can be interpreted as a time-trending omitted variable.
+
+The overall treatment indicator and the treatment timing for each observation are determined in a two-step process. First, we define the overall treatment indicator for each $1,\ldots,N$ cross-sectional observation as a logistic function of the individual fixed effects $\alpha_i$
+
+\begin{equation} \label{eq:dgp2}
+D_{i} = \mathrm{Bernoulli} \left( \frac{1}{1 + exp^{- \lambda \alpha_i}}\right),
+\end{equation}
+where $\lambda$ is the scaling parameter (set to $\lambda = 5$ for all simulations). For each simulation run, around 50\
+\begin{equation} \label{eq:dgp3}
+d_{it} = \mathrm{Bernoulli} \left( \frac{1}{1 + exp^{- \lambda ( \phi_t +  Z_{it}\beta_z)}} \right),
+\end{equation}
+where $\phi_t$ follows a cumulative normal distribution over time, with a mean of eight and a standard deviation of two. This means that treatment timing is normally distributed around the center of the time horizon. We include the time-trending omitted variable $Z_{it}$ here as well, so that $\beta_z > 0$ would induce an omitted variable bias due a time-varying confounder.
+
+\subsection{Results}
+
+
+In the following, we will discuss two types of results. The \emph{first type} provides the results when we have a single summary measure of the treatment effect (Figure \ref{fig:fig_att}). Such a single summary measure is what applied researchers are often after. In case of the conventional TWFE this corresponds to a model with a single binary treatment indicator (treated or untreated)
+as opposed to an event-study type model with flexible event-time specifications \cite{Ludwig.2021}. The functional form in the TWFE is misspecified with only a single treatment indicator, when in fact the effects are heterogeneous. In case of the novel dynamic estimators, we use the frequency-weighted average over the time- and group-specific treatment effects. These novel estimators naturally capture heterogenous effects, hence they are supposed to perform better when the only issue is effect heterogeneity. The panels in Figure \ref{fig:fig_att} present the mean absolute error of this single summary estimate with their standard deviation. 
+
+\begin{figure}[t]    \centering
+    \includegraphics[width=\textwidth]{New_ATT_combined.png}
+    \caption{Monte Carlo results of single summary measure for the effect estimates. Set-ups 1 to 6 as described in Table \ref{tab:scenarios}. Shown are the average coefficient estimates +/- one standard deviation. The yellow violin graphs depict the distribution of the 1,000 individual estimates. The pink dashed line marks the true effect according to the DGP, centred around zero.}    \label{fig:fig_att}    \hypertarget{fig:fig_att}{}\end{figure}
+
+The \emph{second type} of results, which can be seen in Figures \ref{fig:fig2} - \ref{fig:fig5}, are based on more flexible specifications which do not rely on a single summary estimate. Those results are based on specifications that model the potential time-specific treatment effects for each of the included estimators. So, these results are based on models that include time and treatment group interactions. In the TWFE case, this corresponds to a model that uses an event-time indicator specification, where the first time period and the time period before the treatment is set as the reference category. The panels in Figures \ref{fig:fig2} - \ref{fig:fig5} plot those flexible coefficients and their standard errors.
+
+\subsubsection{Homogeneous treatment effect}
+
+Set-up 1 has no anticipation, no time-varying omitted variable bias, the parallel trends assumption holds, and that treatment has a time-constant step-level effect. Figure \ref{fig:fig_att} shows that the TWFE estimates are perfectly unbiased in this simple case. The estimates from the alternative estimators perform on average equally well, albeit the Callaway Sant'Anna and Sun \& Abraham estimates are slightly less efficient with a somewhat larger dispersion than the other estimators. If we would erroneously use an event-time specification by introducing dynamic treatment interactions (see supplementary Figure \ref{fig:fig1}), results would be consistent for all the estimators we consider. This is unsurprising as set-up 1 meets the assumptions of all estimators. 
+
+\subsubsection{Trend-breaking treatment effect}
+
+In set-up 2 the treatment induces a continuous growth from its onset onwards. With the single summary measure (i.e. when we use a single dichotomous treatment indicator) the TWFE produces inconsistent results (26\The conventional TWFE with a single summary parameter uses the already-treated as a control group for the later-treated units. However, the already-treated (``forbidden") control groups experiences an ongoing positive treatment effect. This ongoing treatment effect is erroneously added into the ``control", which then biases the conventional TWFE downwards. All the novel DiD estimators -- specifically designed to address heterogeneous treatment effects -- perform equally well with an average bias of nearly zero. Those estimators perfectly account for the treatment heterogeneity in the form of a breaking trend. Again, imputation-based methods \cite{Borusyak.2021} and ETWFE \cite{Wooldridge.2021} are slightly more efficient. Matrix completion \cite{Athey.2021}, in contrast, is slightly off with an average relative bias of 8.8\
+\begin{figure}[t]    \includegraphics[width=\textwidth]{New_Test9.png} 
+    \caption{Set-up 2 Monte Carlo results: parallel trends, trend-breaking treatment effects with no anticipation. Shown are the average coefficient estimates +/- one standard deviation. Pink rectangles mark the true effect according to the DGP.}    \label{fig:fig2}    \hypertarget{fig:fig2}{}\end{figure}
+
+
+
+\subsubsection{Inverted-U shaped treatment effect}
+
+
+\begin{figure}[t]    \centering
+    \includegraphics[width=\textwidth]{New_Test1.png}
+    \caption{Set-up 3 Monte Carlo results: time-heterogeneous (inverted-U) treatment effects with parallel trends and no anticipation. Shown are the average coefficient estimates +/- one standard deviation. Pink rectangles mark the true effect according to the DGP.}    \label{fig:fig3}     \hypertarget{fig:fig3}{} \end{figure}
+
+As discussed above, trend-breaking treatments are rare and in most social science applications the treatment will induce an effect that first increases the outcome and then gradually fades out. Set-up 3 thus introduces time-heterogeneity as an inverse-U shaped effect of the treatment (Figure \ref{fig:fig3}). If we rely on a single summary measure for the treatment effect (Figure \ref{fig:fig_att}, panel 3), TWFE returns biased results with an average relative bias of 23\
+\begin{figure}[t]    \centering
+    \includegraphics[width=\textwidth]{New_Test8.png}
+    \caption{Set-up 4 Monte Carlo results: parallel trends, time-heterogeneous (inverted-U) treatment effects, negative anticipation effect. Shown are the average coefficient estimates +/- one standard deviation. Pink rectangles mark the true effect according to the DGP.}    \label{fig:fig4}    \hypertarget{fig:fig4}{}\end{figure}
+
+As in the trend-breaking scenario, all estimators (including the conventional TWFE) work well and produce consistent results when the model is set up more flexibly with an event-time function (see Figure \ref{fig:fig3}). 
+
+
+\subsubsection{Anticipation}
+
+So far, we have looked at scenarios that were favorable to the alternative dynamic DiD estimators. As expected, all of them produced consistent results. In set-up 4, we challenge the assumptions of all our estimators by introducing a (negative) anticipation effect: the outcome drops in the two periods preceding the treatment. 
+
+Now all estimators produce biased results, both for a single summary treatment effect (Figure \ref{fig:fig_att}, panel 4), and for the more flexible specification that allows time-heterogeneity (Figure \ref{fig:fig4}). Looking at single summary measures (Figure \ref{fig:fig_att}, panel 4), the bias is stronger for Callaway \& Sant'Anna and Sun \& Abraham with a relative bias of around 84\Obviously, we can theoretically select and specify potential anticipation effects in all of these estimators. This would circumvent the problem in the novel DiD estimators but similarly in the conventional.
+
+Turning to the more flexible specification that allows time-heterogeneity (Figure \ref{fig:fig4}), all estimators force at least one period before treatment to have an effect of zero as the reference category. If we do not define any anticipation a priori, this leads to biased estimates of the anticipation pattern and the treatment effect. The time-specific estimates of Matrix Completion and Callaway \& Sant'Anna are somewhat more flexible in the estimation of the pre-treatment effects. However, all estimators yield a substantial bias after the onset of the treatment. 
+
+
+\subsubsection{Trending omitted variable bias}
+
+Set-up 5 introduces a trending variable that affects both the outcome and the treatment timing, thus inducing an omitted variable bias (while keeping no anticipation and parallel trends). In many applications, it is likely that some confounding characteristics are unobserved which has a time trend (e.g. household wealth, psychological developments, opinion shifts among peers). As we would expect, all estimators suffer from this omitted variable bias and produce inconsistent results for their single summary measures (Figure \ref{fig:fig_att}, panel 5) as well as for their time-specific / dynamic treatment effects (Figure \ref{fig:fig6}). However, there are some interesting differences in the magnitude of the bias. The estimates of the conventional TWFE are on average biased by 31\
+\begin{figure}[t]    \includegraphics[width=\textwidth]{New_Test10.png} 
+    \caption{Set-up 5 Monte Carlo results: parallel trends, time-heterogeneous (inverted-U) treatment effects, trending omitted variable bias with no anticipation. Shown are the average coefficient estimates +/- one standard deviation. Pink rectangles mark the true effect according to the DGP.}    \label{fig:fig6}    \hypertarget{fig:fig6}{}\end{figure}
+
+
+\subsubsection{Non-parallel trends}
+
+In Figure \ref{fig:fig5}, we introduce non-parallel trends while keeping no anticipation and no omitted variable biases. The parallel trends assumption is the most consequential assumption for all DiD-like methods, which may often be violated in practice \cite{Chiu.2023}. 
+
+When the parallel trends assumption is violated, all estimators are severely biased. The single summary measures in Figure \ref{fig:fig_att} show that Sun \& Abraham as well as Callaway \& Sant'Anna (with relative biases of 67\
+Looking at the time-heterogeneous treatment effects (Figure \ref{fig:fig5}), all estimators again suffer from substantial bias. Despite some of the estimators showing a relatively accurate picture of the pre-treatment difference in trends, they all fail to correctly estimate the treatment effects, even when they are flexibly specified. Note that a visual inspection of pre-treatment trends does not allow to identify the source of bias \cite[see also~][]{Roth.2023}.
+
+\begin{figure}[t]    \centering
+    \includegraphics[width=\textwidth]{New_Test12.png}
+    \caption{Set-up 6 Monte Carlo results: non-parallel trends, time-heterogeneous (inverted-U) treatment effects, no anticipation. Shown are the average coefficient estimates +/- one standard deviation. Pink rectangles mark the true effect according to the DGP.}    \label{fig:fig5}    \hypertarget{fig:fig5}{}\end{figure}
+
+\subsubsection{Strategies to address violations of exogeneity}
+
+The dynamic DiD estimators \cite{Goodman-Bacon.2021, Callaway.2020, Sun.2021, Wooldridge.2021, DeChaisemartin.2020} offer valuable tools for addressing the heterogeneity of treatment effects across time. However, these estimators are tailored to a specific problem but rely on the same exogeneity assumptions as TWFE. Notably, these estimators do not specifically tackle violations of the parallel trends assumption. 
+
+When a researcher suspects such violations, a different set of estimators should be considered. For instance, the Fixed Effects Individual Slopes (FEIS) estimator can be used in cases where the parallel trends assumption is thought to be violated \cite{Polachek.1994, Ruttenauer.2023}. Unlike the dynamic DiD variants, FEIS is designed to specifically address and mitigate potential violations of the parallel trends assumption. In a nutshell, FEIS introduces separate time-slopes for each unit. To illustrate the difference between those estimators, we re-ran set-ups 3 and 6 in Figure \ref{fig:feis}. For simplicity, we consider only the conventional TWFE, Callaway \& Sant'Anna (which had the best performance in scenario 6) and FEIS. In the case of parallel trends and inverse-U type treatment effects (set-up 3) the single summary measure -- where the functional form of TWFE and FEIS is misspecified -- FEIS has a larger bias than TWFE (58\
+In case of a correctly specified event-time specification (lower panel of Figure \ref{fig:feis}), FEIS performs well in both set-up 3 and 6 and is able to produce consistent estimates under heterogeneous treatment effects and non-parallel trends. This exercise with FEIS illustrates that we need different approaches beyond the novel dynamic DiD estimators to deal with problems of strict exogeneity.
+
+
+\section{Discussion}
+
+Difference-in-differences (DiD) designs are an important tool for social scientists interested in causal research questions. In many applications, DiD has  been implemented within a Two-Way Fixed Effects (TWFE) framework. 
+The TWFE works well with the simple case of two groups (control and treatment) and two time periods (before and after), in that it does what it is supposed to do. The application of TWFE in \emph{staggered designs}, however, has received some scrutiny recently \cite{Goodman-Bacon.2021, Wooldridge.2021}. Recent literature has formally identified the bias when the treatment effects are heterogeneous in staggered designs. Econometricians have proposed alternatives that tackle the problem of heterogeneous treatment effects. This growing literature, however, is sometimes surrounded by uncertainty and confusion about the pros and and cons of the conventional TWFE estimators, and about what the novel dynamic DiD can do. In this study we introduced the recent DiD literature in an accessible way and compared the performance of several estimators across various non-optimal scenarios using Monte Carlo simulations. 
+
+Our study provides a number of important insights, some of which resonate with the conclusions of other recent reviews \cite[e.g.,][]{Chiu.2023,Freedman.2023,Roth.2023}. First, we highlight that the recently identified problems of TWFE are primarily not due to the estimator itself. Rather, these problems arise when the model miss-specifies the functional form of the treatment effect for cases in which effects are dynamic over time. For example, when the treatment effect varies over time -- either with a trend-breaking pattern, or following an inverse U-shape or fading pattern -- and we specify a single treatment indicator that switches from zero to one after the treatment starts, the single summary measure of the TWFE estimator is biased. The direction and the size of the bias depends on the distribution of the treatment timing across the observation period, and the functional form of the dynamic treatment effect \cite{Goodman-Bacon.2021}. However, when we correctly specify an event-time function (where the treatment indicator starts counting from the onset of treatment), the TWFE provides consistent results even under time heterogeneity. Still, there is no harm from testing the robustness of the TWFE results by also implementing one of the novel alternative estimators -- all of which can now easily be implemented in Stata and R (see our replication package for an R implementation).
+
+Across the new dynamic DiD estimators, we also find some relevant differences. First, Sun \& Abraham and Callaway \& Sant'Anna are somewhat less efficient than Borusyak et al. and Wooldridge ETWFE across our scenarios. Second, Sun \& Abraham and Callaway \& Sant'Anna are more sensitive to treatment-anticipation effects, because these estimators use a single period as reference, which is the one period before the treatment onset by default. Although one could change this default, it would require a priori knowledge about the anticipation effect. Third, Borusyak et al. and Wooldridge ETWFE are more sensitive to violations of the parallel trends assumption. The reason is that they include all pre-treatment periods as reference, which amplifies the bias in the case of diverging trends. Matrix Completion behaves similar to Borusyak et al. and Wooldridge ETWFE, except a slight bias in our baseline scenario where all standard assumptions were met. 
+
+There is thus a trade-off between potential biases among the novel DiD alternatives. Borusyak et al., Wooldridge ETWFE, and Matrix Completion are more robust to anticipation effects. If there is a high likelihood of anticipation effects, Borusyak et al., Wooldridge ETWFE and Matrix Completion are a safer bet. Alternatively, one could implement the suspected anticipation effect in Callaway \& Sant'Anna by overriding the default. In case of a trending omitted variable, Borusyak et al., Wooldridge ETWFE, and Matrix Completion performed a little better in terms of bias and efficiency. Given that this is a realistic scenario in applied research, we recommend to use one of the latter estimators (at lest) as a robustness check, if the researcher suspects such omitted variables. However, these three estimators are more sensitive to violations of parallel trends assumption in which case Sun \& Abraham and Callaway \& Sant'Anna perform better. If there is a high likelihood of non-parallel trends, thus, Sun \& Abraham and Callaway \& Sant'Anna are a safer bet. Alternatively, one could use Fixed Effects Individual Slopes (FEIS) to directly model non-parallel trends. 
+
+Overall, we believe that some of the recent literature about the potential problems of TWFE do not do full justice to TWFE. There are specific situations with time-heterogeneous / dynamic treatment effects in which a miss-specified TWFE fails. However, checking for heterogeneous treatment effects by flexible time-varying functions, even within a conventional TWFE framework, can easily uncover this bias, and indeed may produce additional insights. Moreover, our results resonate with the conclusions of \textcite{Chiu.2023} that the main threat to applied research remains the violation of the parallel trends assumption. A violation of parallel trends induces a more severe bias than miss-specifying time heterogeneity and is harder to address. Importantly, the new dynamic DiD estimators suffer from non-parallel trends as much as TWFE does. The novel dynamic DiD estimators thus do not provide a new panacea to the most important identification problem. In fact, focusing too much on the issues of heterogeneous treatment effects in TWFE and their fixes with the novel DiD estimators may distract the researcher from focusing on the bigger threats to causality. The new DiD estimators undoubtedly provide additional useful tools and are likely to add another layer of robustness of findings in applied research. However, potential violations of the important assumptions of treatment exogeneity need different solutions.
+
+\clearpage
+
+\printbibliography
+
+\section*{Data Availability Statement}
+
+A replication package with the simulation and analysis code is available on the author's Github repository [the link will be added].
+
+
+\clearpage
+\appendix
+
+\setcounter{table}{0}
+\renewcommand{\thetable}{S\arabic{table}}\setcounter{figure}{0}
+\renewcommand{\thefigure}{S\arabic{figure}}
+
+\part*{\center Supplementary material} 
+
+\section{Step function treatment} \label{suppl:step}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.8\linewidth]{DiD3.jpeg}
+  \caption{The four contrasts discussed by \textcite{Goodman-Bacon.2021} for a non-dynamic step-function treatment.}
+  \label{fig:step}
+\end{figure}
+
+\clearpage
+
+\section{Supplementary Results} \label{suppl:desc}
+
+\begin{figure}[h!]    \centering
+    \includegraphics[width=\textwidth]{New_Test0.png} 
+    \caption{Set-up 1 Monte Carlo results: parallel trends, homogeneous treatment effects. Shown are the average coefficient estimates +/- one standard deviation. Pink rectangles mark the true effect according to the DGP.}    \label{fig:fig1}    \hypertarget{fig:fig1}{}\end{figure}
+
+
+\begin{figure}[h!]    \includegraphics[width=\textwidth]{New_fade-in_combined.png} 
+    \caption{Alternative Set-up 3 Monte Carlo results: parallel trends, time-heterogeneous treatment effects (fading-in). Shown are the average time-heterogeneous treatment effects (left) and single summary measures (right) with dispersion indicators. Pink rectangles / dashed line mark the true effect according to the DGP.}    \label{fig:fade-in}\end{figure}
+
+\clearpage
+
+\begin{figure}[t]    \centering
+    \includegraphics[width=\textwidth]{New_FEIS_combined.png}
+    \caption{Re-runs of set-ups 3 and 6 Monte Carlo simulations: time-heterogeneous (inverse-U) treatment effects with parallel and non-parallel trends. Including estimates from Fixed Effects Individual Slopes (FEIS). Shown are the average coefficient estimates +/- one standard deviation. Pink rectangles mark the true effect according to the DGP.}    \label{fig:feis}\end{figure}
+
+\clearpage
+
+\section{Fade-out treatment form} \label{suppl:fade-out}
+
+\begin{figure}[h!]    \centering
+    \includegraphics[width=\textwidth]{Fadeout_ATT_combined.png}
+    \caption{Monte Carlo results of single summary measure for the effect estimates. Set-ups 1 to 6 as described in Table \ref{tab:scenarios} but use a fading-out treatment form rather than an inverted u-shaped. Shown are the average coefficient estimates +/- one standard deviation. The yellow violin graphs depict the distribution of the 1,000 individual estimates. The pink dashed line marks the true effect according to the DGP, centred around zero.}    \label{fig:fig_att_fadeout}    \hypertarget{fig:fig_att_fadeout}{}\end{figure}
+
+
+\begin{figure}[h!]    \includegraphics[width=\textwidth]{Fadeout_1.png} 
+    \caption{Alternative Set-up 3 Monte Carlo results: parallel trends, time-heterogeneous treatment effects (fading-out). Shown are the average time-heterogeneous treatment effects (left) and single summary measures (right) with dispersion indicators. Pink rectangles / dashed line mark the true effect according to the DGP.}    \label{fig:fade-out}\end{figure}
+
+\end{document}

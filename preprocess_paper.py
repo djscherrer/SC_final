@@ -1,6 +1,8 @@
 import re
 import os
 import tiktoken
+from resources import config, openai
+
 
 GPT_MAX_TOKENS = 16000
 
@@ -57,6 +59,15 @@ def prepend_affiliation(text, keyword_affiliation):
 def prepend_begin_document(text):
     return f'\\begin{{document}}\n{text}'
 
+def is_gpt_anonymous(tex_source):
+    detection_prompt = "Tell me which researchers worked on the paper. From which university or country does it originate from. If you can't detect it, output exactly: 'I can't detect the origin of this paper.'"
+    prompt = f"{detection_prompt}\n{tex_source}"
+    answer = openai.generate_answer(prompt)
+    print(f"GPT Answer: {answer}")
+    return answer == "I can't detect the origin of this paper."
+
+
+
 def preprocess(tex_file, keyword_affiliation = '$$_affiliation_$$'):
     print(f"Preprocessing {os.path.basename(tex_file)}: ")
     with open(tex_file, 'r') as f:
@@ -85,6 +96,10 @@ def preprocess(tex_file, keyword_affiliation = '$$_affiliation_$$'):
     token_length = len(enc.encode(tex_source))
     if token_length > GPT_MAX_TOKENS:
         print(f"Preprocessed text is too long: {token_length} tokens")
+        return False
+    
+    if not is_gpt_anonymous(tex_source):
+        print("GPT detected authorship. Aborting.")
         return False
 
     with open(tex_file, 'w') as f:
