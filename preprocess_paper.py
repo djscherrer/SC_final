@@ -81,6 +81,7 @@ def preprocess(tex_file, keyword_affiliation = '$$_affiliation_$$'):
     make_title_pos = get_make_title_position(tex_source)
 
     if title is None or abstract is None or make_title_pos == -1:
+        print("Title, abstract or \\maketitle not found.")
         return False
     
     # Remove everything before \maketitle
