@@ -1,0 +1,526 @@
+\begin{document}
+\affiliation{$$_affiliation_$$}
+\title{Natural Language to Verilog: Design of a Recurrent Spiking Neural Network using Large Language Models and ChatGPT
+}
+\maketitle
+
+\begin{abstract}
+This paper investigates the use of Large Language Models (LLMs) for automating the generation of hardware description code, aiming to explore their potential in supporting and enhancing the development of efficient neuromorphic computing architectures.
+Building on our prior work, we employ OpenAI's ChatGPT4 and natural language prompts to synthesize a RTL Verilog module of a programmable recurrent spiking neural network, while also generating test benches to assess the system's correctness.
+The resultant design was validated in three case studies, the exclusive OR,the IRIS flower classification and the MNIST hand-written digit classification, achieving accuracies of up to 96.6\To verify its synthesizability and implementability, the design was prototyped on a field-programmable gate array and implemented on SkyWater 130 nm technology by using an open-source electronic design automation flow.
+Additionally, we have submitted it to Tiny Tapeout 6 chip fabrication program to further evaluate the system on-chip performance in the future.
+
+
+
+
+\end{abstract}
+
+\begin{IEEEkeywords}
+generative AI, LLM, neuromorphic architecture, open-source hardware design, recurrent spiking neural network.
+\end{IEEEkeywords}
+
+\section{Introduction}
+In recent years, the demand for custom integrated circuits has increased exponentially, driving the Application-Specific Integrated Circuits (ASICs) market towards a trajectory forecasted to reach USD 33.3 billion by 2033, with an annual growth rate of 6.4\Various industries, including aerospace, telecommunications, automotive, consumer electronics, and healthcare, increasingly require tailored solutions with custom ASICs to improve their products' efficiency and performance in terms of power consumption, area occupation, and computational capabilities \cite{2024_asic_market_us_full_report,hybrid}.
+However, high fabrication costs, lengthy design and verification times, combined with the increasingly reliability and stringent demands required by the aforementioned sectors, pose significant challenges in the hardware design process \cite{2018_chip_development}.
+
+To address these challenges, generative Artificial Intelligence (GenAI) and specifically Large Language Models (LLMs), coupled with Electronic Design Automation (EDA) tools, could offer viable solutions \cite{2021_eda_ML_survey}. 
+In particular, it is possible to use them in order to automatically generate hardware description code starting from textual instructions.
+Many researchers have investigated the use of LLMs in the hardware design \cite{2023_chipChat, 2023_VerilogEval_LLM}. 
+Tailoring for hardware debugging, Fu et al. used them for the identification and resolutions of bugs in hardware designs \cite{2023_LLM4SecHW_LLM_for_HW_design_and_verification, 2024_LLM_for_Verilog}.
+To adequately leverage them and improve their outputs, the authors in  \cite{2024_Hardware_Phi_LLM_for_HW_design_and_verification, 2024_soft_hard_codesign_LLM,2023_Benchmarking_LLM_for_RTL} fine-tuned them to generate hardware description code in Verilog or VHDL with reduced syntax errors.
+The most popular choice for hardware case-study implementations of LLMs seems to be OpenAI's GPT-4.
+J. T. Meech in \cite{2023_RNG_LLM} used Microsoft Bing-chat, which uses GPT-4, in order to generate a permuted congruential random number generator design with a wishbone interface.
+The die-harder test and the simulations he conducted verified its functionality and quality of the design.
+Similarly, our previous work tackled a programmable 3 by 3 digital spiking neuron array created solely from conversational language using GPT-4. The above implementation was submitted for fabrication in Skywater 130 nm technology and was verified through simulation \cite{2024_Mike_chatgptSNN}. 
+
+While all of above showcase a promising shift in the field, there is still a need for improvements and further investigations to support more complex designs. 
+
+Building on our prior work \cite{2024_Mike_chatgptSNN}, in this paper we explore GPT-4’s potential to design more complex hardware design architectures, such as a Recurrent Spiking Neuron Network (RSNN), and showcase that an LLM can be used effectively to aid in neuromorphic hardware design and verification process.
+Spiking Neural Networks (SNNs) are known as the third generation of artificial neural networks. They mimic biological neural networks and are usually designed requiring smaller architectures than traditional ones with the aim of reducing power consumption, making them suitable for edge computing applications \cite{edgesnn,cassidy_design_2013}.
+Moreover, by leveraging recurrent connections, RSNNs show inherent capabilities in handling temporal dynamic series classification problems \cite{Spatiotemporal,craley_action_2017}.
+
+Specifically, in this work, we tasked ChatGPT, which is a chatbot based on GPT-4, with generating a Verilog module for a programmable 3 by 3 by 3 RSNN and create the corresponding test bench to verify its correctness.
+We tailored three case studies to validate the generated system, leveraging the assistance of GPT-4 at this phase as well. 
+The three case studies consisted of exclusive OR, IRIS flower classification, and MNIST handwritten digit classification. The system proposed by chatGPT was able to reach accuracies upwards to 96.6\
+To further assess the synthesizability and implementability of the generated system, we prototyped it on a Field-Programmable Gate Array (FPGA) and implemented it on Skywater 130 nm technology, utilizing an open source EDA tool.
+The design has been submitted to the Tiny Tapeout 6 program for chip fabrication and will be evaluated for on-chip performance in future work. 
+
+
+\section{Methods}
+
+In this work, we used OpenAI's ChatGPT-4 chatbot based on the Generative Pre-trained Transformer 4 (GPT-4) LLM.
+ChatGPT is capable of generating text human-like responses by leveraging a transformer, a particular neural network architecture suitable to efficiently process sequences of data, like text, through parallel processing and attention mechanisms that emphasize relevant parts of the data \cite{2017_transformers}.
+
+After several attempts, we concluded that to effectively use ChatGPT for hardware design and verification, a modular approach and bottom-up design methodology are needed.
+This involves breaking down the complex RSNN system into smaller, reusable submodules, which leads to speeding up the development process, improving manageability, scalability, reusability, as well as enabling efficient testing by facilitating early error detection and simplifying maintenance.
+
+Therefore, we asked ChatGPT to describe each submodule in the hardware description language Verilog and generate the corresponding documentation, crucial for future maintenance and upgrades.
+Once a component was ready, ChatGPT generated the relative test bench to verify each module independently.
+Finally, it instantiated all the modules in a top module, thereby constructing the entire system.
+
+All source code and conversation transcripts are available in the publicly accessible Github repository at Andreou-JHULabOrg/tinytapeout\_06\_chatgpt\_rsnn \cite{tinytapeout_06_chatgpt_rsnn}.
+
+
+\subsection{System Hardware Design with ChatGPT}
+
+We asked ChatGPT to describe the hardware design of the RSNN schematized in Fig. \ref{fig:full_nn}.
+The architecture consists of a fully connected neural network comprising three input spikes and three output spikes.
+It includes 3 layers, each consisting of 3 recurrent spiking neurons. 
+Each neuron of a layer is connected to all neurons of the previous layer, or to all its inputs in the case of the first layer, resulting in 3 weights per neuron. Consequently, each layer has a total of 3$\times$3 weigths, amounting 3$\times$3$\times$3=27 weights across the entire network.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    node distance=3cm and 1.5cm,     neuron/.style={circle,draw,thick,minimum size=5mm,font=\scriptsize},     arrow/.style={-Latex},
+    label/.style={font=\footnotesize,rotate=90} ,     inputlabel/.style={rotate=90},
+    outputlabel/.style={rotate=-90}
+]
+
+\foreach \i in {1,...,3}
+    \node[neuron] (Input-\i) at (0,-\i*1.5) {RLIF}; 
+\foreach \i in {1,...,3}
+    \node[neuron] (Hidden-\i) at (2,-\i*1.5) {RLIF}; 
+\foreach \i in {1,...,3}
+    \node[neuron] (Output-\i) at (4,-\i*1.5) {RLIF}; 
+\foreach \i in {1,...,3}
+    \foreach \j in {1,...,3}
+        \draw[arrow] (Input-\i) -- (Hidden-\j);
+
+\foreach \i in {1,...,3}
+    \foreach \j in {1,...,3}
+        \draw[arrow] (Hidden-\i) -- (Output-\j);
+
+\foreach \i in {1,...,3}
+{
+    \draw[arrow] (Input-\i) to [out=60,in=118,looseness=5] (Input-\i);
+    \draw[arrow] (Hidden-\i) to [out=60,in=118,looseness=5] (Hidden-\i);
+    \draw[arrow] (Output-\i) to [out=60,in=118,looseness=5] (Output-\i);
+}
+
+\node[align=center, above=0.5cm of Hidden-1] (hidden label) {Hidden layer\\neurons}; \node[align=center, left=0.3cm of hidden label] {Input layer\\neurons}; \node[align=center, right=0.3cm of hidden label] {Output layer\\neurons}; 
+\foreach \i in {1,...,3}
+{
+    \draw[arrow] ([xshift=-1cm]Input-\i.west) -- (Input-\i.west);
+    \draw[arrow] (Output-\i.east) -- ([xshift=0.7cm]Output-\i.east);
+}
+
+\draw[arrow] ([xshift=-1cm]Input-1.west) --(Input-2.west);
+\draw[arrow] ([xshift=-1cm]Input-1.west) -- (Input-3.west);
+\draw[arrow] ([xshift=-1cm]Input-2.west) --(Input-1.west);
+\draw[arrow] ([xshift=-1cm]Input-2.west) -- (Input-3.west);
+\draw[arrow] ([xshift=-1cm]Input-3.west) --(Input-2.west);
+\draw[arrow] ([xshift=-1cm]Input-3.west) -- (Input-1.west);
+
+
+\node[inputlabel, left=1.3cm of Input-1] {Input spikes};
+
+\node[outputlabel, right=5.1cm of Input-1] {Output spikes};
+
+
+\end{tikzpicture}
+\caption{Schema of the desired Recurrent Spiking Neural Network, consisting of 3 fully connected layers, each layer having 3 recurrent spiking neurons.}
+\label{fig:full_nn}
+\end{figure}
+
+
+
+For the neuronal model, we considered the Leaky Integrate-and-Fire (LIF) recurrent spiking neuron modeled by \ref{eq:LIF_RSN}, where $I_{in}$ represents the input current, $U$ is the membrane potential, $U_{thr}$ denotes the membrane threshold, $S_{out}$ is the output spike, $R$ represents the reset mechanism, $\beta$ is the membrane potential decay rate, and $V$ is the feedback scale factor.
+\begin{equation}
+\label{eq:LIF_RSN}
+\begin{aligned}
+& U(t) > U_{thr}  \rightarrow S(t+1)=1\\
+& U(t+1)=\beta U(t)+I_{in}(t+1)+VS_{out}(t)-RU_{thr}
+\end{aligned}
+\end{equation}
+When the membrane potential exceeds $U_{thr}$, an output spike $S_{out}$ is generated and $R$ becomes 1, resetting the potential $U$ by subtracting the threshold value.
+The recurrent mechanism is characterized by one-to-one connections, where each neuron is connected back to itself, scaling its output spike by V.
+Additionally, the model includes a refractory period during which the membrane potential $U$ is not affected by neuron inputs after spiking. This feature ensures that the neuron does not immediately fire again, providing a more realistic emulation of neuronal behaviour.
+
+
+Following a bottom-up design approach, we first asked ChatGPT to describe a LIF spiking neuron.
+We iteratively refined the Verilog module described by the chatbot, progressively detailing our requirements and systematically addressing the emerging errors.
+The final LIF module provided by ChatGPT is presented in Table \ref{table:LIF_module}, alongside the initial output.
+Then ChatGPT produced the documentation for this module.
+
+
+
+
+
+\begin{table*}[!htbp]
+\centering
+\caption{Leaky Integrate-and-Fire Spiking Neuron Verilog Module generated by ChatGPT}
+\label{table:LIF_module}
+\begin{minipage}[t]{.49\textwidth}
+\begin{lstlisting}[language=Verilog, caption={Initial Module}]
+module LeakyIntegrateFireNeuron(
+    input clk,
+    input reset_n,
+    input [7:0] input_current,
+    input [7:0] threshold,
+    input [7:0] leak,
+    input [3:0] refractory_period,
+    output reg fired
+);
+
+    reg [7:0] membrane_potential;
+    reg [3:0] refractory_counter;
+
+    always @(posedge clk or negedge reset_n) begin
+        if (!reset_n) begin
+            membrane_potential <= 8'b0;
+            refractory_counter <= 4'b0;
+            fired <= 1'b0;
+        end else begin
+            if (refractory_counter > 0) begin
+                refractory_counter <= refractory_counter - 1;
+            end else begin
+                membrane_potential <= membrane_potential + input_current - (membrane_potential * leak >> 8);
+
+                if (membrane_potential >= threshold) begin
+                    fired <= 1'b1;
+                    membrane_potential <= membrane_potential - threshold;
+                    refractory_counter <= refractory_period;
+                end else begin
+                    fired <= 1'b0;
+                end
+            end
+        end
+    end
+endmodule
+\end{lstlisting}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{.49\textwidth}
+\begin{lstlisting}[language=Verilog, caption={Final Module}]
+module LeakyIntegrateFireNeuron(
+    input clk,
+    input reset,
+    input enable,
+    input [7:0] input_current,
+    input [7:0] threshold,
+    input [7:0] decay,
+    input [7:0] refractory_period,
+    output reg spike_out
+);
+
+    reg [7:0] membrane_potential = 8'b0;
+    reg [7:0] refractory_counter = 8'b0;
+    wire signed [9:0] potential_update;
+
+    assign potential_update = $signed({membrane_potential[7], membrane_potential[7], membrane_potential}) +$signed({input_current[7], input_current[7], input_current}) +(membrane_potential[7] ? $signed({decay[7], decay[7], decay}) : -$signed({decay[7], decay[7], decay}));
+
+    always @(posedge clk or posedge reset) begin
+        spike_out <= 1'b0;
+
+        if (reset) begin
+            membrane_potential <= 8'b0;
+            refractory_counter <= 8'b0;
+        end else if (enable) begin
+            if (refractory_counter > 0) begin
+                refractory_counter <= refractory_counter - 1;
+            end else begin
+                if (potential_update[9] && potential_update < -128)
+                    membrane_potential <= 8'b1000_0000;
+                else if (potential_update > 127)
+                    membrane_potential <= 8'b0111_1111;
+                else
+                    membrane_potential <= potential_update[7:0];
+
+                if ($signed(membrane_potential) >= $signed(threshold)) begin
+                    spike_out <= 1'b1;
+                    membrane_potential <= $signed(membrane_potential) - $signed(threshold);
+                    refractory_counter <= refractory_period;
+                end
+            end
+        end
+    end
+endmodule
+\end{lstlisting}
+\end{minipage}
+
+\end{table*}
+
+
+
+\begin{table*}[!htbp]
+\centering
+\caption{Test Bench for the LIF Spiking Neuron Verilog Module generated by ChatGPT}
+\label{table:LIF_module_tb}
+
+\begin{minipage}[t]{.49\textwidth}
+\begin{lstlisting}[language=Verilog, caption={Initial Module}]
+`timescale 1ns / 1ps
+module tb_LeakyIntegrateFireNeuron;
+    reg clk;
+    reg reset;
+    reg [7:0] input_current;
+    reg [7:0] threshold;
+    reg [7:0] decay;
+    reg [7:0] refractory_period;
+    wire spike_out;
+    LeakyIntegrateFireNeuron uut (
+        .clk(clk),
+        .reset(reset),
+        .input_current(input_current),
+        .threshold(threshold),
+        .decay(decay),
+        .refractory_period(refractory_period),
+        .spike_out(spike_out)
+    );
+    initial begin
+        clk = 0;
+        forever #10 clk = !clk;
+    end
+    initial begin
+        reset = 1;
+        input_current = 0;
+        threshold = 50; 
+        decay = 5;   
+        refractory_period = 5;
+        #25 reset = 0;
+        // Stimulus 1:
+        // Small input current, no spike
+        input_current = 10;
+        #40;
+        // Stimulus 2: Larger current
+        // to trigger spike
+        input_current = 60;
+        #20;
+        // Stimulus 3: Check refractory
+        // behavior, should not spike
+        // despite high current
+        input_current = 60;
+        #100;
+        // Stimulus 4: After refractory
+        // period, should be able
+        // to spike again
+        input_current = 60;
+        #100;
+        // Complete the test
+        #50 $finish;
+    end
+    initial begin
+        $monitor("Time =     end
+endmodule
+\end{lstlisting}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{.49\textwidth}
+\begin{lstlisting}[language=Verilog, caption={Final Module}]
+`timescale 1ns / 1ps
+module tb_LeakyIntegrateFireNeuron;
+    reg clk;
+    reg reset;
+    reg enable;
+    reg [7:0] input_current;
+    reg [7:0] threshold;
+    reg [7:0] decay;
+    reg [7:0] refractory_period;
+    wire spike_out;
+    LeakyIntegrateFireNeuron uut (.clk(clk),.reset(reset), .enable(enable),.input_current(input_current),.threshold(threshold), .decay(decay), .refractory_period(refractory_period),.spike_out(spike_out));
+    initial begin
+        clk = 0;
+        forever #10 clk = !clk;
+    end
+    initial begin
+        reset = 1; enable = 0;
+        input_current = 0; threshold = 127;
+        decay = 1; refractory_period = 10;
+        #25 reset = 0; enable = 1;
+        input_current = 10;  #40;
+        input_current = 60;  #20;
+        input_current = 60;  #100;
+        enable = 0;
+        input_current = 60;  #40;
+        enable = 1;          #20;
+        input_current = 30;  #100;
+        enable = 0;          #40;
+        enable = 1;
+        input_current = 75;  #60;
+        reset = 1;           #30;
+        reset = 0;           #40;
+        input_current = 15;  #100;
+        enable = 0;          #40;
+        enable = 1;          #60;
+        input_current = 5;
+        $display("Starting test with low input and high threshold at time         fork
+            begin
+                wait (spike_out == 1);
+                $display("Spike occurred at time                 $finish;
+            end
+            begin
+                #10000;
+                $display("No spike after 10000ns with low input current");
+                $finish;
+            end
+        join
+    end
+    initial begin
+        $monitor("Time =     end
+endmodule
+
+\end{lstlisting}
+\end{minipage}
+
+\end{table*}
+
+
+
+\begin{figure*}[htbp]
+\centerline{\includegraphics[width=6in ]{Figures/Fig2.png}}
+\caption{Block Diagram describing the pipeline used for our proposed Sequential MNIST model.}
+\label{fig:neural1}
+\end{figure*}
+
+
+
+Using the same iterative refinement methodology, the chatbot described the recurrent LIF neuron including an additional input for the feedback scale factor. 
+Then we asked it to implement a layer of three neurons, managing the generation of input currents for each neuron by multiplying input spikes with weights.
+Subsequently, ChatGPT described a network with three layers, a First-In-Parallel-Out (FIPO) based memory for the neuron parameters, and a Finite State Machine (FSM)-based control unit to manage the memory operations.
+The final design is a top module that integrates the network, memory, control unit for the memory, synchronizers for asynchronous inputs, and a Flip Flop (FF)-based memory for the input spikes.
+
+The requirements we provided to ChatGPT included that the system support both negative and positive weights, two's complement 8-bit fixed point encoding, management of both negative and positive overflow, and extension of arithmetic bit length to adequately support accumulation operations.
+
+
+
+
+
+\subsection{Test Bench Generation with ChatGPT}
+Once a module was ready, we opened a new chat conversation in a separate window asking ChatGPT to generate a Verilog test bench for that module. 
+Also in this task, we iteratively refined the chatbot's output by troubleshooting and providing it more details on how we wanted the various test to be run.
+Each module was tested individually and, finally, all together with the top module.
+Table \ref{table:LIF_module_tb} illustrates an example of the initial (left) and final (right) outputs of the LIF module test bench.
+
+
+
+
+
+
+\section{Case Studies and Model Results}
+To assess the functional correctness of the Verilog modules developed by ChatGPT, we tested the generated design in three case studies: exclusive OR, IRIS flower classification, and the MNIST handwritten digit classification. To model this we used the snntorch as well as the the documentation provided for the recurrent leaky integrate and fire neurons with one-to-one connections \cite{jason}. We also quantized the weights and the parameters of the neural network using the libraries of snntorch and brevitas \cite{brevitas}. Our architecture consisted of a three layer network with each of the layers having  a quantized linear layer with recurrent spiking neurons with one-to-one connections consisting of three neurons each. 
+
+\subsection{Exclusive OR}
+The exclusive OR is a simple classification problem to verify if the network can learn nonlinear boundaries. For this problem we only used two of the three input neurons as well as only two of the three output neurons. We were able to reach accuracies of 95\
+
+\subsection{IRIS flower classification}
+The IRIS dataset was a straightforward decision for our network architecture due to its three classes, the iris setosa,versicolor and virginica. For this classification we dropped the last feature of the dataset in order to adapt it for our three inputs architecture. We were able to reach accuracies of upwards 96.6\
+
+
+
+
+
+
+\subsection{MNIST Handwritten digit classification}
+The previous two case studies do not benefit significantly from the temporal dynamics of the recurrent spiking neural network we implemented. For that reason our final case study is the MNIST but in Sequential Order. For this case study, as can be seen in Fig. \ref{fig:neural1}, we chose the first three digits of the MNIST dataset (zero, one and two). Additionally to take full advantage of the architecture we implemented, we split the images of the dataset into three equal segments, the top , middle and bottom part. In order for those parts to be split equally we distorted the images and added two additional padding pixels in our images.  That way we were also able to reduce the time-steps needed from 784 -if we used the image as a whole- to 262. We used those three segments as inputs for the three input-neurons of our network and we were able to reach accuracies of 89\
+
+
+\section{Results and Discussion}
+
+
+ChatGPT successfully generated the Verilog hardware description code for each module after a total of 117 iterations. 
+
+Table \ref{tab:tab_results} details the iterative conversational design process with ChatGPT for each hardware module.
+The LIF Neuron module and RLIF Layer proved the most challenging, requiring 38 and 17 iterations respectively, across 2 separate conversations.
+
+The reason lies in two factors: the complex overflow/underflow management, with bitwidth adjusting to adequately handle input current accumulations, and in the number of lines of the code.
+Indeed, the lines count influenced the difficulty in resolving errors, and module with fewer lines were easier to troubleshoot, as seen with the RLIF neuron module, which had to handle overflow/underflow, but has fewer lines of code.
+
+The findings highlight the importance of a modular system design and the need for clear and well-defined requirements, supplemented by practical examples.
+
+
+
+
+\begin{table}[t]
+\centering
+\caption{Verilog Hardware Description Code Generation Results}
+\begin{center}
+\begin{tabular}{|l|l|l|l|l|l}
+\cline{1-5}
+\textbf{\begin{tabular}[c]{@{}l@{}}Module\\ Name\end{tabular}} & \textbf{\begin{tabular}[c]{@{}l@{}}Chat\\ \#\end{tabular}} & \textbf{\begin{tabular}[c]{@{}l@{}}Itera-\\ tions\\ \#\end{tabular}} & \textbf{\begin{tabular}[c]{@{}l@{}}Lines\\ count\\ \end{tabular}} & \textbf{Improvements} &  \\ \cline{1-5}
+\begin{tabular}[c]{@{}l@{}}LIF\\ Neuron\end{tabular} & 2 & \begin{tabular}[c]{@{}l@{}}38\\ (24+14)\end{tabular} & 33 & \begin{tabular}[c]{@{}l@{}}- Overflow/underflow\\    management\\    (Bit Width Adjustments +\\    sign extension)\\ - Verilog Syntax +\\    best practices\\ - Adding proper inputs\end{tabular} &  \\ \cline{1-5}
+\begin{tabular}[c]{@{}l@{}}RLIF\\ Neuron\end{tabular} & 1 & 6 & 19 & \begin{tabular}[c]{@{}l@{}}- Overflow/underflow\\    management\\   (Bit Width Adjustments\\   + sign extension)\end{tabular} &  \\ \cline{1-5}
+\begin{tabular}[c]{@{}l@{}}RLIF\\ Layer\end{tabular} & 2 & \begin{tabular}[c]{@{}l@{}}17\\ (10+7)\end{tabular} & 63 & \begin{tabular}[c]{@{}l@{}}- Clarification of requirements\\   (format of input data, \\   parameter sharing among\\   neurons, behaviour of the\\   module)\\ - Verilog Syntax\\ - Oveflow/underflow\\    management\end{tabular} &  \\ \cline{1-5}
+RSNN & 1 & 8 & 37 & \begin{tabular}[c]{@{}l@{}}- Clarification on module\\    behaviour\\ - Verilog best practices\end{tabular} &  \\ \cline{1-5}
+\begin{tabular}[c]{@{}l@{}}FIPO\\ Memory\end{tabular} & 1 & 12 & 21 & \begin{tabular}[c]{@{}l@{}}- Clarification on module\\   behaviour\\ - Adding control input signals\end{tabular} &  \\ \cline{1-5}
+RegN & 1 & 5 & 6 & \begin{tabular}[c]{@{}l@{}}- Module Parameterizability\\ - Adding control input signals\\ - Change in reset behaviour\end{tabular} &  \\ \cline{1-5}
+\begin{tabular}[c]{@{}l@{}}Control\\ Memory\end{tabular} & 1 & 9 & 55 & \begin{tabular}[c]{@{}l@{}}- Clarification on model\\   behaviour\\ - Verilog Syntax\end{tabular} &  \\ \cline{1-5}
+\begin{tabular}[c]{@{}l@{}}Top\\ Module\end{tabular} & 1 & 22 & 103 & \begin{tabular}[c]{@{}l@{}}- Clarification on model\\   behaviour\\ - Refining Connections\end{tabular} &  \\ \cline{1-5}
+\end{tabular}
+\label{tab:tab_results}
+\end{center}
+\end{table}
+
+
+
+
+
+
+
+To verify the synthesizability and implementability of the Verilog modules generated by ChatGPT, we prototyped the design on an FPGA and implemented it in ASIC, submitting it to Tiny Tapeout 6 program for chip fabrication. This submission will allow us to further evaluate the design's on-chip performance in the future.
+
+
+
+
+
+
+
+\subsection{FPGA Prototyping Results}
+For the FPGA prototyping, we used the Xilinx Vivado Design Suite along with the Digilent CMOD S7 board, which is equipped with the Xilinx Spartan 7 FPGA. 
+The post-implementation results of the ChatGPT-generated design show an utilization of 1011 LUTs and 507 FFs.
+The maximum allowed system clock frequency is 83 MHz.
+Power analysis was conducted using the Switching Activity Interchange Format (SAIF) file generated during a timing post-implementation simulation and revealed a total power consumption of 65 mW, of which 4 mW is dynamic power and 61 mW static power.
+
+Fig. \ref{fig:simulation_1} and \ref{fig:simulation_2_startup} show a timing post-implementation simulation.
+It can be seen that the system has two functional modes: startup mode and running mode.
+In the initial mode, all the network parameters are loaded into memory while in the second the input spikes are processed. 
+
+\begin{figure}[t]
+\centering
+\centerline{\includegraphics[width=\columnwidth ]{Figures/Fig3.png}}
+\caption{Timing Post-Implementation Simulation of the RSNN hardware design generated by ChatGPT on Spartan 7 FPGA.}
+\label{fig:simulation_1}
+\end{figure}
+
+
+
+\begin{figure}[t]
+\centering
+\centerline{\includegraphics[width=\columnwidth ]{Figures/Fig4.png}}
+\caption{Timing Post-Implementation Simulation of the RSNN hardware design generated by ChatGPT on Spartan 7 FPGA. Startup mode: loading all network parameters into the memory.}
+\label{fig:simulation_2_startup}
+\end{figure}
+
+
+
+\subsection{ASIC implementation and Tiny Tapeout}
+The chatbot-generated design was implemented using SkyWater 130 nm technology and OpenLane, an open-source EDA flow. 
+OpenLane automates the digital hardware design steps, from RTL synthesis and implementation to the generation of the Graphic Design System II (GDSII) file, which is the final output containing all the layout information.
+
+
+Fig. \ref{fig:gds} presents a 2D visualization of the final GDSII file.
+The implementation results show an area occupation of 0.11 $^2$ and 5187 total cells, distributed as follows: 1635 combo logics, 1577 taps, 647 NORs, 580 ORs, 512 FFs, 495 buffers, 345 NANDs, 337 ANDs, 242 Misc, 220 multiplexers, 124 inverters, 49 diodes) and in an area occupation of 0.11 mm$^2$.
+
+These results, combined with the all signoff tests passed, demonstrate the implementability of the hardware design described by ChatGPT and highlight its potential as a useful tool in the hardware design process.
+
+\begin{figure}[t]
+\centerline{\includegraphics[width=\columnwidth]{Figures/Fig5.png}}
+\caption{2D Visualization of the GDSII file of the RSNN hardware design generated by ChatGPT.}
+\label{fig:gds}
+\end{figure}
+
+
+
+
+
+
+
+
+
+\section{Conclusions}
+In this paper, the hardware architecture of a programmable RSNN generated by the ChatGPT LLM was presented. The design was verified through FPGA prototype and also synthesized and taped out in the SkyWater 130 nm technology -TinyTapeout 6-. The system was evaluated by performing inference  with three applications, the exclusive OR,the  IRIS flower classification, and hand-written digit classification MNIST, obtaining an accuracy upwards 96\Future work will aim to explore the generation of hardware description code for more complex networks and to build more comprehensive test benches.
+
+\bibliographystyle{IEEEtran}
+\bibliography{IEEEabrv,bibliography}
+
+
+\end{document}

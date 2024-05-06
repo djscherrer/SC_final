@@ -1,0 +1,275 @@
+\begin{document}
+\affiliation{$$_affiliation_$$}
+
+\renewenvironment{abstract}{\noindent\begin{center}\begin{minipage}{0.8\linewidth}\small{\scshape Abstract.}}{\end{minipage}\end{center}}
+\newlength{\tagsep}
+\setlength{\tagsep}{0.3em}
+
+\makeatletter
+\def\fullwidthdisplay{\displayindent\z@ \displaywidth\columnwidth}
+\edef\@tempa{\noexpand\fullwidthdisplay\the\everydisplay}
+\everydisplay\expandafter{\@tempa}
+\makeatother
+
+\titleformat{\section}{\centering}{\textsection\thesection.}{1.5\tagsep}{\scshape}
+\titleformat{\subsection}[runin]{}{\fontseries{b}\selectfont\textsection\bfseries\thesubsection.}{1.5\tagsep}{\bfseries}[.]
+
+\titlespacing*{\section}{0pt}{4ex}{\medskipamount}
+\titlespacing*{\subsection}{0pt}{\bigskipamount}{0.5em}
+
+\dottedcontents{section}[1.3em]{\vspace{0.25ex}}{1.3em}{0.7em}
+\dottedcontents{subsection}[2.0em]{\vspace{0.25ex}}{2.0em}{0.7em}
+
+\newcommand{\crefeqfmt}[1]{
+	\crefformat{#1}{(##2##1##3)}
+	\Crefformat{#1}{(##2##1##3)}
+	\crefrangeformat{#1}{(##3##1##4--##5##2##6)}
+	\Crefrangeformat{#1}{(##3##1##4--##5##2##6)}
+	\crefmultiformat{#1}{(##2##1##3}{, ##2##1##3)}{, ##2##1##3}{, ##2##1##3)}
+	\Crefmultiformat{#1}{(##2##1##3}{, ##2##1##3)}{, ##2##1##3}{, ##2##1##3)}
+	\crefrangemultiformat{#1}{(##3##1##4--##5##2##6}{, ##3##1##4--##5##2##6)}{, ##3##1##4--##5##2##6}{, ##3##1##4--##5##2##6)}
+	\Crefrangemultiformat{#1}{(##3##1##4--##5##2##6}{, ##3##1##4--##5##2##6)}{, ##3##1##4--##5##2##6}{, ##3##1##4--##5##2##6)}
+}
+\newcommand{\crefsecfmt}[1]{	\crefformat{#1}{\textsection##2##1##3}
+	\Crefformat{#1}{\textsection##2##1##3}
+	\crefrangeformat{#1}{\textsection\textsection##3##1##4--##5##2##6}
+	\Crefrangeformat{#1}{\textsection\textsection##3##1##4--##5##2##6}
+	\crefmultiformat{#1}{\textsection\textsection##2##1##3}{--##2##1##3}{, ##2##1##3}{ and~##2##1##3}
+	\Crefmultiformat{#1}{\textsection\textsection##2##1##3}{--##2##1##3}{, ##2##1##3}{ and~##2##1##3}
+	\crefrangemultiformat{#1}{\textsection\textsection##3##1##4--##5##2##6}{ and~##3##1##4--##5##2##6}{, ##3##1##4--##5##2##6}{ and~##3##1##4--##5##2##6}
+	\Crefrangemultiformat{#1}{\textsection\textsectionXS##3##1##4--##5##2##6}{ and~##3##1##4--##5##2##6}{, ##3##1##4--##5##2##6}{ and~##3##1##4--##5##2##6}
+}
+
+\newcommand{\Samp}{50}
+
+\title{
+	A Nygaard approach to values of zeta functions of schemes over finite fields
+}
+
+\author{ Logan Hyslop }
+
+
+
+
+
+
+
+
+\date{mm/dd/yyyy}
+
+\bibliography{Bibliography.bib}
+
+\begin{document}
+	\DeclareDocumentCommand\rart{ g }{		{\ar[r, tail]			\IfNoValueF {#1} { \ar[r, tail, "#1"]}		}	}
+	\DeclareDocumentCommand\dart{ g }{		{\ar[d, tail]			\IfNoValueF {#1} { \ar[d, tail, "#1"]}		}	}
+	\DeclareDocumentCommand\rarh{ g }{		{\ar[r, two heads]			\IfNoValueF {#1} { \ar[r, two heads, "#1"]}		}	}
+	\DeclareDocumentCommand\darh{ g }{		{\ar[d, two heads]			\IfNoValueF {#1} { \ar[d, two heads, "#1"]}		}	}
+	
+	
+	
+	\maketitle
+	
+
+	
+
+	
+
+	
+
+
+
+	
+
+	
+
+	\begin{abstract}
+In this note, we discuss a streamlined proof of a result due to Milne \cite{MilneValues} computing special values of zeta functions for smooth proper schemes over a finite field $\fff_q$.  The proof will give a natural interpretation of the correction factor in terms of invariants constructed from prismatic cohomology, studied by \cite{morin2021topological}.  We then discuss the modifications needed when passing from the smooth case to an arbitrary qcqs scheme $X$ of finite type over $\fff_p$, at least assuming a strong form of resolution of singularities.
+	\end{abstract}
+{\small
+	\setcounter{tocdepth}{1}
+	\tableofcontents
+	\vspace{3.0ex}
+}
+	\section{Introduction}
+		\setcounter{section}{1}
+		
+		
+\indent\indent Let $X$ be a qcqs scheme, smooth and proper over a finite field $\fff_q$, where $q=p^f$ is a power of some prime $p$.  Henceforth, we will consider $X$ as a smooth proper scheme over $\fff_p$.  In \cite{MilneValues}, Milne gives a formula for computing the values of the zeta function $\zeta(X,n)$ at integers $n$:
+\begin{theorem}[\cite{MilneValues}, Theorem 0.1]\label{Main1}
+If $X/\fff_p$ is smooth and proper, then for $n\in\zz$, assuming that Frobenius acts semisimply on the $\varphi=p^n$-eigenspace of $H^i(X,\bb{Q}_{\ell})$ for all $i$ and $\ell$, we have:
+$$\zeta(X,s)\sim \pm \chi(X,\hat{\zz}(n),e)p^{\chi(X,\mc{O}_X,n)}(1-p^{n-s})^{-\rho_{n}}$$
+as $s\to n$.
+\end{theorem}
+\noindent Here, $H^i(X,\bb{Q}_{\ell})$ denotes the $\ell$-adic \'{e}tale cohomology of $X$ for $p\neq \ell$, and the rational crystalline cohomology of $X$ when $p=\ell$.  We define $H^i_{\acute{e}t}(X,\hat{\zz}(n))=\prod_{\ell}H^i_{\acute{e}t}(X,\zz_{\ell}(n))$, where $H^i_{\acute{e}t}(X,\zz_{\ell}(n))$ denotes $\ell$-adic \'{e}tale cohomology of $X$ if $\ell\neq p$, and syntomic cohomology of $X$ if $\ell=p$.  The term $\chi(X,\hat{\zz}(n),e)$ denotes the multiplicative Euler characteristic of the complex $$\ldots \to H^i_{\acute{e}t}(X,\hat{\zz}(n))\xrightarrow{\cup e} H^{i+1}_{\acute{e}t}(X,\hat{\zz}(n))\to\ldots,$$ where $e$ is the fundamental class in $H^1(\fff_p,\hat{\zz})\simeq \hat{\zz}$.  Recall that if $C_{\bdot}$ is a chain complex whose cohomology groups are all finite abelian groups, with only finitely many nonzero, then the multiplicative Euler characteristic of $C_{\bdot}$ is $$\chi(C_{\bdot})=\prod_{i\in\zz}|H^i(C_{\bdot})|^{(-1)^{i}}.$$   The other term appearing in our formula, Milne's ``correcting factor,'' is defined as $$\chi(X,\mc{O}_X,n):=\sum_{0\leq i\leq \dim(X), 0\leq j\leq n}(-1)^{i+j}(n-j)h^i(X,\Omega^j).$$
+
+In \textsection 2, we aim to provide another proof of Milne's computation of the p-adic absolute value $|\zeta(X,n)|_{p}$, by making use of the Nygaard filtration on the de Rham-Witt complex of $X$. This method is inspired by the arguments for the cases when $\ell\neq p$ proved in \cite{Schneider1982} and \cite{Neukirch1978/79}.  The strategy will show how the correction factor naturally arises from a complex that Morin terms $L\Omega^{<n}_{X/\bb{S}}$, which was used in \cite{morin2021topological} in conjectural formulas for special values of zeta functions for more general finite type schemes over $\zz$.  This complex does also appear in Milne's original proof \cite[~\textsection 4]{MilneValues}, at which point the argument proceeds very similarly to below- the main difference between our argument and Milne's is in the manner of reaching that point.  The proof presented in this note was discovered independently by Flach-Morin \cite{Flach_Morin}, and is likely well-known to additional experts.
+
+In \textsection 3, we drop the assumption that $X$ be smooth, and explain what modifications need to be made in order to get a description analogous to Theorem \ref{Main1}.  In this more general setup, derived crystalline cohomology is not necessarily finitely generated, so one cannot naively apply the same techniques as \textsection 2.  Assuming a strong form of resolution of singularities, Geisser \cite{geisser2005arithmetic} utilized \'{e}h-sheafified syntomic cohomology in order to arrive at a similar formula, which connects back to the discussion of Milne's correcting factor in \cite{morinmilnes2}.  This section primarily reviews the results from \cite{geisser2005arithmetic}, while touching on connections to recent work from \cite{elmanto2023motivic}.  These results point towards a potential strategy to remove the requirement of full resolution of singularities from some of the results in \cite{geisser2005arithmetic}, although this is not pursued in the present paper.
+
+
+
+
+\textbf{Acknowledgments:} I would like to thank Baptiste Morin and Don Blasius for encouraging me to type up this note, and for helpful conversations.  I would also like to thank Brian Shin, Matthew Morrow, and Jas Singh for helpful conversations related to this work.
+
+
+\newpage
+	\section{Proof of Milne's Theorem}
+\indent \indent Let $X/\fff_p$ be a proper smooth scheme of dimension $d$.  Recall that the zeta function for $X$ may be written as $\zeta(X,s)=Z(X,p^{-s})$, where $$Z(X,t)=\f{P_1(X,t)\ldots P_{2d-1}(X,t)}{P_0(X,t)\ldots P_{2d}(X,t)}, \qquad P_i(X,t)=\tr(1-\varphi t|H^i(X,\bb{Q}_{\ell})).$$  Here, $\varphi$ denotes the action of Frobenius on the $\ell$-adic cohomology of $X$, where we take $\ell$-adic \'{e}tale cohomology if $\ell\neq p$, and rational crystalline cohomology in the case $\ell=p$.  In particular, for each integer $n$, there is some rational number $C(X,n)$ with $$C(X,n)=\lim_{s\to n}(1-p^{n-s})^{-\rho_n}\zeta(X,s),$$ where $\rho_n$ denotes the order of the pole of $\zeta(X,s)$ at $s=n$ (which can be nonzero only for $0\leq i\leq d$).
+
+If $\ell\neq p$, $|C(X,n)|_{\ell}$ is described in \cite{Schneider1982} and \cite{Neukirch1978/79} up to a semisimplicity assumption on the action of Frobenius.  Our goal presently is to compute the $p$-adic absolute value $|C(X,n)|_{p}$.  To do so, we will make use of the following observation from linear algebra: 
+\begin{lemma}\label{lem21}
+Suppose that $Y$ is a finite dimensional $\bb{Q}_p$-vector space, and $F:Y\to Y$ is an automorphism of $Y$.  If we have $\zz_p$-lattices $L^{\prime}\subseteq L\subseteq Y$, such that $F$ restricts to a linear map $F:L^{\prime}\to L$, then $|\det(F)|_p=|\Coker(F:L^{\prime}\to L)|^{-1}|L/L^{\prime}|$.
+\end{lemma}
+Since our goal is to analyze the determinant of $1-p^{-n}\varphi:H^i(X,\bb{Q}_p)\to H^i(X,\bb{Q}_p)$, we should look for some lattices relating to the rational crystalline cohomology of $X$.  The natural choice is to take the integral crystalline cohomology, computed as the cohomology of the de Rham-Witt complex $W\Omega_X^{\bdot}$ of $X$.  However, for $n\geq 0$, $p^{-n}\varphi$ does not restrict to an endomorphism of this complex.  Coming to our rescue is the Nygaard filtration.  We will use the variant discussed in \cite[~\textsection 8]{bhatt2019topological} (see also \cite{Illusie1979ComplexeDD}), defined by the sub-complex $$\mc{N}^{\geq n}W\Omega_{X} = p^{n-1}VW\mc{O}_X\to p^{n-2}VW\Omega^1_{X}\ldots \to VW\Omega_{X}^{n-1}\to W\Omega_X^{n}\ldots,$$ where $V$ denotes the verschiebung operator.  There is a divided Frobenius map $\varphi_n:=\varphi/p^n:\mc{N}^{\geq n}W\Omega_X\to W\Omega_X$, giving us a natural candidate to take the place of our lattice $L^{\prime}$.  We define \begin{equation} \label{eq21}
+	\zz_p(n)(X):=\mo{fib}(\varphi_n-1:\mc{N}^{\geq n}W\Omega_X\to W\Omega_{X}), \end{equation} the \textit{syntomic complex} of $X$.  Note that by \cite{bhatt2019topological}, this agrees with the complex $W\Omega_{X,log}^n[-n]$ defined by Milne in \cite{MilneValues}.  We recall one last lemma before the main theorem:
+\begin{lemma}[\cite{bhatt2019topological}, Lemma 8.2]\label{lem22}
+For $X/\fff_p$ smooth, the associated graded pieces of the Nygaard filtration are given by $\mc{N}^{\geq n}W\Omega_X/\mc{N}^{\geq n+1}W\Omega_X=\tau^{\leq n}\Omega_{X/\fff_p}^{\bdot}$.
+\end{lemma}
+
+We now state the main theorem:
+\begin{theorem}\label{main2}
+If $X/\fff_p$ is a proper smooth scheme of dimension $d$, then, assuming the Frobenius acts semisimply on the $p^{-n}\varphi$-fixed subspace of $H^i(X,W\Omega_X\otimes_{\zz_p}\bb{Q}_p)$ for all $i$, we have:
+$$|C(X,n)|_{p}^{-1}=\chi(X,\zz_p(n),e)\chi(X,W\Omega_X/\mc{N}^{\geq n}W\Omega_X)=\chi(X,\zz_p(n),e)p^{\chi(X,\mc{O}_X,n)}.$$ 
+\end{theorem}
+\begin{proof}
+From the fiber sequence (\ref{eq21}) defining $\zz_p(n)(X)$, we find that we have a long exact sequence 
+$$\ldots \to H^i(X,\zz_p(n))\to H^i(X,\mc{N}^{\geq n}W\Omega_{X})\xrightarrow{\varphi_n-1}H^i(X,W\Omega_X)\to H^{i+1}(X,\zz_p(n))\to\ldots.$$
+Since $X/\fff_p$ is smooth and proper, its crystalline cohomology groups $H^i(X,W\Omega_X)$ are finitely generated $\zz_p$-modules, and vanish for $i\gg 0$ and $i<0$.  In particular, modulo torsion, $H^i(X,W\Omega_X)$ and $H^i(X,\mc{N}^{\geq n}W\Omega_X)$ give two lattices contained in $H^i(X,W\Omega_X\otimes_{\zz_p}\bb{Q}_p)$, such that $\varphi_i-1$ induces a map between them.  The torsion submodules $H^i(X,W\Omega_X)_{tors},H^i(X,\mc{N}^{\geq n}W\Omega_X)_{tors}$ contribute a factor of $$(|H^i(X,W\Omega_X)_{tors}|/|H^i(X,\mc{N}^{\geq n}W\Omega_X)_{tors}|)^{(-1)^{i+1}}$$ to $\chi(X,\zz_p(n),e)$.  From the long exact sequence
+$$\ldots \to H^i(X,\mc{N}^{\geq n}W\Omega_{X})\to H^i(X,W\Omega_X)\to H^{i}(X,W\Omega_X/\mc{N}^{\geq n}W\Omega_X)\to H^{i+1}(X,\mc{N}^{\geq n}W\Omega_{X})\to\ldots,$$ we find that the torsion submodules also contribute a factor of $$(|H^i(X,W\Omega_X)_{tors}|/|H^i(X,\mc{N}^{\geq n}W\Omega_X)_{tors}|)^{(-1)^{i}}$$ to $\chi(W\Omega_X/\mc{N}^{\geq n}W\Omega_X)$.  These two terms will cancel out in the product $\chi(X,\zz_p(n),e)\chi(X,W\Omega_{X}/\mc{N}^{\geq n}W\Omega_{X})$, allowing us to focus only on the torsion-free quotients of $H^i(X,W\Omega_X)$ and $H^i(X,\mc{N}^{\geq n}W\Omega_X)$, which we will denote by $L_i$ and $L_i^{\prime}$, respectively, in what follows.
+
+If there is no pole of $\zeta(X,s)$ at $s=n$, then $\varphi_n-1$ is invertible on each $H^i(X,W\Omega_X\otimes_{\zz_p} \bb{Q}_p)$, and Lemma \ref{lem21} applies to tell us $$|P_i(X,n)|_p=|\Coker(\varphi_n-1:L_i^{\prime}\to L_i)|^{-1}|L_i/L_i^{\prime}|.$$  From  $$\chi(X,\zz_p(n))=\prod_{i}|\Coker(\varphi_n-1:L_i^{\prime}\to L_i)|^{(-1)^{i+1}},$$ and $$\chi(X,W\Omega_X/\mc{N}^{\geq n}W\Omega_X)=\prod_{i}|L_i/L_i^{\prime}|^{(-1)^{i}},$$ we may conclude that:
+$$|C(X,n)|_{p}^{-1}=\f{|P_0(X,n)|_p\ldots |P_{2d}(X,n)|_p}{|P_1(X,n)|_p\ldots |P_{2d-1}(X,n)|_p}=\chi(X,\zz_p(n))\chi(X,W\Omega_X/\mc{N}^{\geq n}W\Omega_X).$$
+
+If $\zeta(X,s)$ has a pole at $s=n$, then, under the assumption of semisimplicity, $L_i$, $L_i^{\prime}$ split up into $A_i\oplus B_i$, $A_i^{\prime}\oplus B_i^{\prime}$, with $\varphi_n-1:B_i^{\prime}\to B_i$ an isomorphism after inverting $p$, $A_i^{\prime}=\Ker(\varphi_n-1:L_i^{\prime}\to L_i)$, $A_i\simeq\Coker(\varphi_n-1:L_i^{\prime}\to L_i)/tors$.  Arguing as in \cite{Schneider1982}, we see that taking the cup product with $e$ maps the summand $A_i^{\prime}$ of $H^i(X,\zz_p(n))$ isomorphically to the image of $A_i$ in $H^{i+1}(X,\zz_p(n))$, allowing us to identify, in a similar fashion to above,  $$|C(X,n)|_{p}^{-1}=\chi(X,\zz_p(n),\cup e)\chi(X,W\Omega_X/\mc{N}^{\geq n}W\Omega_X).$$
+
+To get the last equality, we note that the Nygaard filtration restricts to a finite filtration on $W\Omega_X/\mc{N}^{\geq n}W\Omega_X$, and so:
+$$\chi(X,W\Omega_X/\mc{N}^{\geq n}W\Omega_X)=\prod_{j=0}^{n-1}\chi(X,\mc{N}^{\geq j}W\Omega_X/\mc{N}^{\geq j+1}W\Omega_X).$$  By Lemma \ref{lem22}, $\mc{N}^{\geq j}W\Omega_X/\mc{N}^{\geq j+1}W\Omega_X\simeq \tau^{\leq j}\Omega_{X/\fff_p}$.  To compute the multiplicative Euler characteristics of these complexes, we use the Hodge de Rham spectral sequence, with $E_2^{p,q}$ term $0$ if $q>j$, and $H^p(X,\Omega^q_{X/\fff_p})$ otherwise, converging to $H^{p+q}(X,\tau^{\leq j}\Omega_{X/\fff_p})$.  Since the $E_2$-term of the spectral sequence is already finite, we can deduce as in \cite{morin2014milnes} that $$\chi(X,\tau^{\leq j}\Omega_{X/\fff_p})=\prod_{i}\left(\prod_{p+q=i,q\leq j}|H^p(X,\Omega^q_{X/\fff_p})|\right)^{(-1)^i}.$$
+Putting this all together, we find that
+\begin{align*}
+\log_{p}(\chi(X,W\Omega_X/\mc{N}^{\geq n}W\Omega_X))&=\sum_{j=0}^{n-1}\log_{p}(\chi(X,\mc{N}^{\geq j}W\Omega_X/\mc{N}^{\geq j+1}W\Omega_X))\\
+&=\sum_{j=0}^{n-1}\sum_{i}\sum_{p+q=i,q\leq j}(-1)^{i}\log_{p}(|H^p(X,\Omega^q_{X/\fff_p})|)\\
+&=\sum_{j=0}^{n-1}\sum_{i}(-1)^{i}\sum_{p+q=i,q\leq j}h^p(X,\Omega^q)\\
+&=\sum_{0\leq i\leq \dim(X),0\leq j\leq n}(-1)^{i+j}(n-j)h^i(X,\Omega^j)=\chi(X,\mc{O}_X,n),
+\end{align*}
+as claimed.
+\end{proof}
+\begin{remark}
+	The complex $W\Omega_X/\mc{N}^{\geq i}\Omega_X$ is equivalent to the complex Morin terms $L\Omega_{X/\bb{S}}^{<n}$ described in \cite{morin2021topological}.  The preceding proof may be interpreted as one motivation for why this complex should be the right idea when discussing correction factors for regular proper schemes over $\zz$ more generally.
+\end{remark}
+\begin{remark}
+	One can make the above proof a bit cleaner by using the determinant functors as in \cite{morin2014milnes}, \cite{morinmilnes2}.
+\end{remark}
+
+\newpage
+	\section{The Singular Case}
+\indent \indent With the above methods in hand, we can ask: what can go wrong if we take $X/\fff_p$ proper, but not necessarily smooth?  If $\ell\neq p$, using alterations of de Jong \cite{alterations}, one can still determine $|C(X,n)|_{\ell}$ by an analogous formula to the smooth case.  However, when $\ell=p$, we are not so fortunate.  It is not even clear if one can use rational derived crystalline cohomology to define the zeta function of $X$ in general.  Moreover, if we just naively work with the derived crystalline cohomology on the nose, we run into a major obstruction:
+\begin{example}
+Following the computation of Mathew in \cite[~Theorem 10.4]{Mathew_2022}, we take $X=\Spec(\fff_p[x]/(x^2))$ with $p\neq 2$, and then $H^1(X,LW\Omega_X)=(\oplus_{d\geq 0,\text{ odd}}\zz_{p}/d\zz_{p})_p^{\wedge}$, which is far from finitely generated.  Moreover, $H^1(X,LW\Omega_{X}\otimes_{\zz_p}\bb{Q}_p)$ is also not finitely generated.  Thus, the method of Theorem \ref{main2} does not naively apply here.
+\end{example}
+
+\begin{remark}
+However, the formula from Theorem \ref{main2}, $|C(X,n)|_p^{-1}=\chi(X,\zz_p(n),e)\chi(X,LW\Omega_{X}/\mc{N}^{\geq n}LW\Omega_{X})$ does still hold in the above example.  It seems reasonable to expect that this formula holds whenever $X$ is quasisyntomic and $X^{red}$ is smooth projective.
+\end{remark}
+
+To get around this issue, we have to make use of the cdh and \'{e}h topologies.  Recall that an abstract blowup square is a cartesian square
+\begin{center}
+	\begin{tikzcd}
+		Y^{\prime}\rar\dar & X^{\prime}\dar{\pi}\\
+		Y\rar{\iota} & X
+	\end{tikzcd}
+\end{center}
+with $\pi$ proper, $\iota$ a closed immersion, such that $\pi$ induces an isomorphism $X^{\prime}\bs Y^{\prime}\simto X\bs Y$.  The \'{e}h-topology (resp. cdh topology) is the topology generated by \'{e}tale covers (resp. Nisnevich covers) and covers $\{X^{\prime}\to X,Y\to X\}$ which arise from abstract blowup squares.
+
+From now on, we will treat $$\zz_p(-):\mo{Sch}^{qcqs,op}_{\fff_p}\to\widehat{\mc{D}(\zz_p)},$$ and $$LW\Omega_{-},LW\Omega_{-}/\mc{N}^{\geq i}LW\Omega_{X}:\mo{Sch}^{qcqs,op}_{\fff_p}\to \mc{D}(\zz)$$ as \'{e}tale sheaves on qcqs $\fff_p$-schemes, where we are abusively writing $LW\Omega_{X}$ (resp. $LW\Omega_{-}/\mc{N}^{\geq i}LW\Omega_{X}$) to mean the hypercohomology complex $R\Gamma_{\acute{e}t}(X,LW\Omega_{X})$ (resp. $R\Gamma_{\acute{e}t}(X,LW\Omega_{-}/\mc{N}^{\geq i}LW\Omega_{X})$).
+
+In \cite[Corollary~6.5]{elmanto2023motivic}, Elmanto-Morrow prove:
+\begin{proposition}
+If $X$ is smooth, there is an equivalence between the syntomic cohomology of $X$ and the cdh sheafified syntomic cohomology of $X$: $\zz_p(j)(X)\simeq L_{cdh}\zz_p(j)$.
+\end{proposition}
+This provides the first step to extending Theorem \ref{main2} to more general $\fff_p$-schemes avoiding full resolution of singularities.  To get results about values of zeta functions for general qcqs $\fff_p$-schemes, we must also ponder the following statement:
+\begin{assumption}\label{assumption}
+For any smooth $\fff_p$-scheme $X$, the natural map $L\Omega^j_{X}\to L_{cdh}L\Omega^j_{X}$ is an equivalence.
+\end{assumption}
+\begin{remark}
+By the results of \cite{geisser2005arithmetic}, Assumption \ref{assumption} holds if we have a strong form of resolution of singularities.  From the reductions in \cite{elmanto2023motivic}, this would follow if one knew that whenever $V$ is a rank 1 strictly Henselian valuation ring, then $L\Omega^j_{\bb{P}^1_{V}/\fff_p}\simeq L_{cdh}L\Omega^j_{\bb{P}^1_{V}/\fff_p}$. \end{remark}
+For the remainder of this section, we will proceed under Assumption \ref{assumption}.
+\begin{corollary}
+Suppose that $X$ is a smooth scheme over $\fff_p$.  Then the natural map $$LW\Omega_{X}/\mc{N}^{\geq n}LW\Omega_X\to L_{cdh}LW\Omega_{X}/\mc{N}^{\geq n}LW\Omega_X$$ is an equivalence for all $n\geq 0$.
+\end{corollary}
+\begin{proof}
+The Nygaard filtration gives a finite filtration on $LW\Omega_{X}/\mc{N}^{\geq n}LW\Omega_{X}$ with associated graded pieces given by the derived de Rham complex of $X$ modulo the $i$th step in the Hodge filtration.  Since the above claim holds for $L\Omega^j_{X/\fff_p}$  by Assumption \ref{assumption}, the Hodge filtration on $\tau^{\leq i}L\Omega_{X/\fff_p}^{\bdot}$ implies the claim holds for $\tau^{\leq i}L\Omega_{X/\fff_p}^{\bdot}$.  The Nygaard filtration on $LW\Omega_{X}/\mc{N}^{\geq n}LW\Omega_{X}$ then implies the desired result.
+\end{proof}
+Since the sheaves $LW\Omega_{X}/\mc{N}^{\geq n}LW\Omega_{X}$ are associated to presheaves which are left Kan extended from polynomial $\fff_p$-algebras, they are in particular finitary.  It then follows from \cite[Theorem~A.3]{elmanto2023motivic} that $L_{cdh}LW\Omega_{X}/\mc{N}^{\geq n}LW\Omega_{X}\simeq L_{\acute{e}h}LW\Omega_{X}/\mc{N}^{\geq n}LW\Omega_{X}$.  Similarly, since the sheaves $\zz_p(j)$ were defined to take values in the completed derived category $\widehat{\mc{D}(\zz_p)}$, we get\footnote{The following may be false if one only considers $\zz_p(j)$ as a sheaf valued in $\mc{D}(\zz)$.} $$L_{cdh}\zz_p(j)\simeq \varprojlim_{n}L_{cdh}\zz_p/p^n(j)\simeq \varprojlim_{n}L_{\acute{e}h}\zz_p/p^n(j)\simeq L_{\acute{e}h}\zz_p(j).$$  In this way, one recovers the following result from \cite{geisser2005arithmetic}:
+\begin{corollary}\label{cor36}
+If $X/\fff_p$ is a proper smooth scheme such that the Frobenius acts semisimply on the \'{e}tale cohomology, then $$|C(X,n)|_{p}^{-1}=\chi(X,L_{\acute{e}h}\zz_p(n),e)\chi(X,L_{\acute{e}h}LW\Omega_X/\mc{N}^{\geq n}LW\Omega_X).$$ 
+\end{corollary}
+\begin{proof}
+This follows by Theorem \ref{main2} and the above discussion.
+\end{proof}
+Working with \'{e}h-sheaves, we can define compactly supported cohomology\footnote{Compare with \cite[Definition~3.3]{geisser2005arithmetic}}:
+\begin{definition}
+Let $\mc{C}$ be a stable $\infty$-category, and suppose that we are given an $\acute{e}h$-sheaf $\mc{F}:\mo{Sch}^{qcqs,op}_{\fff_p}\to \mc{C}$.  Given any finite type qcqs scheme $U$ over $\fff_p$, choose some proper qcqs $X/\fff_p$, together with a dense open embedding $i:U\to X$, with (reduced) closed complement $Z\hookrightarrow X$. The \textit{compactly supported $\mc{F}$-cohomology} of a finite type qcqs scheme $U$ is be defined as $$\mc{F}_{c}(U):=\mo{fib}(\mc{F}(X)\to\mc{F}(X\bs U)).$$
+\end{definition}
+\begin{proposition}
+The compactly supported $\mc{F}$-cohomology of a scheme $U$ is well-defined up to isomorphism.
+\end{proposition}
+\begin{proof}
+Consider two different compactifications $U\hookrightarrow X$ and $U\hookrightarrow X^{\prime}$ of $U$, with $Z=X\bs U$, $Z^{\prime}=X^{\prime}\bs U$.  By gluing $X$ and $X^{\prime}$ along $U$, we may assume that there is a map $X\to X^{\prime}$ which is the identity on $U$.  This leads to an abstract blowup square
+\begin{center}
+	\begin{tikzcd}
+	Z\rar\dar & X\dar\\
+	Z^{\prime} \rar & X^{\prime}.
+	\end{tikzcd}
+\end{center}
+ By \'{e}h-excision, the \'{e}h sheaf $\mc{F}$ maps this square into a cartesian square in $\mc{C}$
+ \begin{center}
+ 	\begin{tikzcd}
+ 		\mc{F}(Z) & \mc{F}(X)\ar[l]\\
+ 		\mc{F}(Z^{\prime}) \ar[u] & \mc{F}(X^{\prime})\ar[u]\ar[l],
+ 	\end{tikzcd}
+ \end{center}
+which supplies an isomorphism $\mo{fib}(\mc{F}(X^{\prime})\to\mc{F}(Z^{\prime}))\simto \mo{fib}(\mc{F}(X)\to\mc{F}(Z))$.
+\end{proof}
+\begin{definition}
+Say that a qcqs finite type scheme $X$ over $\fff_p$ has property $P$ if the formula $$|C(X,n)|_{p}^{-1}=\chi(X,(L_{\acute{e}h}\zz_p(n))_{c}(X),e)\chi(X,(L_{\acute{e}h}LW\Omega_{-}/\mc{N}^{\geq n}LW\Omega_{-})_c(X)),$$ holds for $X$.
+\end{definition}
+In this language, Corollary \ref{cor36} may be interpreted as saying that smooth proper schemes $X/\fff_p$ such that the Frobenius acts semisimply on the \'{e}tale cohomology have property $P$.
+\begin{proposition}\label{prop310}
+Suppose we are given an abstract blowup square 
+\begin{center}
+	\begin{tikzcd}
+		Y^{\prime}\rar\dar & X^{\prime}\dar{\pi}\\
+		Y\rar{\iota} & X
+	\end{tikzcd}
+\end{center}
+with $X$ proper.  If property $P$ holds for 3 out of four of $X,Y,Y^{\prime},X^{\prime}$, it holds for all of them.
+\end{proposition}
+\begin{proof}
+Since $Y\to X$ is closed with open complement $X\bs Y$, the zeta function for $X$ can be written in the form $\zeta(X,s)=\zeta(Y,s)\zeta(X\bs Y,s)$.  Similarly, $\zeta(X^{\prime},s)=\zeta(Y^{\prime},s)\zeta(X^{\prime}\bs Y^{\prime},s)$.  Using the isomorphism $X\bs Y\simeq X^{\prime}\bs Y^{\prime}$, we conclude that $$\zeta(X,s)\zeta(Y^{\prime},s)=\zeta(X^{\prime},s)\zeta(Y,s),$$ and thus $$C(X,n)C(Y^{\prime},n)=C(X^{\prime},n)C(Y,n).$$ 
+
+As $X$ was assumed to be proper, so too are $X^{\prime}$, $Y$, and $Y^{\prime}$, and we are free to ignore the distinction between compactly supported $\mc{F}$-cohomology and $\mc{F}$-cohomology.  Take any \'{e}h-sheaf $\mc{F}$ valued in $\mc{D}(\zz)$ (or $\widehat{\mc{D}(\zz_p)}$) which has only finitely many nonzero cohomology groups when evaluated on $Y,Y^{\prime},X$ and $X^{\prime}$, all of which are finite abelian groups.  In this way, the multiplicative Euler characteristic $$\chi(\mc{F}(Z)):=\prod_{i\in\zz}|H^i(\mc{F}(Z))|^{(-1)^i}$$ is well-defined for $Z\in\{X,Y,X^{\prime},Y^{\prime}\}$.  The long exact sequence associated to the induced pullback square tells us that $$\chi(\mc{F}(X))\chi(\mc{F}(Y^{\prime}))=\chi(\mc{F}(X^{\prime}))\chi(\mc{F}(Y)).$$  Applying this for $\mc{F}=L_{\acute{e}h}LW\Omega_{-}/\mc{N}^{\geq n}LW\Omega_{-}$ and $\mc{F}=L_{\acute{e}h}\zz_p(n)$, we conclude the claim so long as $L_{\acute{e}h}\zz_p(n)(Z)$ has finite cohomology groups for $Z\in\{X,Y,X^{\prime},Y^{\prime}\}$.  To deduce the claim in general, note that taking the cup product with the fundamental class $e$ is natural, so the same cartesian square yields the result.
+\end{proof}
+\begin{corollary}
+	If $X$ is proper such that the maximal reduced subscheme $X^{red}$ of $X$ is smooth, then $X$ has property $P$.
+\end{corollary}
+\begin{proof}
+This follows immediately from the abstract blowup square
+\begin{center}
+	\begin{tikzcd}
+	\emptyset \rar\dar & \emptyset\dar\\
+	X^{red}\rar & X
+	\end{tikzcd}
+\end{center}
+together with Corollary \ref{cor36} and Proposition \ref{prop310}.
+\end{proof}
+In the exact manner that one proves Proposition \ref{prop310}, given a scheme $U$ and a compactification $X$ with closed complement $Z$, the long exact sequence associated to the fiber sequence $\mc{F}_c(U)\to \mc{F}(X)\to\mc{F}(Z)$ yields:
+\begin{lemma}
+Suppose $U$ is a finite type qcqs $\fff_p$-scheme, and we have a compactification $U\hookrightarrow X$ with closed complement $Z$.  If property P holds for two out of three of $X,Z,U$, then it holds for all three.
+\end{lemma}
+If one assumes a strong form of resolution of singularities holds for $\fff_p$-schemes, then property $P$ holds for all $X$ which satisfy a semisimplicity assumption for the Frobenius action (see \cite{geisser2005arithmetic}), from a d\'{e}vissage type argument.
+
+
+
+\newpage
+\printbibliography
+\end{document}

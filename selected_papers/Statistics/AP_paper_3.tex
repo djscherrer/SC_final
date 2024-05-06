@@ -1,0 +1,643 @@
+\begin{document}
+\affiliation{$$_affiliation_$$}
+\title{Stochastic Geometry Analysis of EMF Exposure of Idle Users and Network Performance with Dynamic Beamforming}
+\maketitle
+\begin{abstract}
+This paper presents a novel mathematical framework based on stochastic geometry to investigate the electromagnetic field exposure of idle and active users in cellular networks implementing dynamic beamforming. Accurate modeling of antenna gain becomes crucial in this context, encompassing both the main and the side lobes. The marginal distribution of EMF exposure for each type of users is initially derived. Subsequently, network performance is scrutinized by introducing a new metric aimed at ensuring minimal downlink coverage while simultaneously maintaining EMF exposure below distinct thresholds for both idle and active users. The metrics exhibit a high dependency on various parameters, such as the distance between active and idle users and the number of antenna elements.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Coverage, dynamic beamforming, EMF exposure, $m$-Nakagami fading, Poisson point process, stochastic geometry.
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+\IEEEPARstart{T}{he} rapid evolution of wireless communication technologies has sparked growing concerns about the potential risks associated with electromagnetic field (EMF) exposure stemming from wireless network infrastructures. Among the effects associated with non-ionizing frequencies, thermal effects stand out as the sole impact unanimously acknowledged within the scientific community \cite{rumney19}. Entities such as the International Commission on Non-Ionizing Radiation Protection (ICNIRP) establish maximal EMF exposure thresholds based on conservative margins and literature review, specifying basic restrictions in terms of specific absorption rate (SAR) or incident power density (IPD) \cite{icnirp2020}. Nations or regional entities can then adopt these guidelines or enact more stringent legislation.
+
+A noteworthy innovation introduced by the 5th generation of cellular networks and subsequent generations is dynamic beamforming (DBF). Using multiple antennas at the base station (BS), DBF enables the formation of narrow beams to mitigate interference. While this significantly enhances the signal-to-interference-plus-noise ratio (SINR), it results in higher EMF exposure for \textit{active users} (AUs) calling for the beam, compared to \textit{idle users} (IUs) who are not active in the network and who experience lower EMF exposure on average with shorter exposure times \cite{ANFR2019a}. The distinction in exposure between AUs and IUs can be leveraged to establish different exposure constraints for AUs and IUs. This is in line with the desire to establish safe zones called "reduced EMF exposure areas" for IUs in facilities such as hospitals, schools, or public buildings such as train stations \cite{strinati2021wireless}. In this context, investigating the exposure to EMF experienced by IUs becomes crucial, especially to understand how it varies based on the distance from an AU \cite{IMEC_nl}. The IU's EMF exposure is a sum of the EMF exposure caused by the BS serving the AU and that caused by interfering BSs. Notably, the shape of the beam plays a pivotal role in influencing IU's EMF exposure.
+
+The EMF exposure for IUs is intricately linked to the minimal SINR required and the maximum permitted EMF exposure for AUs, dictating how network operators design their networks. To provide a comprehensive analysis, this paper delves into a study of global network performance by simultaneously examining the exposure and coverage for AUs, in addition to the EMF exposure experienced by IUs.
+
+The metrics for such an analysis involve random parameters, including network topology, BS beam directions, and propagation channel. To capture this inherent randomness, stochastic geometry (SG) emerges as an efficient tool. Within this framework, BSs are modeled as point processes (PPs), allowing the formulation of network performance in integrals that are both mathematically and computationally tractable.
+
+Motivated by these considerations, the primary aim of this paper is to introduce a comprehensive mathematical framework for studying network performance in terms of EMF exposure for AUs and IUs, as well as the coverage of AUs, employing an antenna gain model that closely approximates real-world conditions.
+
+\subsection{Related Works}
+\label{ssec:related_works}
+
+\paragraph{5G and beyond: exploring EMF exposure}
+
+Numerous studies have tried to evaluate and forecast EMF exposure in 5G and beyond 5G networks. Compared to EMF exposure assessment in older network generations, the examination of EMF exposure in a 5G network introduces heightened complexity due to the coexistence of heterogeneous networks incorporating macro, small, and femto cells. This complexity is further compounded by the utilization of higher frequencies and the integration of active antennas. The global EMF exposure is encapsulated by the exposure index (EI) \cite{EI}, encompassing both uplink (UL) and downlink (DL) EMF exposure. Studies on EMF exposure in the context of 5G can be broadly categorized into two main approaches: those based on simulation models and those based on field measurements. Notably, in the 5G context, a specific measurement protocol for the DL has been defined, implemented, and validated in urban environments \cite{IMEC_nl} and \cite{IMEC_protocol_paper}. This protocol calculates the time-averaged instantaneous exposure and maximum exposure for 5G base stations, enabling the assessment of EMF exposure during both user calls and idle states.
+
+The French spectrum regulator ANFR, has contributed to this area by conducting a study \cite{ANFR2021} comparing EMF levels before and after the installation of 5G equipment. Their findings indicated that radiation levels remained similar. Another study by ANFR \cite{ANFR2019a}, utilizing simulations, demonstrated higher EMF exposure for AUs and lower exposure for IUs in a 5G network compared to previous generations. Additionally, algorithmic investigations in \cite{Chiaraviglio21} affirmed that narrower beams result in lower EMF exposure. Comprehensive reviews on the current state of EMF exposure evaluation for 5G base stations are available in \cite{Elbasheir21} and \cite{patsouras_2023_8099834}, highlighting the reduction in EMF exposure levels with the implementation of DBF.
+
+Various strategies have been proposed to further mitigate EMF exposure levels. For instance, an optimization algorithm introduced in \cite{Sidi15} aims to minimize UL and DL EMF exposure while maintaining quality of service using a small cell network in conjunction with a macro cell network. In another approach \cite{Ajibare21}, a novel simulation method employs a smart power control scheme to minimize the EI. Recent advancements explore the utilization of reconfigurable intelligent surfaces (RIS) in beyond 5G networks, creating zones with reduced EMF exposure while maintaining high data rates. The efficacy of this method has been substantiated through ray-tracing simulations \cite{Strinati21, PhanHuy22}, as well as algorithmic optimization of RIS phases \cite{Ibraiwish22}.
+
+Nevertheless, challenges persist; in-situ measurements offer insights into EMF exposure at limited locations under specific conditions, while deterministic numerical evaluations struggle to capture all sources of randomness within the network efficiently and within a reasonable time.
+
+\paragraph{Dynamic beamforming models in stochastic geometry}
+
+SG emerges as a potent tool for computing performance metrics in large networks characterized by various random parameters. In this context, BSs are frequently modeled as homogeneous Poisson point processes (PPPs), striking a balance between accuracy and computational tractability. SG has been extensively used to focus on aspects such as SINR and ergodic data rate \cite{Baccelli1997StochasticGA, Lee2013}. Numerous features have been intensively studied, including DBF.
+
+Models of antenna patterns are derived to approach the theoretical distribution of the antenna factor of a Uniform Linear Array (ULA), which is inherently intractable \cite{Maamari16, yu2017}. The sectored antenna pattern, or flat-top pattern, represents the most widely used model. Although this model introduces huge discrepancies when calculating performance metrics, it preserves mathematical tractability by assuming a flat gain for the main lobes and a lower gain for the side lobes. It has been applied to study SINR in multi-tier millimeter-wave (mmWave) cellular networks with beamsteering errors \cite{direnzo15} and the impact of beam misalignment due to mobility and handovers \cite{Kalamkar22}. The flat-top pattern has found utility in diverse scenarios, including the study of SINR and Conditional Success Transmission Probability (STP) in downlink non-orthogonal multiple access networks \cite{chen21} and in mmWave heterogeneous networks considering temporal traffic arrivals \cite{Yang22}. In ultra-dense networks, the antenna pattern is sometimes modeled as a 3D flat-top pattern, as evidenced in studies on mmWave networks \cite{Kovalchukov19} and terahertz networks \cite{Wu21}.
+
+A notable alternative to the flat-top pattern is the cosine approximation of the main lobe of the theoretical ULA pattern, introduced in \cite{yu2017}. This cosine model yields a complementary cumulative distribution function (CCDF) of SINR closer to the one obtained through Monte Carlo simulations based on the theoretical pattern than the one obtained using the flat-top pattern. The cosine model has been applied in various contexts, such as Poisson cluster processes \cite{Muhammad22} and joint radar communication systems \cite{Nabil23}.
+
+A Gaussian approximation of the main beam, introduced in \cite{Thornburg15}, has been employed to study the ergodic capacity in mmWave networks with imperfect beam alignment. In comparison to the cosine model, which assumes null gain for the side lobes, the Gaussian model allows for the modeling of side lobes with a constant gain. This advantage proves beneficial for realistic studies on beam misalignment, as demonstrated in \cite{Rebato19}, where each BS is equipped with three ULAs oriented at 120$^\circ$ intervals, in line with 3GPP specifications.
+
+Finally, an unconventional approach employs a cylindrical array instead of the common ULA to study interference, as presented in \cite{math10071156}. This array is then modeled as a uniform circular array for the elevation angle and a vertical ULA for the azimuth angle, although the model lacks tractability and remains largely theoretical at present.
+
+
+
+\paragraph{EMF exposure assessment using stochastic geometry}
+In recent years, SG has been instrumental in assessing IPD with the objective of optimizing it in Wireless Power Transfer (WPT) systems or minimizing it for EMF-aware applications. The flat-top model finds widespread application in WPT systems for energy harvesting \cite{Khan16, Guo19} and for analyzing energy correlation \cite{ECC}. It has been utilized in works such as \cite{TVC_SWIPT, SWIPT_MIMO}, where the flat-top model is employed to estimate simultaneous wireless information and power transfer by computing a joint CCDF to strike a balance between coverage and harvested power. Additionally, the Gaussian model is used in \cite{Wang21} to explore the impact of imperfect beam alignment in mmWave WPT systems.
+
+The initial works assessing EMF exposure within the SG framework are presented in \cite{app10238753}, where authors utilize an empirical propagation model for a 5G network in mmWave scenarios, and in \cite{GontierAccess}, where the theoretical distribution of EMF exposure is compared with an experimental distribution obtained from measurements in an urban environment. In \cite{power_control}, EMF exposure is analyzed while considering max-min fairness power control. The flat-top pattern is employed for EMF exposure analysis in sub-6~GHz and mmWave coexisting networks \cite{9511258}, and in \cite{GontierTWC}, it is used for a joint analysis of EMF exposure and SINR in $\beta$-Ginibre PP and inhomogeneous Poisson PPs. Notably, these two works are the soles that incorporate DBF into the SG model for EMF exposure. Joint analyses of EMF exposure and SINR are also conducted in \cite{manhattan} for Manhattan networks, in \cite{cell-free} for user-centric cell-free networks, and in \cite{gontier2023uplink} for both UL and DL. An evaluation of EMF exposure caused by a user's smartphone using SG is presented in \cite{chen2023joint}, where the authors independently study the impact of network parameters on EMF exposure and signal-to-noise ratio.
+
+However, a notable gap exists in the literature concerning the study of EMF exposure experienced by an IU in a DBF network, particularly within the SG framework. Additionally, the current models of antenna patterns struggle to accurately capture the characteristics of side lobes, thereby impacting certain network performance metrics. A preliminary work using the multi-cosine gain pattern is done in \cite{GontierMeta} for the case of a \textit{passive user} (PU) in the network, indicating a user not calling a beam and for which no information is known about a possible proximity to an AU.
+
+
+\subsection{Contributions}
+\label{ssec:contributions}
+This paper addresses gaps in the literature by focusing on the evaluation of EMF exposure for IUs in the SG framework. It introduces a \textit{multi-cosine} antenna gain model, which provides a more accurate representation by accounting for side lobes. The key contributions of this paper are outlined below:
+\begin{enumerate}
+    \item \textit{EMF exposure of idle users}: The paper introduces mathematical expressions that delineate the EMF exposure experienced AUs and IUs within the network. These mathematical expressions are calculated for several gain models and compared to the introduced multi-cosine pattern. Specifically, the paper provides:
+    \begin{enumerate}
+        \item Mean and variance for IU EMF exposure;
+        \item Marginal cumulative distribution function (CDF) characterizing any user's EMF exposure for several gain models.
+    \end{enumerate}
+    \item \textit{Spatial performance metrics}: The study extends beyond EMF exposure, encompassing a broader analysis of network performance. This is achieved by jointly computing a spatial CDF that considers (1) SINR for an AU, (2) EMF exposure for an AU and (3) EMF exposure for an IU.
+\end{enumerate}
+These metrics are investigated as functions of the distance between the AU and the IU, as well as functions of the number of antennas at the BS, providing a comprehensive understanding of the network's performance dynamics.
+
+\section{System Model}
+\label{sec:system_model}
+
+\subsection{Topology}
+\label{ssec:topology}
+Let the two-dimensional spatial domain $\mathcal{B} \in \mathbb{R}^2$ be the network area, defined as a disk with a radius $\tau$ and centered at the origin. Within $\mathcal{B}$, let $\Psi = {X_i}$ denote the PPP representing the locations of BS $X_i$, all sharing the same technology, belonging to the same network provider, operating at a carrier frequency $f$, and being able to transmit at a maximum power $P_t$. The density of BSs in $\Psi$ is denoted by $\lambda$. Each BS is situated at a height $z > 0$ relative to the users. The AU is positioned at the origin and is served by the nearest BS, while all other BSs act as potential interferers. An IU is located at a distance $d$ from the AU and form a random angle $\theta$ with the serving BS, as can be seen from Fig.~\ref{fig:Active and idle user}. The distance between the AU and $X_i$ is denoted $R_i$, the angle formed between the IU and $X_i$ is denoted $\Theta_i$ and the distance between the IU and $X_i$ is denoted $P_i = \sqrt{R_i^2+d^2-2R_i d \cos(\Theta_i)}$. Additionally, an angle $\delta_i = \sign(\Theta_i) \arccos\left((R_i - d \cos \Theta_i)/P_i\right)$ is employed to describe the angle between the AU and the IU from the perspective of $X_i$. The boresight direction of $X_i$ forms an angle $\xi_i$ with the AU. The serving BS and the associated distances and angles are indexed as $0$, with the boresight of $X_0$ directed towards the AU (i.e., $\theta_0 = 0$).
+\begin{figure}
+    \centering
+    \includegraphics[scale = 0.5, trim={2cm, 1cm, 2cm, 1cm}, clip]{Active_idle_user_updated.pdf}
+    \caption{Active and idle user}
+    \label{fig:Active and idle user}
+\end{figure}  
+In this configuration, the equipment of the AU is considered with a unitary and isotropic gain. Each BS is equipped with three identical ULAs oriented at 120$^\circ$ intervals, following 3GPP specifications, with each array containing $N$ antennas with half-wavelength spacing. Consequently, the angle $\xi_i$ is a random variable in the interval $[0,2\pi/3[$. Intra-cell interference is neglected for simplicity, and an exclusion radius $r_e$ around the user ensures no BS is located within this region. The normalized gain $G(\xi)$ is uniformly scaled by the maximum gain $G_{\textrm{\normalfont max}} = N$, and defined in Subsection~\ref{ssec:gain}. For a conservative approach, the network is considered fully loaded, with each ULA communicating with one user.
+
+For a PPP, the probability density function (PDF) of $R_0$ is given by 
+\begin{equation}\label{eq:pdf_R0}
+    f_{R_0}(r) = \frac{2 \pi \lambda r \exp(-\lambda \pi r^2)}{F_{R_0}(r_e)-F_{R_0}(\tau)}
+\end{equation}
+where $F_{R_0}(r) = \exp(-\lambda \pi r^2)$.
+
+
+It is essential to note that for the impact of $d$ to be meaningful, the IU must be in the same cell as the AU. Subsequent analyses will, therefore, operate under the assumption that $d$ is smaller than the mean cell radius, defined as $(2 \sqrt{\lambda})^{-1}$. In instances where the distance exceeds this threshold, the user will be categorized as a PU, indicating no correlation with the location of the AU, for which expressions are derived in \cite{GontierMeta}. It is also assumed that $\tau >> d$.
+
+\subsection{Propagation Model}
+\label{ssec:propagation}
+
+The propagation model is defined as
+{\smalltonormalsize
+\begin{equation}\label{eq:model}
+    P_{r, i} = P_t G_i |h_i|^2 l_i 
+\end{equation}}
+where $P_{r, i}$ is the received power from BS $X_i$, $G_i$ is the BS gain towards the user, $|h_i|^2$ accounts for the fading and $l_i$ is the path loss attenuation. Specifically, $l_i = l(X_i) = \kappa^{-1} \left(R_i^2+z^2\right)^{-\alpha/2}$ for a distance $R_i$ between $X_i$ and the AU, with $\alpha > 2$ the path loss exponent and $\kappa = (4\pi f/c_0)^2$ where $c_0$ is the speed of light. For the path between $X_i$ and the IU, $\Tilde{l}(X_i) = \kappa^{-1} \left(P_i^2+z^2\right)^{-\alpha/2}$. The channel $h_i$ follows a Nakagami-$m$ fading model, making $|h_i|^2$ gamma-distributed with shape parameter $m$ and scale parameter $1/m$. Consequently, the CDF of $|h_i|^2$ is expressed as $F_{|h|^2}(x) = \gamma(m,m x)/\Gamma(m)$.
+
+Define $\Bar{P}_{r,i}\! =\! \Bar{P}_{r}(r_i) \!= \!P_t l_i(r_i)$. Let $S_0(0)\! =\! \Bar{P}_{r}(r_0)|h_0|^2$ be the useful power received by the AU from $X_0$ and let $I_0(0) = \sum_{i \in \Psi \setminus\left\{X_0\right\}} \Bar{P}_{r,i}(r_i) G_{i}(\xi) |h_i|^2$ be the aggregate interference at the AU's location. Similarly, the signal coming from $X_0$ and reaching the IU is $S_0(d)\! =\! \Bar{P}_{r}(p_0)G(\delta_0)|h_0|^2$ and the aggregate interference at the IU's location is $I_0(d) = \sum_{i \in \Psi \setminus\left\{X_0\right\}} \Bar{P}_{r,i}(p_i) G_{i}(\xi+\delta_i) |h_i|^2$. Based on these definitions, the SINR experienced by the AU and conditioned on the distance to the serving BS is given by
+{\smalltonormalsize
+\begin{align}\label{eq:SINR}
+    \text{\normalfont{SINR}}_0 = \frac{S_0}{I_0 + \sigma^2}
+\end{align}}where $\sigma^2 = k\,B\,T\,\mathcal{F}$ is the thermal noise power, with $k$ the Boltzmann constant, $B$ the bandwidth, $T$ the temperature and $\mathcal{F}$ the noise figure. In the following, the performance metrics will be derived for the user DL power exposure defined as
+{\smalltonormalsize
+\begin{align}\label{eq:expP}
+    \mathcal{P} = \sum_{i \in \Psi} \Bar{P}_{r,i}\,G_{i}\, |h_i|^2 = S_0+I_0,
+\end{align}}which can be converted into a total IPD as
+{\smalltonormalsize
+\begin{equation}\label{eq:ExpWM2}
+    \mathcal{S} = \sum_{i \in \Psi} \frac{P_{t}\,G_{i}\,|h_i|^2}{4\pi \left(r_i^2+z^2\right)^{\alpha/2}} = \frac{\kappa}{4\pi}\mathcal{P}
+\end{equation}}by definition.
+
+\subsection{Antenna Pattern Models}
+\label{ssec:gain}
+The normalized gain of one ULA with $N$ omnidirectional antenna elements and half-wavelength spacing is given~by
+\begin{equation}\label{eq:Gact}
+    G_{act}(\varphi) = \frac{\sin^2\left(\frac{\pi\,N}{2}\,\sin(\varphi)\right)}{N^2\,\sin^2\left(\frac{\pi}{2}\,\sin(\varphi)\right)}
+\end{equation} where $\varphi \in [-\pi/3, \pi/3[$ and $\varphi = 0$ corresponds to the maximal gain of the main lobe $G_{act}(0) = 1$. While the gain function is closely approximated by a squared cardinal sinus function, this approximation also yields intractable mathematical expressions for calculating performance metrics. Instead, the flat-top antenna pattern is widely used in the literature, and given by
+\begin{equation}\label{eq:Gft}G_{ft}(\varphi) = \left\{
+    \begin{array}{ll}
+    1   \quad  & \text{if  } |\varphi|\leq \varphi_{3\text{dB}} \\
+    g    \quad &  \text{otherwise}
+    \end{array}\right.
+\end{equation} where $\varphi_{3\text{dB}}$ is half of the half-power beamwidth (HPBW) of the actual pattern and $g$ is the side lobes gain chosen.
+
+The cosine antenna pattern \cite{yu2017} approximates the main lobe of the actual pattern while assuming null gain for the side loves and is expressed as
+\begin{equation}\label{eq:Gcos}G_{cos}(\varphi) = \left\{
+    \begin{array}{ll}
+    \cos^2\left(N \pi \varphi/4\right)   \quad  & \text{if  } |\varphi|\leq 2/N\\
+    0    \quad &  \text{otherwise.}
+    \end{array}\right.
+\end{equation}
+
+The gaussian approximation is given by
+\begin{equation}\label{eq:GG}
+    G_{G}(\varphi) = (N - g) \exp(-\eta \varphi^2)+g
+\end{equation}where $\varphi \in [-\pi/3, \pi/3[$ and $\eta = \ln\left(\frac{N-g}{N/2-g}\right)/\varphi_{3\text{dB}}^2$.
+
+Lastly, we introduce the multi-cosine antenna pattern defined as
+{\smalltonormalsize
+\begin{equation}\label{eq:Gmc}G_{mc}(\varphi) = \left\{
+    \begin{array}{ll}
+    \!\cos^2\!\left(\frac{N \pi \varphi}{4}\right)  \!   & \text{if  } |\varphi|\leq 2/N\\
+    \!\chi_k \sin^2\!\left(\frac{N \pi \varphi}{2}\right)  \!   & \text{if  } \frac{2 k}{N}\!\leq\!|\varphi|\!\leq \!\frac{2 k+2}{N}
+    \end{array}\right.
+\end{equation}} where $\chi_k = \frac{\sin^2(N x_k)}{N^2 \sin^2(x_k)}$ is the extrema of the $k$th side lobe of the theoretical gain function, with $0 \leq k \leq k_{\textrm{\normalfont max}}$ and $\chi_0\! = \!1$. The choice of $k_{\textrm{\normalfont max}}$ is flexible but should remain below $\floor*{N \sqrt{3}/4-1}$ to prevent side lobes from extending beyond each ULA's sector. The values of $x_k$ are well approached by the ordered positive solutions of $N \tan(x) = \tan(N x)$.
+
+
+
+\section{Mathematical Framework}
+\label{sec:analytical_results}
+
+This section is organized as follows: Subsection~\ref{ssec:prelim} introduces the side calculations needed in the following subsections. [...]
+
+\subsection{Preliminaries}
+\label{ssec:prelim}
+In this subsection, we initiate the analysis by computing the central moments of the approximate gain functions associated with each BS. Each BS is equipped with three identical ULAs, each designed to cover 120$^\circ$. To mitigate intracell interference, it is assumed that the main beams of two distinct ULAs, employing the same carrier frequency simultaneously, cannot be in close proximity. Consequently, we make the assumption that the integral of the gain function over 360$^\circ$ can be approximated by three times the integral of the gain function over 120$^\circ$.
+
+\begin{proposition}\label{prop:gain}
+    The $k$th moments ($k>0$) of the approximate gain functions are given by
+    \begin{equation}\label{eq:mom_Gft}
+        \mathbb E\left[G_{ft}^k(\varphi)\right] = \frac{3}{\pi} \varphi_{3\textrm{\normalfont dB}} (1-g^k) + g^k;
+    \end{equation}
+    \begin{equation}\label{eq:mom_Gcos}
+        \mathbb E\left[G_{cos}^k(\varphi)\right] = \dfrac{6 \,\Gamma(k+1/2)}{N {\pi}^{3/2} \Gamma(k+1)};
+    \end{equation}
+    \begin{equation}\label{eq:mom_GG}
+        \mathbb E\left[G_{G}^k(\varphi)\right] = g^k + \frac{3}{2} \sum\limits_{p = 1}^k  \binom{k}{p} (N-g)^p g^{k-p} \frac{\erf\left(\tfrac{\pi \sqrt{p \eta}}{3}\right)}{\sqrt{\pi p \eta}};
+    \end{equation}
+    \begin{equation}\label{eq:mom_Gmc}
+        \mathbb E\left[G_{mc}^k(\varphi)\right] = \dfrac{6 \,\Gamma(k+1/2)}{N {\pi}^{3/2} \Gamma(k+1)} (1+\chi_{i_{\textrm{\normalfont max}}}^\dagger)
+    \end{equation}
+where $\erf(\cdot)$ is the error function and $\chi_{i_{\textrm{\normalfont max}}}^\dagger = \sum\limits_{i = 1}^{i_{\textrm{\normalfont max}}} \chi_i$.
+\end{proposition}
+\begin{proof}
+    The proof is obtained by integrating $\frac{3}{2\pi}\int_{-\pi/3}^{\pi/3} \!G^2(\varphi) d\varphi$.
+\end{proof}
+
+To derive metrics, whether the coverage of the EMF exposure, the characteristic function (CF) of the useful signal and interference must be calculated at the AU's and the IU's location. The CF of the useful signal is given in Proposition~\ref{prop:cf_S}.
+\begin{proposition}\label{prop:cf_S}
+    The CF of the useful signal for the propagation model in \eqref{eq:model}, from the point of view of the active user, conditioned on the distance to the nearest BS $R_0$, is
+    \begin{equation}\label{eq:cfS0}
+        \phi_S(q;0|R_0) = \mathbb E_{S_0}\left[e^{jq {S_0(R_0)}}\right] = \left(1-jq \Bar{P}_r(R_0)/m\right)^{-m}.
+    \end{equation}
+    From the point of view of the idle user, it is given by
+    \begin{equation}\label{eq:cfSidle}
+    \begin{split}
+        \phi_S(q;d|X_0) = \left(1-jq \Bar{P}_r(P_0) G(\delta_0)/m\right)^{-m} \mathds 1\left[|\delta_0| \leq \pi/3\right] \\
+        + \eta_S(q|X_0) (1-\mathds 1\left[|\delta_0| \leq \pi/3\right]).
+    \end{split}
+    \end{equation}
+    where $\eta_S(q|X_0)$ depends on the considered gain pattern:
+    \begin{itemize}
+        \item {Flat-top pattern}
+    \end{itemize} 
+{\small
+\begin{equation}\label{eq:eta_S_ft}
+    \begin{split}
+        \eta_S(q|X_0) =  \frac{3 \varphi_{3\textrm{\normalfont dB}}}{\pi}\left(1-jq \Bar{P}_r(P_0)/m\right)^{-m}\\
+        + \left(1-\frac{3\varphi_{3\textrm{\normalfont dB}}}{\pi}\right) \left(1-jq \Bar{P}_r(P_0) g/m\right)^{-m}
+    \end{split}
+\end{equation}}
+
+    \begin{itemize}
+        \item {Gaussian pattern}
+    \end{itemize} 
+{\small
+\begin{equation}\label{eq:eta_S_G}
+\begin{split}
+    &\eta_S(q|X_0) =  \left(1-jq \Bar{P}_r(P_0) g/m\right)^{-m}\\
+    &+\sum\limits_{p=1}^\infty  \frac{3\erf\left(\tfrac{\pi \sqrt{p \eta}}{3}\right)}{2 \sqrt{\pi p \eta}} (N-g)^p \frac{\left(jq \Bar{P}_r(P_0)\right)^p}{\left(1-\frac{jq \Bar{P}_r(P_0)}{m}\right)^{(m+p)}}\frac{ \Gamma(m+p) }{\Gamma(m) m^p p!} 
+\end{split}
+\end{equation}}
+
+    \begin{itemize}
+        \item {Multi-cos pattern}
+    \end{itemize} 
+{\small
+\begin{equation}\label{eq:eta_S_mc}
+        \eta_S(q|X_0) =  1+\frac{6(1+\chi_{i_{\textrm{\normalfont max}}}^\dagger)}{N\pi}  \left(\!{}_2F_1\left(\frac{1}{2}, m;1;\frac{j q \Bar{P}_r(P_0)}{m}\right) -1\right)
+\end{equation}}
+\end{proposition}
+\begin{proof}
+    The proof of \eqref{eq:cfS0} is straightforward after applying the expectation operator over $|h|^2$. The proof of \eqref{eq:cfSidle} is given in Appendix~\ref{sec:proofcfS0}.
+\end{proof}
+
+Because of the random orientation of the interferers' beams with respect to the AU, 
+
+The expression of the CF of the interference from the point of view of the IU is assumed to be the same as the one from the point of view of the AU. This is justified by the following observations:
+\begin{itemize}
+    \item For the AU as well as for the IU, the orientation of the beam of any interfering BS is random.
+    \item Since $d << \tau$, it can be assumed that the disk $\mathcal{B}$ centered on the AU coincides with a disk $\mathcal{B}'$ centered on the IU.
+    \item Since $d << (2\sqrt{\lambda})^{-1}$, [...] 
+\end{itemize}
+
+
+\begin{proposition}\label{prop:cf}
+    The CF of the interference for the propagation model in \eqref{eq:model}, conditioned on the distance to the nearest BS $R_0$, is
+    \begin{equation}
+        \phi_I(q|R_0) = \mathbb E_{I_0}\left[e^{jq {I_0}}\right] = \exp(-\pi \lambda \eta_I(q|R_0))
+    \end{equation}
+    where $\eta_I(q|R_0)$ depends on the considered gain pattern:
+
+    \begin{itemize}
+        \item {Flat-top pattern}
+    \end{itemize} 
+{\footnotesize
+\begin{equation}
+    \begin{split}
+        \eta_I(q|R_0) =  \left[r^2-\left(r^2+z^2\right)\frac{3\varphi_{3\textrm{\normalfont dB}}}{\pi} \,_2\!F_1\left(m, -\delta;1-\delta;\frac{j q \Bar{P}_r(r)}{m}\right) \right]_{r = \tau}^{r=r_0}\\
+        -\left[\left(r^2+z^2\right)\left(1-\frac{3}{\pi}\varphi_{3\textrm{\normalfont dB}}\right) \,_2\!F_1\left(m, -\delta;1-\delta;\frac{j q \Bar{P}_r(r)g}{m}\right) \right]_{r = \tau}^{r=r_0}\!.
+    \end{split}
+\end{equation}}
+
+    \begin{itemize}
+        \item {Gaussian pattern}
+    \end{itemize} 
+{\small
+\begin{equation}
+\begin{split}
+    &\eta_I(q|R_0) = \left[r^2-\left(r^2+z^2\right) {}_2F_1(-d,m;1-d;j q \Bar{P}_r(r)g/m)\right.\\
+    &\left.+\delta \left(r^2+z^2\right)\sum\limits_{p=1}^\infty  \frac{3\erf\left(\tfrac{\pi \sqrt{p \eta}}{3}\right)}{2 \sqrt{\pi p \eta}} \left(\frac{N}{g}-1\right)^p \frac{\Gamma(p+m)}{\Gamma(m)p!}\right.\\
+    &\left.\quad \times B\left(\frac{j q \Bar{P}_r(r)g}{m};p-\delta,1-p-m\right)\left(\frac{j q \Bar{P}_r(r)g}{m}\right)^\delta\right]_{r = r_0}^{r=\tau}.
+\end{split}
+\end{equation}}
+    \begin{itemize}
+        \item {Multi-cos pattern}
+    \end{itemize} 
+{\footnotesize
+\begin{equation}
+\begin{split}
+        &\eta_I(q|R_0) = \frac{3(1+\chi_{i_{\textrm{\normalfont max}}}^\dagger)}{N \pi} \left[\left(r^2+z^2\right)\left(2-2 \,{}_2F_1\left(\frac{1}{2}, m; 1, \frac{j q \Bar{P}_r(r)}{m}\right)\right.\right.\\
+        &\quad\left.\left.+\frac{j q \Bar{P}_r(r)}{1-\delta} {}_3\!F_2\left(\frac{3}{2}, 1+m, 1-\delta;2, 2-\delta;\frac{j q \Bar{P}_r(r)}{m}\right)\right) \right]_{r = r_0}^{r=\tau}
+\end{split}
+\end{equation}}
+${}_{p}F_{q}(a_{1},\ldots ,a_{p};b_{1},\ldots ,b_{q};z)=\sum _{n=0}^{\infty }{\frac {(a_{1})_{n}\cdots (a_{p})_{n}}{(b_{1})_{n}\cdots (b_{q})_{n}}}\,{\frac {z^{n}}{n!}}$ is the generalized hypergeometric function with $(a)_k = \Gamma(a+k)/\Gamma(a)$ is the Pochhammer symbol. We use the notation $[f(x)]_{x = a}^{x=b} = f(b)-f(a)$.
+\end{proposition}
+\begin{proof}
+    The proof is similar to the proof of the Laplace transform of the interference in Lemma~2 and Appendix~D in~\cite{yu2017}. We recall the main steps with a few changes in Appendix~\ref{sec:proofcf}.
+\end{proof}
+
+
+
+
+
+
+\subsection{EMF exposure}
+The usual method to compute the CDF of the EMF exposure, from the knowledge of the CFs of the useful signal and interference, is to use the Gil-Pelaez theorem \cite{gil-pelaez}.
+\begin{theorem}\label{eq:exp_act}
+    The CDF of the EMF exposure of a user, for the propagation model in \eqref{eq:model} in a H-PPP, is given by
+\begin{align*}
+    &F_{emf}^{X}(T_{e}^X) = \mathbb{P}\left[\mathcal{P}^{X} < T_{e}^{X}\right]\\
+    &\quad= \frac{1}{2}-\int_{r_e}^{\tau}\int_{0}^{\infty} \frac{1}{\pi q}\textrm{\normalfont Im}\!\left[\phi_E^{X}(q;d|r_0)\,e^{-jqT_{e}}\right]\,dq \, f_R(r_0)\,dr_0.
+\end{align*}where $X$ is either the AU with $\phi_E^{AU}(q|r_0)\! = \!\phi_{S}(q;0|r_0)\,\phi_{I}(q|r_0)$ or the IU with $\phi_E^{IU}(q|r_0)\! =\! \frac{1}{2\pi} \int_{0}^{2\pi}\!\phi_{S}(q;d|r_0,\theta)d\theta \,\phi_{I}(q|r_0)$. The EMF exposure limit is denoted $T_e^X$.
+\end{theorem}
+\begin{proof}
+    The result follows from the Gil-Pelaez theorem.
+\end{proof}
+It is worth noting that the CDF of EMF exposure for a PU is given by setting $\phi_E^{PU}(q;d|r_0)\! = \!\phi_{I}(q|r_e)$ in Theorem~\ref{eq:exp_act}. The expression of the CF of interference differs from the one presented in \cite{GontierMeta} due to the methodological approach. While \cite{GontierMeta} follows the classical method, applying the expectation operators over $\xi_i$ and $h_i$ first, and then over $r_i$, our method, inspired by \cite{yu2017}, first applies the operator over $r_i$ and then over the others. This latter approach offers the advantage of easier generalization to various gain and fading models, leveraging knowledge of the moments of $G(\xi)$ and $|h|^2$.
+
+
+\subsection{Coverage}
+\begin{theorem}\label{eq:cov}
+    The CCDF of the SINR, for the propagation model in \eqref{eq:model} in a H-PPP, is given by
+{\smalltonormalsize
+\begin{multline*}\label{eq:coveq}
+        F_{\text{cov}}(T_c) \triangleq \mathbb E_0\left[\mathbb{P}\left[\text{\normalfont SINR}_0 > T_c\right]\right] \\
+        =\int_{r_0}\left(\frac{1}{2} + \int_{0}^{\infty} \text{\normalfont Im}\left[\phi_{\text{\normalfont{SINR}}}(q, T_c|r_0)\right]\,\frac{1}{\pi q} dq \right)f_{R_0}(r_0) dr_0
+\end{multline*}}where $\phi_{\text{\normalfont{SINR}}}(q, T_c|r_0) = \phi_S(q;0|r_0)  \phi_I(-T_c q|r_0) \exp\left({-jT_cq\sigma^2}\right)$ and $T_c$ is the SINR threshold.
+\end{theorem}
+\begin{proof}
+    The result follows from the Gil-Pelaez theorem.
+\end{proof}
+
+\subsection{Joint Spatial Metrics}
+In this subsection, the spatial performance metrics are calculated. For readability, we start by jointly analyzing the SINR experienced by the AU and the EMF exposure experienced by the IU before adding the EMF exposure experienced by the AU.
+\begin{theorem}\label{th:joint1}
+The joint CDF of the SINR of the AU and the EMF exposure of the IU, the two user being separated by a distance $d$, , for the propagation model in \eqref{eq:model} in a H-PPP, is
+\begin{align}\begin{split}
+    &\mathcal{J}(T_{c}, T_{e};d) = \mathbb E_0\left[\mathbb{P}\left[\textrm{\normalfont SINR}_0 > T_{c}, \mathcal{P}(d) < T_{e}\right]\right]\\
+    &\quad= \frac{-1}{4} + \frac{1}{2}\, F_{cov}(T_{c}) + \frac{1}{2}\, F_{emf}(T_{e}) - \frac{1}{\pi^2}\, \Upsilon(T_{c}, T_{e}; d)
+\end{split}\end{align}
+where
+{\smalltonormalsize
+\begin{align}\begin{split}
+    &\Upsilon(T_{c}, T_{e}; d) = \frac{1}{2\pi}\int_0^{\tau}\int_0^{2\pi}\Upsilon(T_{c}, T_{e}; d| r_0, \theta_0)\,d\theta \,f_{R_0}(r_0)\,dr_0,\\
+    &\Upsilon(T_{c}, T_{e}; d| r_0, \theta_0) = \int_0^{\infty} \!\int_0^{\infty} \!\frac{\epsilon(q, q';T_{c},T_{e},d|r_0, \theta_0)}{q\, q'}\,dq\, dq',\\
+    &\epsilon(q, q';T_{c},T_{e},d|r_0, \theta_0) \\
+    &\quad = \frac{1}{2}\,\textrm{\normalfont Re}\left[\epsilon_+(q, q';T_{c},T_{e},d|r_0, \theta_0)-\epsilon_-(q, q';T_{c},T_{e},d|r_0, \theta_0)\right],\\
+    &\epsilon_\pm(q, q';T_{c},T_{e},d|r_0, \theta_0) \\
+    &\quad= \gamma_\pm(-q T_{c}, q'|r_0)\phi_{S}(q; 0 |\Psi)\phi_{S}(\pm q'; d|\Psi)\, e^{-j (q T_{c}\sigma^2 \pm q' T_{e})}
+\end{split}\end{align}}
+and $\gamma_\pm(q, q'|r_0)$ is given in~\eqref{eq:gamma} at the top of the next page.
+    \begin{figure*}[!h]
+{\scriptsize
+\begin{multline}\label{eq:gamma}
+    \gamma_\pm(q, q'|r_0) = \exp\left(\frac{12 \lambda}{N}\Bigg[(1+k_{\textrm{\normalfont max}})\left(\frac{3(1+k_{\textrm{\normalfont max}})}{N\pi}-1\right)r^2\right.\\    \left.-\sum_{k = 0}^{k_{\textrm{\normalfont max}}}\!\sum_{l = 0}^{m-1}\!\mybinom[0.7]{-1/2}{l}\mybinom[0.7]{m-1}{l}\left(\frac{6}{N\pi}\!\sum_{p = 0}^{k_{\textrm{\normalfont max}}} \!\sum_{l' = 0}^{m-1} \!\mybinom[0.7]{-1/2}{l'}\mybinom[0.7]{m-1}{l'} \frac{r^{2+\alpha(2m-1)}  F_1\!\left(2m\!-\!1\!-\!l\!-\!l'\!+\!\frac{2}{\alpha}, \frac{2m-1}{2}, \frac{2m-1}{2}, 2m\!-\!l-l'\!+\!\frac{2}{\alpha}, \frac{-j m}{ q \chi_k \Bar{P}_r(r)}, \frac{\mp j m}{ q' \chi_k \Bar{P}_r(r)}\!\right)}{\left(2+\alpha(2m-1-l-l')\right)( j q \chi_k \Bar{P}_r(r)/m)^{m-l-\frac{1}{2}}(\pm  j q' \chi_k \Bar{P}_r(r)/m)^{m-l'-\frac{1}{2}}}  \right. \right.\\
+    \left.\left.\!+ \!\frac{2{(r^2+z^2)\!\left(1\!-\!\frac{6(1+k_{\textrm{\normalfont max}})}{N\pi}\right)}}{\left(4+\alpha(2m-2l-1)\right)}
+    \!\left(\!
+    \frac{{}_2F_1\!\left(1, \scalebox{0.9}{1-\textit{l}+}\frac{2}{\alpha}; \frac{1}{2}\scalebox{0.9}{-\textit{l+m}+}\frac{2}{\alpha}; \frac{-j m}{ q \chi_k \Bar{P}_r(r)}\right)}{\left( j q \chi_k \Bar{P}_r(r)/m\right)^{1-l} \left(1- j q \chi_k \Bar{P}_r(r)/m\right)^{m-\frac{3}{2}}}\!+\!\frac{{}_2F_1\!\left(1, \scalebox{0.9}{1-\textit{l}+}\frac{2}{\alpha}; \frac{1}{2}\scalebox{0.9}{-\textit{l+m}+}\frac{2}{\alpha}; \frac{\mp j m}{ q' \chi_k \Bar{P}_r(r)}\right)}{ \left(\pm j q' \chi_k \Bar{P}_r(r)/m\right)^{1-l}  \left(1\mp  j q' \chi_k \Bar{P}_r(r)/m\right)^{m-\frac{3}{2}}}\right)
+    \right)\!\Bigg]_{r = r_0}^{r = \tau}\!\right)
+    \end{multline}
+}
+
+\hrulefill
+\end{figure*}
+\end{theorem}
+\begin{proof}
+    The proof is provided in Appendix~\ref{sec:proofjoint1}.
+\end{proof}
+
+
+
+\section{Numerical Results}
+
+\begin{table}[h!]
+    \begin{center}
+    \begin{tabular}{ |c|c| } 
+     \hline
+     $f$ & \numprint[GHz]{3.5}\\ 
+     $B_w$ & \numprint[MHz]{20}\\ 
+     $r_e$ & \numprint[m]{0.3}\\
+     $\lambda$ & \numprint[BS/km^2]{10} \\
+     $\sigma^2$ & \numprint[dBm]{-95.40} \\ 
+     \hline
+    \end{tabular}
+    \quad
+    \begin{tabular}{ |c|c| } 
+     \hline
+     $\tau$ & \numprint[km]{3}\\
+     $z$ & \numprint[m]{30}\\
+     $P$ & \numprint[dBm]{48}\\
+     $N$ & 64 \\
+     $\alpha$ & 3.25 \\
+     \hline
+    \end{tabular}
+    \end{center}
+    \caption{Simulation parameters}
+    \label{tab:sim_param}
+\end{table}
+
+\subsection{EMF exposure}
+\begin{figure}
+\centering
+\includegraphics[width=0.5\linewidth, trim={3cm, 9cm, 4cm, 10cm}, clip]{BF_exp.pdf}
+\caption{EMF exposure in a single-tier network with beamforming, active VS idle user at a distance $d$}
+\label{fig:BF_exp}
+\end{figure}
+
+\subsection{Joint Metrics}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth, trim={3cm, 9cm, 4cm, 9cm}, clip]{BF_joint.pdf}
+    \caption{$\mathcal{J}^{SINR-IPD}(T_{c}^{UL}, T_{exp};d) = \mathbb P\left[\text{SINR}(0) > T_{c}^{UL}, \mathcal{P}(d) < T_{exp}\right]$}
+    \label{fig:BF_joint}
+\end{figure}
+\begin{figure}
+    \centering
+    \includegraphics[width=0.9\linewidth, trim={3cm, 9cm, 4cm, 10cm}, clip]{BF_cond.pdf}
+    \caption{$\mathcal{J}^{SINR-IPD}(T_{exp} |T_{c}^{UL} ;d) = \mathbb P\left[\mathcal{P}(d) < T_{exp}|\text{SINR}(0) > \numprint[dB]{38}\right]$}
+    \label{fig:BF_cond}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth, trim={3cm, 9cm, 4cm, 9cm}, clip]{BF_joint_iso.pdf}
+    \caption{$\mathcal{J}^{SINR-IPD}(T_{c}^{UL}, T_{exp};d) = \mathbb P\left[\text{SINR}(0) > T_{c}^{UL}, \mathcal{P}(d) < T_{exp}\right]$}
+    \label{fig:BF_joint_iso}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth, trim={3cm, 9cm, 4cm, 10cm}, clip]{BF_cond2.pdf}
+    \caption{$\mathcal{J}^{SINR-IPD}(T'_{exp} |T_{exp}, T_{c} ;d) = \mathbb P\left[\mathcal{P}(d) < T'_{exp}|\mathcal{P}(0) < \numprint[dBm]{-57}, \text{SINR}(0) > \numprint[dB]{38}\right]$}
+    \label{fig:BF_cond2}
+\end{figure}
+
+
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+
+{\appendices
+
+\section{Proof of the CF of the useful signal seen from the IU}
+\label{sec:proofcfS0}
+If the angle $\delta_0$ is larger than 60$^\circ$, the AU and the IU are not located in the same sector. The beam of the serving BS launched towards the AU has therefore no impact on the IU's exposure. The CF of the useful signal from the point of view of the IU, conditioned on the distance location of the serving BS, should therefore consider these two cases in its definition:
+\begin{equation}\label{eq:S_idle_proof}
+\begin{split}
+    \phi_S(q;d|X_0) = \mathbb E_{|h|}\left[e^{jq \Bar{P}_r(P_0) G(\delta_0) |h|^2} \mathds 1\left[|\delta_0| \leq \pi/3\right] \right]\\
+    +\mathbb E_{|h|, \xi}\left[e^{jq \Bar{P}_r(P_0) G(\xi) |h|^2}\mathds 1\left[|\delta_0| >\pi/3\right] \right].
+\end{split}
+\end{equation}
+where $\mathds 1[\cdot]$ is the indicator function. By applying the expectation operator $\mathbb E_{|h|}[\cdot]$ on the term for the case $\mathds 1\left[|\delta_0| \leq \pi/3\right]$, we obtain
+\begin{equation}\label{eq:Phi_S_nogain}
+    \mathbb E_{|h|}\left[e^{jq \Bar{P}_r(P_0) G(\delta_0) |h|^2} \right] = \left(1-jq \Bar{P}_r(P_0) G(\delta_0)/m\right)^{-m}.
+\end{equation}
+For the term with the case $\mathds 1\left[|\delta_0| >\pi/3\right] = 1-\mathds 1\left[|\delta_0| \leq \pi/3\right]$, let us develop the Talor series of the exponential function. Then, the infinite sum and the expectation operators can be swapped. Knowing that $\mathbb E_{|h|}\left[|h|^{2k}\right] = \frac{\Gamma(m+k)}{\Gamma(m) m^k}$, using the notation $z = jq \Bar{P}_r(P_0)$, we have
+\begin{align}\label{eta_S_def}
+\begin{split}
+    &\mathbb E_{|h|, \xi}\left[e^{z G(\xi) |h|^2}\right] = \mathbb E_{|h|, \xi}\left[\sum\limits_{k = 0}^\infty \frac{\left(z \,G(\xi) |h|^2\right)^k}{k!}\right]\\
+    &= 1+\sum\limits_{k = 1}^\infty \frac{z^k}{k!} \mathbb E_{\xi}\left[G^k(\xi)\right] \frac{\Gamma(m+k)}{\Gamma(m) m^k} := \eta_S(q|X_0).
+\end{split}
+\end{align}
+\eqref{eq:cfSidle} is then obtained by inserting  \eqref{eq:Phi_S_nogain} and \eqref{eta_S_def} in \eqref{eq:S_idle_proof}. Then $\eta_S(q|X_0)$ can be developed separately for each gain function, using Proposition~\ref{prop:gain}:
+\begin{itemize}
+    \item \eqref{eq:eta_S_ft} is obtained by inversely applying the definition of the binomial series.
+    \item \eqref{eq:eta_S_mc} is obtained by inversely applying the definition of the series expansion of the hypergeometric function ${}_2F_1(\cdot;\cdot;\cdot)$.
+    \item The case of the Gaussian pattern is more complex. In that case, using \eqref{eq:mom_GG}, $\eta_S(q|X_0)$ is given by
+\end{itemize}
+    {\small
+    \begin{equation}\label{eta_S_G_proof}
+    \begin{split}
+        &\eta_S(q|X_0) = \sum\limits_{k = 0}^\infty \left(\frac{z\,g}{m}\right)^k  \frac{\Gamma(m+k)}{\Gamma(m) k!}\\
+        &+ \sum\limits_{k = 1}^\infty \frac{3}{2}\frac{z^k}{k!} \frac{\Gamma(m+k)}{\Gamma(m) m^k} \sum\limits_{p = 1}^k \! \binom{k}{p} (N-g)^p g^{k-p} \frac{\erf\left(\tfrac{\pi \sqrt{p \eta}}{3}\right)}{\sqrt{\pi p \eta}}
+    \end{split}
+    \end{equation}}
+The first term in \eqref{eta_S_G_proof} is solved by inversely applying the definition of the binomial series. The second term can be rewritten as
+\begin{align}\label{eta_S_G_proof2}
+    \begin{split}
+        &\sum\limits_{p=1}^\infty  \frac{3\erf\left(\tfrac{\pi \sqrt{p \eta}}{3}\right)}{2 \sqrt{\pi p \eta}} (N-g)^p \sum\limits_{k=p}^\infty \!\frac{z^k}{k!} \frac{\Gamma(m+k) }{\Gamma(m) m^k } \binom{k}{p} g^{k-p}\\
+        &= \sum\limits_{p=1}^\infty  \frac{3\erf\left(\tfrac{\pi \sqrt{p \eta}}{3}\right)}{2 \sqrt{\pi p \eta}} (N-g)^p \frac{z^p}{p!}\frac{ \Gamma(m+p) }{\Gamma(m) m^p } \left(1-\frac{z}{m}\right)^{-(m+p)}
+    \end{split}
+\end{align}
+Replacing \eqref{eta_S_G_proof2} in \eqref{eta_S_G_proof} gives \eqref{eq:eta_S_G} in Proposition \ref{prop:cf_S}.
+    
+\section{Proof of Proposition~\ref{prop:cf}}
+\label{sec:proofcf}
+The CF function of the interference of the active user at the origin is defined and commonly written as $\phi_{I}(q|r_0) = \mathbb E_{I_0}\left[\exp(jq {I_0}(0))\right]$. Following from \cite{yu2017}, and contrarily to the conventional procedure, the first step consists of taking first the expectation over the interferers' locations, by means of the probability generating functional:
+\begin{equation}
+\begin{split}\label{eq:phiI0first}
+     &\phi_{I}(q|R_0) = \mathbb E_{I_0}\left[e^{jq {I_0}(0)}\right]\\
+     &\quad = \exp\left(-{\pi\lambda} \mathbb E_{\xi, |h|}\left[2\int_{R_0}^\tau \!  \left(1- e^{j q {P}_{r}(r)} \right)r \,dr\right]\right)\\
+     &\quad = \exp\Bigg(-{\pi\lambda} \Bigg(\underbrace{\tau^2-R_0^2 - \mathbb E_{\xi, |h|}\left[\int_{R_0}^\tau \!  2 e^{j q {P}_{r}(r)} r \,dr\right]}_{\eta_I(q|R_0)}\Bigg)\Bigg).
+\end{split}
+\end{equation} 
+By using the change of variable $t \to -j q {P}_{r}(r)$ and writing $\delta = 2/\alpha$, the integral can be rewritten
+\begin{equation}\label{eq:temp1}
+\begin{split}
+    &\int_{R_0}^\tau \!  2 e^{j q {P}_{r}(r)} r \,dr \\
+    &\quad= \delta\int_{-j q {P}_{r}(R_0)}^{-j q {P}_{r}(\tau)} \!\left(j q P_t \kappa^{-1} G  |h|^2\right)^{\delta} e^{-t} (-t)^{-1-\delta} \,dt\\
+    &\quad=\delta \left(-j q P_t \kappa^{-1} G |h|^2\right)^\delta\left[\Gamma(-\delta,-j q P_r(r)\right]_{r = R_0}^{r=\tau}.
+\end{split}
+\end{equation}
+$\Gamma(a, z)$ is the upper incomplete Gamma function whose definition and expansion series are \cite{2014xxix}
+\begin{equation}
+    \Gamma(a, z) = \int_z^{\infty} {e^{-t}}{t^{a-1}}dt = \Gamma(a) - \sum\limits_{k=0}^{\infty} \frac{(-1)^kz^{a+k}}{k! (a+k)}.
+\end{equation}
+Using this expansion series in \eqref{eq:temp1} and inserting it in $\eta_I(q|R_0)$ in \eqref{eq:phiI0first} and letting $\Xi(r) = j q \Bar{P}_r(r)$ gives
+{\small
+\begin{equation*}
+    \eta_I(q|R_0)= \left[r^2+\delta\left(\tau^2+z^2\right) \sum\limits_{k=0}^{\infty} \frac{\Xi^k(r) \mathbb E_{\xi, |h|}\!\left[G^k |h|^{2k}\right]}{k! (k-\delta)}\right]_{r = R_0}^{r=\tau}\!.
+\end{equation*}}
+Extracting the terms $k=0$ and using $\mathbb E\left[|h|^{2k}\right] = \frac{\Gamma(m+k)}{\Gamma(m) m^k}$, gives after some simplifications
+{\small
+\begin{equation}\label{eta_I}
+        \eta_I(q|R_0) = \delta\left[\left(r^2+z^2\right)\sum_{k=1}^\infty\frac{ \mathbb E_{\xi}\!\left[G^k(\xi)\right] \Xi^k(r)}{k!(k-\delta)} \frac{\Gamma(m+k)}{\Gamma(m) m^k} \right]_{r = R_0}^{r=\tau}\!.
+\end{equation}}
+Similarly to what is done for $\eta_S(q|X_0)$ in Appendix~\ref{sec:proofcfS0}, $\eta_I(q|R_0)$ can be developed separately for each gain function, using Proposition~\ref{prop:gain}. The expressions of $\eta_I(q|R_0)$ for the flat-top and multi-cos patterns in Proposition~\ref{prop:cf} are obtained by using the series expansion of the generalized hypergeometric function $_pF_q(\cdot;\cdot)$. For case of the Gaussian pattern is again more complex. Using \eqref{eq:mom_GG} and writing $\eta_I(q|r)$ such that  $\eta_I(q|R_0) = \left[\eta_I(q|r)]\right]_{r = R_0}^{r=\tau}$, we have
+    {\footnotesize
+    \begin{equation}\label{eta_I_G_proof}
+    \begin{split}
+        &\eta_I(q|r) = \delta\left(r^2+z^2\right) \sum\limits_{k = 0}^\infty \left(\frac{\Xi(r)g}{m}\right)^k  \!\frac{\Gamma(m+k)}{\Gamma(m) k! (k-\delta)}+r^2+z^2\\
+        &+ \sum\limits_{k = 1}^\infty \frac{3}{2}\frac{\Xi^k(r)\delta\left(r^2+z^2\right)\Gamma(m+k)}{\Gamma(m) m^k(k-\delta)k!} \sum\limits_{p = 1}^k \! \binom{k}{p} (N-g)^p g^{k-p} \frac{\erf\left(\tfrac{\pi \sqrt{p \eta}}{3}\right)}{\sqrt{\pi p \eta}}
+    \end{split}
+    \end{equation}}
+The first term in \eqref{eta_I_G_proof} is solved by inversely applying the series expansion of ${}_2F_1(\cdot;\cdot;\cdot)$:
+\begin{equation*}
+    \sum\limits_{k = 0}^\infty \left(\frac{\chi\,g}{m}\right)^k  \frac{\Gamma(m+k)}{\Gamma(m) k! (k-\delta)} = -\frac{1}{\delta} {}_2F_1(-\delta,m;1-\delta;\frac{\chi g}{m}).
+\end{equation*}
+The term of the second line of \eqref{eta_I_G_proof} can be rewritten as
+\begin{align}\label{eta_I_G_proof2}
+    \begin{split}
+        &\sum\limits_{p=1}^\infty  \frac{3\erf\left(\tfrac{\pi \sqrt{p \eta}}{3}\right)}{2 \sqrt{\pi p \eta}} (N-g)^p \sum\limits_{k=p}^\infty \!\frac{z^k}{k!} \frac{\Gamma(m+k) }{\Gamma(m) m^k (k-\delta)} \binom{k}{p} g^{k-p}\\
+        &= \sum\limits_{p=1}^\infty  \frac{3\erf\left(\tfrac{\pi \sqrt{p \eta}}{3}\right)}{2 \sqrt{\pi p \eta}} \left(\frac{N}{g}-1\right)^p \frac{\Gamma(p+m)}{\Gamma(m)p!}\\
+        &\qquad \times B\left(\frac{gz}{m};p-\delta,-p+1-m\right)\left(\frac{gz}{m}\right)^\delta
+    \end{split}
+\end{align}
+where $B(\cdot;\cdot,\cdot)$ is the generalized beta function.
+
+
+\section{Proof of Theorem~\ref{th:joint1}}
+\label{sec:proofjoint1}
+\subsection{General Form of the Metric}
+\label{ssec:general_form}
+The fading coefficients affecting the links related to the two locations being independent, conditioned on the PP $\Psi$, the joint metric can be decomposed as
+\begin{equation*}
+      \mathcal{J}(T_{c}, T_{e};d) = \mathbb E_{\Psi}\left[\mathbb{P}\left[\textrm{\normalfont SINR}_0 > T_{c}|\Psi\right]\,\mathbb{P}\left[ \mathcal{P}^{IU}(d) < T_{e}|\Psi\right]\right].  
+\end{equation*}
+The two factors in the above product can be developed using the Gil-Pelaez theorem. Using again the assumption of a CF of the interference identical for the AU and the IU, let $\phi_{\text{\normalfont{SINR}}}(q, T_c|\Psi)=\phi_{S}(q; 0 |\Psi)\,\phi_{I}(-q T_{c}|\Psi)\, e^{-j q T_{c} \sigma^2}$ and $\phi_E^{IU}(q;d|\Psi) = \phi_{S}(q; d|\Psi)\,\phi_{I}(q|\Psi)\, e^{-j q T_{e}}$ be respectively the CFs of the signal and interference conditioned on $\Psi$. Using these notations, we get
+\begin{equation*}
+\begin{split}
+    \mathcal{J}(T_{c}, T_{e};d) = \mathbb E_{\Psi}\left[\left(\frac{1}{2}+ \int_0^\infty \textrm{\normalfont Im}\!\left[\phi_{\text{\normalfont{SINR}}}(q, T_c|\Psi)\right] \frac{1}{\pi q} dq\right)\right.\\
+    \left.\left(\frac{1}{2}- \int_0^\infty \textrm{\normalfont Im}\!\left[\phi_E^{IU}(q';d|\Psi)\, e^{-j q' T_{e}}\right] \frac{1}{\pi q'} dq\right)\right].
+\end{split}
+\end{equation*}
+By distributing the terms then the expectation operator, we get
+{\footnotesize
+\begin{equation*}
+\begin{split}
+    \mathcal{J}(T_{c}, T_{e};d) = -\frac{1}{4} + \frac{1}{2}\,\mathbb E_{\Psi}\Big[\underbrace{\frac{1}{2}+ \int_0^\infty \textrm{\normalfont Im}\!\left[\phi_{\text{\normalfont{SINR}}}(q, T_c|\Psi)\right] \frac{1}{\pi q}\, dq}_{F_{cov}(T_{c}|\Psi)}\Big]\\
+    +\frac{1}{2}\,\mathbb E_{\Psi}\Big[\underbrace{\frac{1}{2}- \int_0^\infty \textrm{\normalfont Im}\!\left[\phi_E^{IU}(q';d |\Psi)\, e^{-j q' T_{e}}\right] \frac{1}{\pi q'}\, dq'}_{F_{emf}^{IU}(T_{e}; d|\Psi)}\Big]\\
+    -\frac{1}{\pi^2}\!\underbrace{\mathbb E_{\Psi}\Big[\int_0^\infty \!\textrm{\normalfont Im}\!\left[\phi_{\text{\normalfont{SINR}}}(q, T_c|\Psi)\right] \! \frac{dq}{q} \! \int_0^\infty \!\textrm{\normalfont Im}\!\left[\phi_E^{IU}(q';d |\Psi)\, e^{-j q' T_{e}}\right]\! \frac{dq'}{q'}\Big]}_{\Upsilon(T_{c}, T_{e}; d)}.
+\end{split}
+\end{equation*}}
+By applying the expectation operator, one has
+\begin{align*}
+    &\mathbb E_{\Psi}\left[F_{cov}(T_{c}|\Psi)\right] = F_{cov}(T_{c})\\
+    &\mathbb E_{\Psi}\left[F_{emf}^{IU}(T_{e}; d|\Psi)\right] = F_{emf}^{IU}(T_{e}; d)
+\end{align*}
+due to the motion-invariance of the H-PPP in $\mathbb{R}^2$, which gives the first line of Theorem~\ref{th:joint1}.
+
+
+\subsection{Decomposition of $\Upsilon(T_{c}, T_{e}; d)$}
+\label{ssec:decomposition}
+The expectation over $\Psi$ in the last expression of $\Upsilon(T_{c}, T_{e}; d)$ can be decomposed in the following manner:
+\begin{equation*}
+    \mathbb E_{\Psi}\left[\cdot\right] \to \mathbb E_{X_0}\left[\mathbb E_{\Psi \backslash \{X_0\}}\left[\cdot\right]\right]
+\end{equation*}
+where the coordinates of the serving BS $X_0$ are $(R_0, \Theta_0)$. Additionally, we write $\Psi^*=\Psi \backslash \{X_0\}$. Building up on these notations and using the PDF~\eqref{eq:pdf_R0}, we obtain
+\begin{equation*}
+    \Upsilon(T_{c}, T_{e}; d) = \frac{1}{2\pi}\int_{r_e}^{\tau}\int_0^{2\pi}\Upsilon(T_{c}, T_{e}; d| r_0, \theta_0)\,d\theta \,f_{R_0}(r_0)\,dr_0.
+\end{equation*}
+where
+\begin{equation*}\begin{split}
+    &\Upsilon(T_{c}, T_{e}; d| R_0, \Theta_0) \\
+    &= \mathbb E_{\Psi^*}\Big[ \int_0^\infty \textrm{\normalfont Im}\Big[\phi_{I}(-q T_{c}|\Psi)\,\phi_{S}(q; 0 |\Psi)\, e^{-j q T_{c} \sigma^2}\Big] \frac{1}{q} dq \Big.\\
+    &\qquad \Big.\times \int_0^\infty \textrm{\normalfont Im}\Big[\phi_{I}(q'|\Psi)\,\phi_{S}(q'; d|\Psi)\, e^{-j q' T_{e}}\Big] \frac{1}{q'} dq'\Big]
+\end{split}\end{equation*}
+Let $v_1\! = \!\phi_{S}(q; 0 |\Psi)\, e^{-j q T_{c} \sigma^2}$ and $v_2 \!=\! \phi_{S}(q'; d|\Psi)\, e^{-j q' T_{e}}$. By swapping the expectation and the integrals, following Fubini's theorem, we obtain
+\begin{equation}\begin{split}
+    &\Upsilon(T_{c}, T_{e}; d| R_0, \Theta_0) \\
+    &= \int_0^{\infty} \!\int_0^{\infty} \!\underbrace{\mathbb E_{\Psi^*}\!\left[\textrm{\normalfont Im}\!\left[\phi_{I}(-q T_{c}|\Psi)v_1\right] \textrm{\normalfont Im}\!\left[\phi_{I}(q'|\Psi)v_2\right]\right]}_{\epsilon(q, q';T_{c},T_{e},d|R_0, \Theta_0)}\!\frac{dq\, dq'}{q \,q'}.
+\end{split}\end{equation}
+\subsection{Decomposition of $\epsilon(q, q';T_{c},T_{e},d|r_0, \theta_0)$}
+\label{ssec:decomposition3}
+Since $\phi_{S}$ does not depend on $\Psi^*$, by using $\textrm{\normalfont Im}[x] = \frac{x-\Bar{x}}{2}$ and $\text{Re}[x] = \frac{x+\Bar{x}}{2}$, we obtain
+\begin{multline}
+    \epsilon(q, q';T_{c},T_{e},d|R_0, \Theta_0) \\
+    = \frac{1}{4}\,\mathbb E_{\Psi^*}\!\left[\left(\phi_{I}\left(-q T_{c}| \Psi\right)\,v_1-\Bar{\phi_{I}}\left(-q T_{c}| \Psi\right)\,\Bar{v_1}\right)\right. \\
+    \qquad \times \,\left.\left(\phi_{I}\left(q'| \Psi\right)\,v_2-\Bar{\phi_{I}}\left(q'| \Psi\right)\,\Bar{v_2}\right)\right]\\
+    = \frac{1}{4}\,\mathbb E_{\Psi^*}\!\left[\phi_{I}\left(-q T_{c}| \Psi\right)\,\phi_{I}\left(q'| \Psi\right)\right]\,v_1\,v_2\\
+    -\frac{1}{4}\,\mathbb E_{\Psi^*}\!\left[\phi_{I}\left(-q T_{c}| \Psi\right)\,\Bar{\phi_{I}}\left(q'| \Psi\right)\right]\,v_1\,\Bar{v_2}\\
+    -\frac{1}{4}\,\mathbb E_{\Psi^*}\!\left[\Bar{\phi_{I}}\left(-q T_{c}| \Psi\right)\,\phi_{I}\left(q'| \Psi\right)\right]\,\Bar{v_1}\,v_2\\
+    +\frac{1}{4}\,\mathbb E_{\Psi^*}\!\left[\Bar{\phi_{I}}\left(-q T_{c}| \Psi\right)\,\Bar{\phi_{I}}\left(q'| \Psi\right)\right]\,\Bar{v_1}\,\Bar{v_2}\\
+    = \frac{1}{2}\,\text{Re}\left[\gamma_+(q, q'|r_0)\,v_1\,v_2\right]-\frac{1}{2}\,\text{Re}\left[\gamma_-(q, q'|r_0)\,v_1\,\Bar{v_2}\right]
+\end{multline}where we define
+\begin{equation}\label{eq:g+}
+    \gamma_+(q, q'|r_0) = \mathbb E_{\Psi^*}\!\left[\phi_{I}\left(q| \Psi\right)\,\phi_{I}\left(q'| \Psi\right)\right]
+\end{equation} and 
+\begin{equation}\label{eq:g-}
+    \gamma_-(q, q'|r_0) = \mathbb E_{\Psi^*}\!\left[\phi_{I}\left(q| \Psi\right)\,\Bar{\phi_{I}}\left(q'| \Psi\right)\right].
+\end{equation}
+
+
+\subsection{Decomposition of $\gamma_+$ and $\gamma_-$}
+\label{ssec:decomposition4}
+The methodology employed to calculate the expressions of $\gamma_+$ and $\gamma_-$ aligns with the approach detailed in Appendix~C of \cite{GontierMeta} for the identical network pertaining to a PU. The only modification required lies in adjusting the lower bound of the integral in equation~(30), substituting $r_0$ for $r_e$.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+
+\bibliographystyle{IEEEtran}
+\bibliography{bibli}
+
+
+
+\vfill
+
+\end{document}
+
+
