@@ -1,7 +1,7 @@
 from openai import OpenAI
 
 client = OpenAI(
-    api_key="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" # API key David: Love with love and care, han nume no so 4 bucks
+    api_key="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" # API key David: Use with love and care, han nume no so 4 bucks
 )
 
 def generate_answer(prompt):
