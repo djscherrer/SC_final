@@ -20,22 +20,21 @@ average_values['university_code'] = pd.Categorical(average_values.index)
 dimensions = [
     dict(label='University', values=average_values['university_code'], tickvals=list(range(len(average_values))),
          ticktext=average_values['university_association']),
-    dict(range=[average_values['Originality'].min(), average_values['Originality'].max()],
+    dict(range=[1, 10],
          label='Originality', values=average_values['Originality']),
-    dict(range=[average_values['Method'].min(), average_values['Method'].max()],
+    dict(range=[1, 10],
          label='Method', values=average_values['Method']),
-    dict(range=[average_values['Credibility'].min(), average_values['Credibility'].max()],
+    dict(range=[1, 10],
          label='Credibility', values=average_values['Credibility']),
-    dict(range=[average_values['Understandability'].min(), average_values['Understandability'].max()],
+    dict(range=[1, 10],
          label='Understandability', values=average_values['Understandability']),
-    dict(range=[average_values['Relevance'].min(), average_values['Relevance'].max()],
+    dict(range=[1, 10],
          label='Relevance', values=average_values['Relevance']),
-    dict(range=[average_values['Quality of Citations'].min(), average_values['Quality of Citations'].max()],
+    dict(range=[1, 10],
          label='Quality of Citations', values=average_values['Quality of Citations']),
-    dict(range=[average_values['Linguistic style and soundness of grammar'].min(),
-                average_values['Linguistic style and soundness of grammar'].max()],
+    dict(range=[1, 10],
          label='Grammar', values=average_values['Linguistic style and soundness of grammar']),
-    dict(range=[average_values['Overall score'].min(), average_values['Overall score'].max()],
+    dict(range=[1, 10],
          label='Overall Score', values=average_values['Overall score']),
 ]
 
@@ -49,14 +48,14 @@ go.Parcoords(
 
 # Update layout for better readability
 fig.update_layout(
-    title=f'Average ratings of university in all dimensions and the {source} data set',
+    title=f'Average ratings of university in all dimensions and the {source} data set from 1 to 10',
     title_font_size=20,
     margin=dict(l=270, t=100),
     width=1500,
     height=800
 )
 
-fig.write_html(f"../html/university_{source}_parallel_coordinates.html")
+fig.write_html(f"../html/university_1-10_{source}_parallel_coordinates.html")
 
 # Show the plot
 fig.show()
