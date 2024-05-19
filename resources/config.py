@@ -15,3 +15,4 @@ universities_by_country = {
     "Germany": ["Technical University of Munich", "University of Potsdam", "Leibniz University Hannover"], # 37, 460, 481
     "South Africa": ["University of Cape Town", "University of South Africa", "University of the Free State"] # 173, 851-900, 1001-1200
 }
+

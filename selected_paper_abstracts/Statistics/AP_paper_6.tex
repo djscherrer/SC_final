@@ -1,0 +1,18 @@
+Matching on a low dimensional vector of scalar covariates consists of constructing groups of individuals in which each individual in a group is within a pre-specified distance from an individual in another group. However, matching in high dimensional spaces is more challenging because the distance can be sensitive to implementation details, caliper width, and measurement error of observations. To partially address these problems, we propose to use extensive sensitivity analyses and identify the main sources of variation and bias. We illustrate these concepts by examining the racial disparity in all-cause mortality in the US using the National Health and Nutrition Examination Survey (NHANES 2003-2006). In particular, we match African Americans to Caucasian Americans on age, gender, BMI and objectively measured physical activity (PA). PA is measured every minute using accelerometers for up to seven days and then transformed into an empirical distribution of all of the minute-level observations. The Wasserstein metric is used as the measure of distance between these participant-specific distributions. 
+
+   \begin{comment}
+
+
+In looking to match on NHANES data, we identify four potential problems for using the Wasserstein distance in a high-dimensional setting: (1) the sensitivity to the choice of interval where the integration is conducted; (2) the sensitivity to the choice of the number of terms in the Riemann sum approximation; (3) the within-person, day-to-day variability in the measured physical activity can substantially affect the stability of Wasserstein; and (4) a lack of meaning for the values of the distances and a threshold used for the definition of closeness.
+
+The complexities  understanding its meaning, and determining closeness pose complications.
+
+Sensitivity analyses must be done
+We found that variability in user chosen parameters led to different results- we identify key areas that lead to this 
+
+Cautionary tale for anyone looking to do high-dimensional matching 
+
+In particular, we formalize the problem, show that solutions will depend on a set of choices in terms of distance and calipers, and investigate the sensitivity of the results to these choices.
+
+ and explore the impact of caliper selection, the computation of the distance, and within-person variability on the subgroups defined by matching and, consequently, on the estimators of $\exp(\gamma_1)$
+\end{comment}
