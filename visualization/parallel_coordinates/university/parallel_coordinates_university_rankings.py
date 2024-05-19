@@ -6,10 +6,10 @@ import numpy as np
 source = "abstracts"
 # source = "in_paper"
 # source = "prompt"
-raw_df = pd.read_csv(f'../../raw_data/ratings_{source}.csv', delimiter=',')
+raw_df = pd.read_csv(f'../../../raw_data/ratings_{source}.csv', delimiter=',')
 
 # Load the ranking data
-rankings_df = pd.read_csv('../../raw_data/ranking.csv', delimiter=',')
+rankings_df = pd.read_csv('../../../raw_data/ranking.csv', delimiter=',')
 
 # Calculate the average values for each university
 average_values = raw_df.groupby('university_association').mean().reset_index()
@@ -69,14 +69,14 @@ go.Parcoords(
 
 # Update layout for better readability
 fig.update_layout(
-    title=f'Average ratings of university in all dimensions and the {source} data set, including ranking',
+    title=f'Average ratings of university in all dimensions including ranking ({source} data set)',
     title_font_size=20,
     margin=dict(l=270, t=100),
     width=1500,
     height=800
 )
 
-fig.write_html(f"../html/university_with_ranking_{source}_parallel_coordinates.html")
+fig.write_html(f"html/university_with_ranking_{source}_parallel_coordinates.html")
 
 # Show the plot
 fig.show()

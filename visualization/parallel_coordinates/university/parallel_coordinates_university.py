@@ -5,21 +5,21 @@ import plotly.graph_objects as go
 source = "abstracts"
 # source = "in_paper"
 # source = "prompt"
-raw_df = pd.read_csv(f'../../raw_data/ratings_{source}.csv', delimiter=',')
+raw_df = pd.read_csv(f'../../../raw_data/ratings_{source}.csv', delimiter=',')
 
 # Calculate the average values for each university
-average_values = raw_df.groupby('country_association').mean().reset_index()
+average_values = raw_df.groupby('university_association').mean().reset_index()
 
 # Sort the DataFrame by 'Overall score'
 average_values = average_values.sort_values(by='Overall score', ascending=True).reset_index(drop=True)
 
-# Add a categorical column for country names with the new order
-average_values['country_code'] = pd.Categorical(average_values.index)
+# Add a categorical column for university names with the new order
+average_values['university_code'] = pd.Categorical(average_values.index)
 
 # Define the dimensions to be included in the parallel coordinates plot
 dimensions = [
-    dict(label='Country', values=average_values['country_code'], tickvals=list(range(len(average_values))),
-         ticktext=average_values['country_association']),
+    dict(label='University', values=average_values['university_code'], tickvals=list(range(len(average_values))),
+         ticktext=average_values['university_association']),
     dict(range=[average_values['Originality'].min(), average_values['Originality'].max()],
          label='Originality', values=average_values['Originality']),
     dict(range=[average_values['Method'].min(), average_values['Method'].max()],
@@ -49,14 +49,14 @@ go.Parcoords(
 
 # Update layout for better readability
 fig.update_layout(
-    title=f'Average ratings of country in all dimensions and the {source} data set',
+    title=f'Average ratings of university in all dimensions ({source} data set)',
     title_font_size=20,
     margin=dict(l=270, t=100),
     width=1500,
     height=800
 )
 
-fig.write_html(f"../html/country_{source}_parallel_coordinates.html")
+fig.write_html(f"html/university_{source}_parallel_coordinates.html")
 
 # Show the plot
 fig.show()
