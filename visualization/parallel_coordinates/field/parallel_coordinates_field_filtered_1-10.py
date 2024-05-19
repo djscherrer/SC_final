@@ -27,7 +27,7 @@ average_values = average_values.sort_values(by='Overall score', ascending=True).
 # Add a categorical column for university names with the new order
 average_values['university_code'] = pd.Categorical(average_values.index)
 
-# Define the dimensions to be included in the parallel coordinates plot
+# Define the dimensions to be included in the parallel coordinates plot, use 1-10
 dimensions = [
     dict(label='University', values=average_values['university_code'], tickvals=list(range(len(average_values))),
          ticktext=average_values['university_association']),

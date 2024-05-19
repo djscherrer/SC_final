@@ -7,7 +7,7 @@ source = "abstracts"
 # source = "prompt"
 raw_df = pd.read_csv(f'../../../raw_data/ratings_{source}.csv', delimiter=',')
 
-# Calculate the average values for each university
+# Calculate the average values for each country
 average_values = raw_df.groupby('country_association').mean().reset_index()
 
 # Sort the DataFrame by 'Overall score'

@@ -52,11 +52,11 @@ dimensions = [
          label='QS World', values=merged_df['qs_world'])
 ]
 
-# Put this in to also visualize times higher education
+# Put this inside dimensions to also visualize "times higher education ranking"
 """
 dict(range=[1401, 1],
      label='Times Higher Education', values=merged_df['times_higher_education'],
-     constraintrange=[1, merged_df['times_higher_education'].max()]),
+     constraintrange=[1, merged_df['times_higher_education'].max()]), # needed because of NaN values
  """
 
 # Create the parallel coordinates plot

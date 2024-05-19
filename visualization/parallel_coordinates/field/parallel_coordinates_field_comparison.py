@@ -28,7 +28,7 @@ for field_code, field_name in field_dict.items():
     # Add the field name as a column
     average_values['Field'] = field_name
 
-    # Append the average values to the field_ratings DataFrame
+    # Append the average values to the field_ratings df
     field_ratings = pd.concat([field_ratings, average_values], ignore_index=True)
 
 # Add a categorical column for field names with the new order

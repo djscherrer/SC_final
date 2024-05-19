@@ -17,40 +17,40 @@ for df, source in zip(dataframes, sources):
 combined_df = pd.concat(average_values_list, ignore_index=True)
 
 # Pivot the data to have categories as columns and sources as rows
-pivot_df = combined_df.pivot(index='source', columns='category', values='value').reset_index()
+new_df = combined_df.pivot(index='source', columns='category', values='value').reset_index()
 
 # Sort the DataFrame by 'Overall score'
-pivot_df = pivot_df.sort_values(by='Overall score', ascending=True).reset_index(drop=True)
+new_df = new_df.sort_values(by='Overall score', ascending=True).reset_index(drop=True)
 
 # Add a categorical column for sources with the new order
-pivot_df['source_code'] = pd.Categorical(pivot_df.index)
+new_df['source_code'] = pd.Categorical(new_df.index)
 
-# Define the dimensions to be included in the parallel coordinates plot
+# Define the dimensions to be included in the parallel coordinates plot, use 1-10
 dimensions = [
-    dict(label='Source', values=pivot_df['source_code'], tickvals=list(range(len(pivot_df))),
-         ticktext=pivot_df['source']),
+    dict(label='Source', values=new_df['source_code'], tickvals=list(range(len(new_df))),
+         ticktext=new_df['source']),
     dict(range=[1, 10],
-         label='Originality', values=pivot_df['Originality']),
+         label='Originality', values=new_df['Originality']),
     dict(range=[1, 10],
-         label='Method', values=pivot_df['Method']),
+         label='Method', values=new_df['Method']),
     dict(range=[1, 10],
-         label='Credibility', values=pivot_df['Credibility']),
+         label='Credibility', values=new_df['Credibility']),
     dict(range=[1, 10],
-         label='Understandability', values=pivot_df['Understandability']),
+         label='Understandability', values=new_df['Understandability']),
     dict(range=[1, 10],
-         label='Relevance', values=pivot_df['Relevance']),
+         label='Relevance', values=new_df['Relevance']),
     dict(range=[1, 10],
-         label='Quality of Citations', values=pivot_df['Quality of Citations']),
+         label='Quality of Citations', values=new_df['Quality of Citations']),
     dict(range=[1, 10],
-         label='Grammar', values=pivot_df['Linguistic style and soundness of grammar']),
+         label='Grammar', values=new_df['Linguistic style and soundness of grammar']),
     dict(range=[1, 10],
-         label='Overall Score', values=pivot_df['Overall score']),
+         label='Overall Score', values=new_df['Overall score']),
 ]
 
 # Create the parallel coordinates plot
 fig = go.Figure(data=
     go.Parcoords(
-        line=dict(color=pivot_df['Overall score'], colorscale='Viridis', showscale=True),
+        line=dict(color=new_df['Overall score'], colorscale='Viridis', showscale=True),
         dimensions=dimensions
     )
 )

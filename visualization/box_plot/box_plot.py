@@ -7,7 +7,7 @@ source = "abstracts"
 # source = "prompt"
 raw_df = pd.read_csv(f'../../raw_data/ratings_{source}.csv', delimiter=',')
 
-# Melt the DataFrame to long format
+# "Melt" the df to match required format
 melted_df = raw_df.melt(id_vars=['country_association'],
                         value_vars=['Originality',
                                     'Method',

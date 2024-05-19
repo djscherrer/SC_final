@@ -8,7 +8,7 @@ import os
 app = dash.Dash(__name__)
 app.title = "Interactive Bar Chart with Filters"
 
-# Translate the tags to the actual fields
+# Translate the tags to the actual research fields
 field_dict = {
     "All": "All Fields",
     "EM": "Economics",
@@ -18,14 +18,14 @@ field_dict = {
     "AI": "Computer Science"
 }
 
-# Translate the path to more readable name
+# Translate the source path to more readable source name
 source_dict = {
     "abstracts": "Only abstracts",
     "in_paper": "Inside paper",
     "prompt": "Inside prompt"
 }
 
-# Split all possible filters into same size fragments, style them and define possible values
+# Split all possible filters into same size divs, style them and define possible values
 app.layout = html.Div([
     html.Div([
         html.H1(
@@ -112,6 +112,7 @@ app.layout = html.Div([
     dcc.Graph(id='bar-chart', style={'height': '800px'})
 ])
 
+
 @app.callback(
     Output('bar-chart', 'figure'),
     Input('data-source', 'value'),
@@ -145,7 +146,7 @@ def update_bar_chart(data_source, field_filter, group_by, selected_dimensions, s
             }
         }
 
-    # Filter the data based on the selected field, special case if you want all fields
+    # Filter the data based on the selected field with special case if you want all fields
     if field_filter == 'All':
         filtered_df = raw_df
     else:
@@ -158,7 +159,7 @@ def update_bar_chart(data_source, field_filter, group_by, selected_dimensions, s
     average_values = average_values.sort_values(by=sort_by, ascending=True)
 
     # Create the bar chart
-    fig = px.bar(
+    figure = px.bar(
         average_values,
         x=group_by,
         y=selected_dimensions,
@@ -167,7 +168,7 @@ def update_bar_chart(data_source, field_filter, group_by, selected_dimensions, s
         title=f'Average ratings by {group_by.replace("_", " ").title().lower()} sorted by {sort_by.replace("_", " ").title().lower()}'
     )
 
-    return fig
+    return figure
 
 
 if __name__ == '__main__':
