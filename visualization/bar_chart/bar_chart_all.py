@@ -4,10 +4,11 @@ import pandas as pd
 import plotly.express as px
 import os
 
-# Initialize the Dash app
+# Initialize the app
 app = dash.Dash(__name__)
 app.title = "Interactive Bar Chart with Filters"
 
+# Translate the tags to the actual fields
 field_dict = {
     "All": "All Fields",
     "EM": "Economics",
@@ -17,12 +18,14 @@ field_dict = {
     "AI": "Computer Science"
 }
 
+# Translate the path to more readable name
 source_dict = {
-    "abstracts": "Abstracts",
-    "in_paper": "In Paper",
-    "prompt": "Prompt"
+    "abstracts": "Only abstracts",
+    "in_paper": "Inside paper",
+    "prompt": "Inside prompt"
 }
 
+# Split all possible filters into same size fragments, style them and define possible values
 app.layout = html.Div([
     html.Div([
         html.H1(
@@ -37,8 +40,8 @@ app.layout = html.Div([
             html.Label("Data Source", style={'font-weight': 'bold', 'font-size': '1.2em', 'color': '#2C3E50'}),
             dcc.Dropdown(
                 id='data-source',
-                options=[{'label': v, 'value': k} for k, v in source_dict.items()],
-                value='abstracts',  # Default value
+                options=[{'label': values, 'value': keys} for keys, values in source_dict.items()],
+                value='abstracts',
                 style={'width': '100%', 'font-size': '1em'}
             )
         ], style={'display': 'inline-block', 'width': '23%', 'padding': '10px', 'vertical-align': 'top'}),
@@ -47,7 +50,7 @@ app.layout = html.Div([
             html.Label("Field Filter", style={'font-weight': 'bold', 'font-size': '1.2em', 'color': '#2C3E50'}),
             dcc.Dropdown(
                 id='field-filter',
-                options=[{'label': v, 'value': k} for k, v in field_dict.items()],
+                options=[{'label': values, 'value': keys} for keys, values in field_dict.items()],
                 value='All',  # Default value
                 style={'width': '100%', 'font-size': '1em'}
             )
@@ -67,7 +70,7 @@ app.layout = html.Div([
                     {'label': 'Grammar', 'value': 'Linguistic style and soundness of grammar'},
                     {'label': 'Overall Score', 'value': 'Overall score'}
                 ],
-                value=['Overall score'],  # Default value
+                value=['Overall score'],
                 multi=True,
                 style={'width': '100%', 'font-size': '1em'}
             )
@@ -87,7 +90,7 @@ app.layout = html.Div([
                     {'label': 'Grammar', 'value': 'Linguistic style and soundness of grammar'},
                     {'label': 'Overall Score', 'value': 'Overall score'}
                 ],
-                value='Overall score',  # Default value
+                value='Overall score',
                 style={'width': '100%', 'font-size': '1em'}
             )
         ], style={'display': 'inline-block', 'width': '23%', 'padding': '10px', 'vertical-align': 'top'}),
@@ -100,7 +103,7 @@ app.layout = html.Div([
                     {'label': 'University', 'value': 'university_association'},
                     {'label': 'Country', 'value': 'country_association'}
                 ],
-                value='university_association',  # Default value
+                value='university_association',
                 labelStyle={'display': 'inline-block', 'margin-right': '10px', 'font-size': '1em', 'color': '#2C3E50'}
             )
         ], style={'display': 'inline-block', 'width': '23%', 'padding': '10px', 'vertical-align': 'top'}),
@@ -108,7 +111,6 @@ app.layout = html.Div([
 
     dcc.Graph(id='bar-chart', style={'height': '800px'})
 ])
-
 
 @app.callback(
     Output('bar-chart', 'figure'),
@@ -122,7 +124,7 @@ def update_bar_chart(data_source, field_filter, group_by, selected_dimensions, s
     # Construct the file path
     file_path = f'../../raw_data/ratings_{data_source}.csv'
 
-    # Check if the file exists
+    # Check if the file exists, if not don't show something (avoid errors)
     if not os.path.exists(file_path):
         return {
             'data': [],
@@ -131,7 +133,7 @@ def update_bar_chart(data_source, field_filter, group_by, selected_dimensions, s
             }
         }
 
-    # Load the data
+    # Load the data, if not possible don't show something (avoid errors)
     try:
         raw_df = pd.read_csv(file_path, delimiter=',')
     except Exception as e:
@@ -143,7 +145,7 @@ def update_bar_chart(data_source, field_filter, group_by, selected_dimensions, s
             }
         }
 
-    # Filter the data based on the selected field
+    # Filter the data based on the selected field, special case if you want all fields
     if field_filter == 'All':
         filtered_df = raw_df
     else:
@@ -162,7 +164,7 @@ def update_bar_chart(data_source, field_filter, group_by, selected_dimensions, s
         y=selected_dimensions,
         barmode='group',
         labels={group_by: group_by.replace('_', ' ').title()},
-        title=f'Average Ratings by {group_by.replace("_", " ").title()} Sorted by {sort_by.replace("_", " ").title()}'
+        title=f'Average ratings by {group_by.replace("_", " ").title().lower()} sorted by {sort_by.replace("_", " ").title().lower()}'
     )
 
     return fig
