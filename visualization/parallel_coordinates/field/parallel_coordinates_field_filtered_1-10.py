@@ -62,7 +62,7 @@ fig.update_layout(
     title=f'Average ratings of university in all dimensions 1-10 filter by {field_dict[field_filter]} ({source} data set)',
     title_font_size=20,
     margin=dict(l=270, t=100),
-    width=1500,
+    width=1400,
     height=800
 )
 

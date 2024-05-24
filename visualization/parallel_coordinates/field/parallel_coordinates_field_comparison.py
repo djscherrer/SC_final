@@ -70,7 +70,7 @@ fig.update_layout(
     title=f'Average ratings for each field in all dimensions ({source} data set)',
     title_font_size=20,
     margin=dict(l=270, t=100),
-    width=1500,
+    width=1400,
     height=800
 )
 

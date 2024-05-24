@@ -2,9 +2,9 @@ import pandas as pd
 import plotly.express as px
 
 # Load the data
-source = "abstracts"
+# source = "abstracts"
 # source = "in_paper"
-# source = "prompt"
+source = "prompt"
 raw_df = pd.read_csv(f'../../raw_data/ratings_{source}.csv', delimiter=',')
 
 # "Melt" the df to match required format

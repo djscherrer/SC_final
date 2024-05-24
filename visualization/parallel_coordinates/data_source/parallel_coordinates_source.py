@@ -60,7 +60,7 @@ fig.update_layout(
     title='Average ratings of sources across all categories',
     title_font_size=20,
     margin=dict(l=270, t=100),
-    width=1500,
+    width=1400,
     height=800
 )
 

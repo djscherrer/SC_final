@@ -30,7 +30,7 @@ app.layout = html.Div([
     html.Div([
         html.H1(
             "Interactive Bar Chart with Filters",
-            style={'text-align': 'center', 'font-family': 'Arial, sans-serif', 'font-size': '2.5em',
+            style={'text-align': 'center', 'font-family': 'Arial, sans-serif', 'font-size': '1.5em',
                    'margin-bottom': '20px', 'color': '#2C3E50'}
         ),
     ]),
@@ -44,7 +44,7 @@ app.layout = html.Div([
                 value='abstracts',
                 style={'width': '100%', 'font-size': '1em'}
             )
-        ], style={'display': 'inline-block', 'width': '23%', 'padding': '10px', 'vertical-align': 'top'}),
+        ], style={'display': 'inline-block', 'width': '23%', 'padding': '3px', 'vertical-align': 'top'}),
 
         html.Div([
             html.Label("Field Filter", style={'font-weight': 'bold', 'font-size': '1.2em', 'color': '#2C3E50'}),
@@ -54,7 +54,7 @@ app.layout = html.Div([
                 value='All',  # Default value
                 style={'width': '100%', 'font-size': '1em'}
             )
-        ], style={'display': 'inline-block', 'width': '23%', 'padding': '10px', 'vertical-align': 'top'}),
+        ], style={'display': 'inline-block', 'width': '23%', 'padding': '3px', 'vertical-align': 'top'}),
 
         html.Div([
             html.Label("Selected Dimensions", style={'font-weight': 'bold', 'font-size': '1.2em', 'color': '#2C3E50'}),
@@ -74,7 +74,7 @@ app.layout = html.Div([
                 multi=True,
                 style={'width': '100%', 'font-size': '1em'}
             )
-        ], style={'display': 'inline-block', 'width': '23%', 'padding': '10px', 'vertical-align': 'top'}),
+        ], style={'display': 'inline-block', 'width': '23%', 'padding': '3px', 'vertical-align': 'top'}),
 
         html.Div([
             html.Label("Sort By", style={'font-weight': 'bold', 'font-size': '1.2em', 'color': '#2C3E50'}),
@@ -93,7 +93,7 @@ app.layout = html.Div([
                 value='Overall score',
                 style={'width': '100%', 'font-size': '1em'}
             )
-        ], style={'display': 'inline-block', 'width': '23%', 'padding': '10px', 'vertical-align': 'top'}),
+        ], style={'display': 'inline-block', 'width': '23%', 'padding': '3px', 'vertical-align': 'top'}),
 
         html.Div([
             html.Label("Group By", style={'font-weight': 'bold', 'font-size': '1.2em', 'color': '#2C3E50'}),
@@ -106,10 +106,10 @@ app.layout = html.Div([
                 value='university_association',
                 labelStyle={'display': 'inline-block', 'margin-right': '10px', 'font-size': '1em', 'color': '#2C3E50'}
             )
-        ], style={'display': 'inline-block', 'width': '23%', 'padding': '10px', 'vertical-align': 'top'}),
-    ], style={'display': 'flex', 'justify-content': 'space-around', 'flex-wrap': 'wrap', 'margin-bottom': '20px'}),
+        ], style={'display': 'inline-block', 'width': '23%', 'padding': '3px', 'vertical-align': 'top'}),
+    ], style={'display': 'flex', 'justify-content': 'space-around', 'flex-wrap': 'wrap', 'margin-bottom': '5px'}),
 
-    dcc.Graph(id='bar-chart', style={'height': '800px'})
+    dcc.Graph(id='bar-chart', style={'height': '700px'})
 ])
 
 

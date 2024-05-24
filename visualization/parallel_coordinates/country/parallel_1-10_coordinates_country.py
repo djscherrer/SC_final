@@ -51,7 +51,7 @@ fig.update_layout(
     title=f'Average ratings of country in all dimensions from 1 to 10 ({source} data set)',
     title_font_size=20,
     margin=dict(l=270, t=100),
-    width=1500,
+    width=1400,
     height=800
 )
 
