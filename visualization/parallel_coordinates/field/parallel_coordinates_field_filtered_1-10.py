@@ -14,7 +14,7 @@ field_dict = {"EM": "economics",
               "AI": "computer science"}
 
 # if you want to change the field, do it here
-field_filter = "EM"
+field_filter = "AI"
 
 filtered_df = raw_df[raw_df['title'].str.contains(field_filter, case=False, na=False)]
 

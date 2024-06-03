@@ -8,11 +8,11 @@ source = "abstracts"
 raw_df = pd.read_csv(f'../../../raw_data/ratings_{source}.csv', delimiter=',')
 
 # Dictionary to map field codes to field names
-field_dict = {"EM": "economics",
+field_dict = {"AT": "mathematics",
               "CP": "quantitative finance",
-              "AT": "mathematics",
               "AP": "statistics",
-              "AI": "computer science"}
+              "EM": "economics",
+              "AI": "computer science", }
 
 # Create a new DataFrame to store aggregated ratings by field
 field_ratings = pd.DataFrame()
