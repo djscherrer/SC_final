@@ -6,8 +6,7 @@
 - Simon Moser
 - David Scherrer
 
-## Course
-Social Computing, FS 2024
+Final research project for the Social Computing Course at UZH, FS 2024.
 
 ## Overview
 This repository contains the code and data for the project "Bias in AI: Analyzing ChatGPT's University Ranking Tendencies." The project investigates potential biases in ChatGPT's evaluations of academic papers based on the country and university affiliations of the authors.
