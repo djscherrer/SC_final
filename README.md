@@ -1,10 +1,10 @@
 # Bias in AI: Analyzing ChatGPT's University Ranking Tendencies
 
 ## Authors
-- Marvin John Wiedenkeller
-- David Jonas Scherrer
-- Jan Marc Lüthi
-- Simon Moser
+- @ChlineSaurus (Marvin)
+- @Dev-Lj (Jan Lüthi)
+- @nomis6999 (Simon Moser)
+- @djscherrer (David Scherrer)
 
 ## Course
 Social Computing, FS 2024
